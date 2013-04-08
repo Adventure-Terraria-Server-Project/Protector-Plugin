@@ -1,0 +1,10 @@
+﻿The Protector library itself and all its containing source code is licensed 
+under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. 
+To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+
+The Plugin Common Library is also licensed under the Creative Commons 
+Attribution-NonCommercial-ShareAlike 3.0 Unported License. 
+To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
+
+The Json.NET library is licensed under the MIT License.
+To view a copy of this license, visit http://json.codeplex.com/license.
