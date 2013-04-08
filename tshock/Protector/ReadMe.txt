@@ -107,7 +107,7 @@ prot_utility
   remove all empty non protected chests of the world.
 prot_cfg
   Can import Infinite Chests' data or Infinite Signs' database files, can 
-  reload Protector's configuration file
+  reload Protector's configuration file.
 
 
 About Data Import and Compatibility
