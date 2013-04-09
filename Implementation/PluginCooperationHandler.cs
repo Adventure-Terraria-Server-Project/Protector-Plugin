@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.IO;
+using DPoint = System.Drawing.Point;
 
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
@@ -9,7 +10,6 @@ using Terraria.Plugins.Common;
 
 using TShockAPI;
 using TShockAPI.DB;
-using DPoint = System.Drawing.Point;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class PluginCooperationHandler {
@@ -77,7 +77,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         using (QueryResult reader = dbConnection.QueryReader(
           "SELECT X, Y, Account, Flags, Items FROM Chests WHERE WorldID = @0", Main.worldID)
         ) {
-        	while (reader.Read()) {
+          while (reader.Read()) {
             int rawX = reader.Get<int>("X");
             int rawY = reader.Get<int>("Y");
             string rawAccount = reader.Get<string>("Account");
@@ -88,7 +88,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
               continue;
 
             DPoint chestLocation = new DPoint(rawX, rawY);
-            // We use TSPlayer.All to indicate that this chest must not be protected at all.
+            if (!TerrariaUtils.Tiles[chestLocation].active || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest) {
+              this.PluginTrace.WriteLineWarning(string.Format(
+                "The chest data on the location {0} could not be imported because no corresponding chest does exist in the world.", 
+                chestLocation
+              ));
+              continue;
+            }
+
+            // TSPlayer.All means that the chest must not be protected at all.
             TSPlayer owner = TSPlayer.All;
             if (!string.IsNullOrEmpty(rawAccount)) {
               User tUser = TShock.Users.GetUserByName(rawAccount);
@@ -102,13 +110,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
                 // The original owner of the chest does not exist anymore, so we just protect it for the server player.
                 owner = TSPlayer.Server;
               }
-            }
-
-            if (!TerrariaUtils.Tiles[chestLocation].active || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest) {
-              this.PluginTrace.WriteLineWarning(string.Format(
-                "The chest data on the location {0} could not be imported because no corresponding chest does exist in the world.", chestLocation
-              ));
-              continue;
             }
 
             int chestIndex = Chest.FindChest(rawX, rawY);
@@ -134,17 +135,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
             importedChests++;
 
             if (owner != TSPlayer.All) {
-        	    try {
-        	      ProtectionEntry protection = protectionManager.CreateProtection(owner, chestLocation, true, false, false);
+              try {
+                ProtectionEntry protection = protectionManager.CreateProtection(owner, chestLocation, true, false, false);
                 protection.IsSharedWithAll = (rawFlags & InfiniteChestsChestFlags.PUBLIC) != 0;
                 if ((rawFlags & InfiniteChestsChestFlags.REFILL) != 0)
                   protectionManager.SetUpRefillChest(owner, chestLocation, TimeSpan.Zero);
-        	    } catch (Exception ex) {
+              } catch (Exception ex) {
                 this.PluginTrace.WriteLineWarning(
                   "Failed to create protection or define refill chest at {0}:\n{1}", chestLocation, ex
                 );
-        	      protectFailures++;
-        	    }
+                protectFailures++;
+              }
             }
           }
         }
@@ -201,8 +202,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             if (!TerrariaUtils.Tiles.IsValidCoord(rawX, rawY))
               continue;
 
-            DPoint signLocation = new DPoint(rawX, rawY);
-            // We use TSPlayer.All to indicate that this sign must not be protected at all.
+            // TSPlayer.All means that the sign must not be protected at all.
             TSPlayer owner = TSPlayer.All;
             if (!string.IsNullOrEmpty(rawAccount)) {
               User tUser = TShock.Users.GetUserByName(rawAccount);
@@ -218,6 +218,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
               }
             }
 
+            DPoint signLocation = new DPoint(rawX, rawY);
             int signIndex = -1;
             for (int i = 0; i < Main.sign.Length; i++) {
               Sign sign = Main.sign[i];
@@ -232,7 +233,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
               Tile signTile = TerrariaUtils.Tiles[signLocation];
               if (!signTile.active || (signTile.type != (int)BlockType.Sign && signTile.type != (int)BlockType.Tombstone)) {
                 this.PluginTrace.WriteLineWarning(string.Format(
-                  "The sign data on the location {0} could not be imported because no corresponding sign does exist in the world.", signLocation
+                  "The sign data on the location {0} could not be imported because no corresponding sign does exist in the world.", 
+                  signLocation
                 ));
                 continue;
               }
@@ -257,12 +259,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             if (owner != TSPlayer.All) {
-        	    try {
-        	      protectionManager.CreateProtection(owner, signLocation, true, false, false);
-        	    } catch (Exception ex) {
+              try {
+                protectionManager.CreateProtection(owner, signLocation, true, false, false);
+              } catch (Exception ex) {
                 this.PluginTrace.WriteLineWarning("Failed to create protection at {0}:\n{1}", signLocation, ex);
-        	      protectFailures++;
-        	    }
+                protectFailures++;
+              }
             }
           }
         }

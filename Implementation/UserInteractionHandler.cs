@@ -1508,7 +1508,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         default:
           args.Player.SendMessage("Command reference for /bankchest (Page 1 of 5)", Color.Lime);
           args.Player.SendMessage("/bankchest|/bchest <number>", Color.White);
-          args.Player.SendMessage("Converts a protected chest into a bank chest instance. bank chests store their content in a separate", Color.LightGray);
+          args.Player.SendMessage("Converts a protected chest into a bank chest instance. Bank chests store their content in a separate", Color.LightGray);
           args.Player.SendMessage("non world related database - their content remains the same, no matter what world they are instanced in.", Color.LightGray);
           args.Player.SendMessage("They are basically like piggy banks, but server sided.", Color.LightGray);
           break;
@@ -1521,7 +1521,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           break;
         case 3:
           args.Player.SendMessage("be considered as the new bank chest content. If the bank chest with that number was already instanced", Color.LightGray);
-          args.Player.SendMessage("before though, then the chest has to be empty so that it can safely be overwirrten by the bank chest's", Color.LightGray);
+          args.Player.SendMessage("before though, then the chest has to be empty so that it can safely be overwritten by the bank chest's", Color.LightGray);
           args.Player.SendMessage("actual content.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("To remove a bank chest instance, simply /deprotect it.", Color.LightGray);
