@@ -34,7 +34,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         "Protector_BankChests",
         new SqlColumn("UserId", MySqlDbType.Int32),
         new SqlColumn("ChestIndex", MySqlDbType.Int32),
-        new SqlColumn("Content", MySqlDbType.String)
+        new SqlColumn("Content", MySqlDbType.Text)
       ));
     }
     #endregion

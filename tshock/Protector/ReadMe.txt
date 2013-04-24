@@ -1,5 +1,5 @@
 ﻿=================================================================================
- Protector Plugin for Terraria API and TShock
+ Protector Plugin for Terraria API
    (c) CoderCow 2013
 =================================================================================
  
@@ -36,6 +36,8 @@ However when using Protector, worlds will be limited by Terraria's maximum of
 1000 chests and 1000 signs, so this is no replacement for Infinite Signs or
 Infinite Chests. You can try to operate this plugin with other protection 
 plugins, read the "About Data Import and Compatibility" for more information.
+
+Note: This plugin requires TShock 4 or higher in order to work.
 
 
 Commands
@@ -124,5 +126,10 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.0.8 [24.04.2013]
+  -Fixed a bug causing an invalid table for bank chest data to be created for
+   MySql databases.
+  -Fixed a bug causing no message to be displayed for protected chests.
+
 Version 1.0.7 [08.04.2013]
   -First public release by CoderCow.

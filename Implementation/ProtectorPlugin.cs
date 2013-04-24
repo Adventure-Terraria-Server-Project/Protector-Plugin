@@ -213,6 +213,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.hooksEnabled = true;
 
       Task.Factory.StartNew(() => {
+        // Wait a bit until other plugins might have registered their hooks in PostInitialize.
         Thread.Sleep(1000);
 
         this.AddPostHooks();
@@ -283,7 +284,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       try {
         this.WorldMetadataHandler.InitOrReadMetdata();
       } catch (Exception ex) {
-        this.Trace.WriteLineError("Failed reading or initializing metdata or its backup. This plugin will be disabled. Exception details:\n" + ex);
+        this.Trace.WriteLineError("Failed initializing or reading metdata or its backup. This plugin will be disabled. Exception details:\n" + ex);
         this.Trace.WriteLineError("THIS PLUGIN IS DISABLED, EVERYTHING IS UNPROTECTED!");
 
         this.Dispose();
@@ -358,6 +359,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       GameHooks.Update -= this.Game_Update;
       WorldHooks.SaveWorld -= this.World_SaveWorld;
+      GameHooks.PostInitialize -= this.Game_PostInitialize;
     }
 
     private void RemovePostHooks() {
@@ -490,11 +492,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
     
       if (isDisposing) {
-        if (postGetDataHookHandler != null) 
-          postGetDataHookHandler.Dispose();
         this.hooksEnabled = false;
-
-        GameHooks.PostInitialize -= this.Game_PostInitialize;
         this.RemoveHooks();
         this.RemovePostHooks();
         

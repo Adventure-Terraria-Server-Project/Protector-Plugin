@@ -1703,8 +1703,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (protection != null)
         playerHasAccess = this.ProtectionManager.CheckProtectionAccess(protection, player, false);
 
-      if (!playerHasAccess)
+      if (!playerHasAccess) {
+        player.SendErrorMessage("This chest is protected.");
         return true;
+      }
       
       DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
       int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
@@ -1722,7 +1724,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         RefillChestMetadata refillChest = protection.RefillChestData;
         if (this.CheckRefillChestLootability(refillChest, player)) {
           if (refillChest.OneLootPerPlayer)
-            player.SendMessage("You can loot this chest one single time only.", Color.OrangeRed);
+            player.SendMessage("You can loot this chest a single time only.", Color.OrangeRed);
         } else {
           return true; 
         }
@@ -1901,7 +1903,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           return false;
 
         if (this.CheckProtected(player, bedTileLocation, false)) {
-          player.SendErrorMessage("The bed you have set spawn at is protected, you can not teleport there.");
+          player.SendErrorMessage("The bed you have set spawn at is protected, you can not spawn there.");
           player.SendErrorMessage("You were transported to your last valid spawn location instead.");
 
           if (player.TPlayer.SpawnX == -1 && player.TPlayer.SpawnY == -1)
@@ -2540,7 +2542,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (refillChest.Looters.Contains(player.UserID)) {
             if (sendReasonMessages)
-              player.SendErrorMessage("This chest can only be looted on single time per player and you have looted it already.");
+              player.SendErrorMessage("This chest can only be looted a single time per player and you have looted it already.");
 
             return false;
           }
