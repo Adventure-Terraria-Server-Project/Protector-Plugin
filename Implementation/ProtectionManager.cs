@@ -94,7 +94,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
-    #region [Methods: EnumerateProtectionEntries, CheckProtectionAccess]
+    #region [Methods: EnumerateProtectionEntries, CheckProtectionAccess, CheckBlockAccess]
     public IEnumerable<ProtectionEntry> EnumerateProtectionEntries(DPoint tileLocation) {
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       if (!tile.active)

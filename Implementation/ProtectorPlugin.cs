@@ -176,8 +176,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
       #endif
 
       this.trace = new PluginTrace(ProtectorPlugin.TracePrefix);
-      this.hooksEnabled = false;
-
       ProtectorPlugin.latestInstance = this;
     }
     #endregion
