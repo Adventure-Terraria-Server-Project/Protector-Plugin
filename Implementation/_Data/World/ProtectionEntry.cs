@@ -2,10 +2,11 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using Terraria.Plugins.Common.Collections;
 using DPoint = System.Drawing.Point;
 
 using TShockAPI;
+
+using Terraria.Plugins.Common.Collections;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class ProtectionEntry {
@@ -26,7 +27,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Property: TimeOfCreation]
-    private DateTime timeOfCreation;
+    private readonly DateTime timeOfCreation;
 
     public DateTime TimeOfCreation {
       get { return this.timeOfCreation; }
@@ -91,7 +92,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
 
-    #region [Method: Constructor]
+    #region [Methods: Constructors]
     public ProtectionEntry(int owner, DPoint tileLocation) {
       this.owner = owner;
       this.tileLocation = tileLocation;

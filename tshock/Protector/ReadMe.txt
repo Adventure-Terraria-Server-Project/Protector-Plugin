@@ -127,6 +127,7 @@ as this will cause mixed item data in the world file and the chest database.
 Changelog
 ---------------------------------------------------------------------------------
 Version 1.0.9 [20.05.2013]
+  -Changed the command alias /pinfo to /ptinfo.
   -Fixed a rarely occuring bug causing exceptions on server shutdown.
 Version 1.0.8 [24.04.2013]
   -Fixed a bug causing an invalid table for bank chest data being created for

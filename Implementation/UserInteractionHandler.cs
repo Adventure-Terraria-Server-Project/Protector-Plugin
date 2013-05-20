@@ -109,7 +109,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.DeprotectCommand_Exec, this.DeprotectCommand_HelpCallback, ProtectorPlugin.ManualDeprotect_Permission
       );
       base.RegisterCommand(
-        new[] { "protectioninfo", "pinfo", "pi" }, this.ProtectionInfoCommand_Exec, this.ProtectionInfoCommand_HelpCallback
+        new[] { "protectioninfo", "ptinfo", "pi" }, this.ProtectionInfoCommand_Exec, this.ProtectionInfoCommand_HelpCallback
       );
       base.RegisterCommand(
         new[] { "share" }, this.ShareCommand_Exec, this.ShareCommandHelpCallback
@@ -733,7 +733,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /protectioninfo (Page 1 of 1)", Color.Lime);
-          args.Player.SendMessage("/protectioninfo|pinfo|pi [+p]", Color.White);
+          args.Player.SendMessage("/protectioninfo|ptinfo|pi [+p]", Color.White);
           args.Player.SendMessage("Displays some information about the selected protection.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
