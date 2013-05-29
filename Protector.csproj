@@ -74,7 +74,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <CodeAnalysisLogFile>bin\Release\Protector.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
@@ -131,15 +131,19 @@
   <ItemGroup>
     <Reference Include="Mono.Data.Sqlite">
       <HintPath>References\Mono.Data.Sqlite.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="MySql.Data">
       <HintPath>References\MySql.Data.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="MySql.Web">
       <HintPath>References\MySql.Web.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>References\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -191,31 +195,22 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Plugin Common Library\Plugin Common Library.csproj">
-      <Project>{1d38e0cf-bf13-4229-860f-3809f39f0892}</Project>
-      <Name>Plugin Common Library</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="README.md" />
     <None Include="tshock\Protector\Config.xsd">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Plugin Common Library\Plugin Common Library.csproj">
+      <Project>{1d38e0cf-bf13-4229-860f-3809f39f0892}</Project>
+      <Name>Plugin Common Library</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>IF "$(ConfigurationName)" == "Release" (
-  SET WinRar=C:\Program Files\WinRAR\
-
-  CD "$(TargetDir)"
-  DEL "TShockAPI.*"
-
-  MKDIR "ServerPlugins"
-  MOVE "*.pdb" "ServerPlugins"
-  MOVE "*.dll" "ServerPlugins"
-  DEL "Newtonsoft.Json.xml"
-
-  "%25WinRar%25\WinRAR.exe" M -R -AFZIP "$(ProjectName).zip" "*.*"
+    <PostBuildEvent>If "$(ConfigurationName)" == "Release" (
+  DEL "$(TargetDir)TShockAPI.xml"
 )</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

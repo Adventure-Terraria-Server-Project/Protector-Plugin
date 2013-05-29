@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema
+  xmlns="http://github.com/CoderCow/Protector-Plugin"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  
+  version="1.1"
+  targetNamespace="http://github.com/CoderCow/Protector-Plugin"
+  elementFormDefault="qualified"
+>
+  <xs:simpleType name="NetVersion">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="^\d+([.]\d+){0,3}$" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="FlexBool">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="True" />
+      <xs:enumeration value="False" />
+      <xs:enumeration value="true" />
+      <xs:enumeration value="false" />
+      <xs:enumeration value="0" />
+      <xs:enumeration value="1" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="Terraria.BlockId">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="0" />
+      <xs:maxInclusive value="149" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Terraria.BlockIdList">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="^\s*\d{0,3}\s*(,\s*\d{1,3}\s*)*$" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:element name="ProtectorConfiguration">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="ManuallyProtectableTiles" type="Terraria.BlockIdList" />
+        <xs:element name="AutoProtectedTiles" type="Terraria.BlockIdList" />
+        <xs:element name="NotDeprotectableTiles" type="Terraria.BlockIdList" />
+        
+        <xs:element name="MaxProtectionsPerPlayerPerWorld" type="xs:int" />
+        <xs:element name="MaxBankChestsPerPlayer" type="xs:int" />
+        <xs:element name="EnableBedSpawnProtection" type="FlexBool" />
+        <xs:element name="AllowChainedSharing" type="FlexBool" />
+        <xs:element name="AllowChainedShareAltering" type="FlexBool" />
+        <xs:element name="AllowWiringProtectedBlocks" type="FlexBool" />
+        <xs:element name="AutoDeprotectEverythingOnDestruction" type="FlexBool" />
+        <xs:element name="LoginRequiredForChestUsage" type="FlexBool" />
+        <xs:element name="AutoShareRefillChests" type="FlexBool" />
+        <xs:element name="NotifyAutoProtection" type="FlexBool" />
+        <xs:element name="NotifyAutoDeprotection" type="FlexBool" />
+      </xs:all>
+
+      <xs:attribute name="Version" type="NetVersion" use="required" />
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -2205,11 +2205,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
       player.SendMessage(string.Format(
         "This {0} is protected. The owner is {1}.", TerrariaUtils.Tiles.GetBlockTypeName(blockType), ownerName
       ), Color.LightGray);
+      
+      string creationTimeFormat = "Protection created On: unknown";
+      if (protection.TimeOfCreation != DateTime.MinValue)
+        creationTimeFormat = "Protection created On: {0:MM/dd/yy, h:mm tt} UTC ({1} ago)";
 
       player.SendMessage(
         string.Format(
-          CultureInfo.InvariantCulture, "Protection created On: {0:MM/dd/yy, h:mm tt} UTC ({1} ago)", 
-          protection.TimeOfCreation, (DateTime.UtcNow - protection.TimeOfCreation).ToLongString()
+          CultureInfo.InvariantCulture, creationTimeFormat, protection.TimeOfCreation, 
+          (DateTime.UtcNow - protection.TimeOfCreation).ToLongString()
         ), 
         Color.LightGray
       );

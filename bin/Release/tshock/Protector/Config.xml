@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+
+<!--
+  Note that some tiles are handled differently than others:
+    Protected pressure plates, switches, levers, timers, music boxes will not allow other players to trigger a 
+    circuit or change their state.
+    Protected chests will not allow other players to alter or view their content.
+    Protected signs will not allow other players to edit them.
+    Protected doors will not allow other players to open them (players can still pass through them though).
+    Protected clay pots will not allow their plant to be removed by other players.
+    Protected beds will still allow other players to set their spawn point, however, if
+    "EnableBedSpawnProtection" is set to true, players will be prevented from actually spawning at or teleporting to them.
+    
+    Also, not all tiles can be shared, as a share does only allow "using" an object and not removing it, thus the only
+    objects which can be shared are: pressure plates, switches, levers, timers, music boxes, chests, signs, tombstones, beds
+    and doors.
+    
+  Protector is pretty smart in enforcing object protections, just some examples: If a torch is protected, the block it 
+  is assigned to will not be removable either. If a pink vase put on a table is protected, the table can also not be removed 
+  nor the blocks beneath the table. If a sapling gets protected, the tree growing out of it will inherit the protection.
+  However, what protector can not handle are falling blocks like sand and silt or blocks removed by the game itself or 
+  other plugins like ice blocks.
+-->
+<ProtectorConfiguration
+  xmlns="http://github.com/CoderCow/Protector-Plugin"
+  
+  Version="1.0"
+>
+  <!-- 
+    Tile types which can be manually protected by players.
+    
+    The default setting covers:
+    Most crafting stations, doors, chests, signs, pressure plates, levers, switches, timers, music boxes, pumps, piggy banks, 
+    clay pots, safes, beds, statues, dart traps.
+    
+    NOTE: Players can not protect something inside of TShock regions they're not allowed to or if they have no build permission.
+          
+          You can lookup tile ids here: http://wiki.terrariaonline.com/Data_ids#Tile_IDs
+  -->
+  <ManuallyProtectableTiles>
+    10, 11, 16, 21, 29, 55, 77, 78, 79, 85, 86, 94, 96, 97, 105, 106, 114, 132, 133, 134, 135, 136, 137, 139, 142, 143, 144
+  </ManuallyProtectableTiles>
+  
+  <!-- 
+    Tile types which are automatically protected on placement.
+    
+    The default setting covers: 
+    Most crafting stations, chests, signs, levers, switches, timers, music boxes, beds, statues, pumps.
+    
+    NOTE: If you define a tile type in here but not in "ProtectableTiles", players will not be able to manually protect 
+          this type of tile, i.e. they can not protect blocks placed by other players but are forced to place the blocks
+          theirselfes in order to protect them.
+          Auto protection is generally more restricted and smarter than manual protection. This is because a user can 
+          manually protect a tile even if it is already protected by some other plugin (which Protector does not cooperate with)
+          like Housing Districts, so the user can manually protect something inside houses they do not own. 
+          However, this does not count for auto protection as other protection plugins will probably prevent players from 
+          placing the tiles right away.
+          
+          You can lookup tile ids here: http://wiki.terrariaonline.com/Data_ids#Tile_IDs
+  -->
+  <AutoProtectedTiles>
+    16, 21, 29, 55, 77, 79, 86, 96, 97, 105, 106, 114, 132, 133, 134, 136, 139, 142, 143, 144
+  </AutoProtectedTiles>
+  
+  <!-- 
+    Tile types that can not be deprotected after they have been protected.
+    
+    NOTE: If the owner removes the protected tile, the protection will still be deleted, they just can not deprotect the tile
+          while keeping it intact.
+          If you want to disallow item transfer through chests for example, define the chest tile id (21) here and in the 
+          "AutoProtectedTiles" setting and do not give the "prot_chestshare" permission.
+          
+          Users with the permission "prot_protectionmaster" are not affected by this setting.
+          
+          You can lookup tile ids here: http://wiki.terrariaonline.com/Data_ids#Tile_IDs
+  -->
+  <NotDeprotectableTiles></NotDeprotectableTiles>
+  
+  <!--
+    The maximum amount of protections a player can create in one world.
+    
+    NOTE: Users with the permission "prot_nolimits" are not affected by this setting.
+  -->
+  <MaxProtectionsPerPlayerPerWorld>40</MaxProtectionsPerPlayerPerWorld>
+
+  <!-- 
+    The maximum amount of bank chests a player can create.
+    
+    NOTE: Users with the permission "prot_nobankchestlimits" are not affected by this setting.
+  -->
+  <MaxBankChestsPerPlayer>10</MaxBankChestsPerPlayer>
+  
+  <!--
+    Sets if users can spawn at or teleport to a protected bed they don't own or have a share on.
+    
+    NOTE: If spawning at or teleporting to a protected bed fails, the character is moved back to the world's spawn point.
+  -->
+  <EnableBedSpawnProtection>true</EnableBedSpawnProtection>
+  
+  <!-- 
+    Whether users owning a share on a protection can share it with further users or not.
+    
+    NOTE: Even if this is set to true, the user still needs an explicit share on a protection (shared to everyone or group 
+          shares do not count) to share it with further users or groups.
+  -->
+  <AllowChainedSharing>true</AllowChainedSharing>
+
+  <!--
+    Whether users owning a share on a protection can remove other shares or not.
+    
+    NOTE: Even if this is set to true, the user still needs an explicit share on a protection (shared to everyone or group 
+          shares do not count) to remove shares of users or groups.
+          The owner of the protection can always remove any shares.
+  -->
+  <AllowChainedShareAltering>false</AllowChainedShareAltering>
+  
+  <!--
+    Whether wires can be placed on / removed from protected blocks by players having no access to them.
+  -->
+  <AllowWiringProtectedBlocks>false</AllowWiringProtectedBlocks>
+
+  <!--
+    Whether protections of tiles are automatically removed when a user who's group has the "prot_deprotecteverything" permission 
+    destroys them. If set to false, the user will have to manually deprotect the tiles first before they can be destroyed.
+    
+    NOTE: If the corresponding OWNER of the protection breaks the tile, the protection will always automatically get removed and
+          this option will have no effect at all.
+          Setting this to true is not recommended as unwanted protected tiles might be unintendedly removed.
+  -->
+  <AutoDeprotectEverythingOnDestruction>false</AutoDeprotectEverythingOnDestruction>
+
+  <!--
+    Whether unregistered users are allowed to use chests or not.
+    
+    NOTE: If you have Server Sided Inventory enabled and a public chest is put close to a player's spawn point, they might 
+          sneak items into the server before they log in. If there is enough lag preventing them from being disabled 
+          over some time, they might even move close to public chests over greater distances.
+          For SSI enabled servers setting this to true is recommended.
+  -->
+  <LoginRequiredForChestUsage>true</LoginRequiredForChestUsage>
+  
+  <!--
+    Whether newly set up refill chests are automatically shared with everyone or not.
+  -->
+  <AutoShareRefillChests>true</AutoShareRefillChests>
+
+  <!-- 
+    Whether players are notified if a tile they just placed got automatically protected or not.
+  -->
+  <NotifyAutoProtection>true</NotifyAutoProtection>
+
+  <!-- 
+    Whether players are notified if a tile they just destroyed got automatically deprotected or not.
+  -->
+  <NotifyAutoDeprotection>false</NotifyAutoDeprotection>
+</ProtectorConfiguration>

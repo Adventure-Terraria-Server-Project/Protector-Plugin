@@ -27,10 +27,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Property: TimeOfCreation]
-    private readonly DateTime timeOfCreation;
+    private DateTime timeOfCreation;
 
     public DateTime TimeOfCreation {
       get { return this.timeOfCreation; }
+      set { this.timeOfCreation = value; }
     }
     #endregion
 
@@ -93,13 +94,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
 
     #region [Methods: Constructors]
-    public ProtectionEntry(int owner, DPoint tileLocation) {
+    public ProtectionEntry(int owner, DPoint tileLocation, DateTime timeOfCreation = default(DateTime)) {
       this.owner = owner;
       this.tileLocation = tileLocation;
-      this.timeOfCreation = DateTime.UtcNow;
-    }
 
-    protected ProtectionEntry() {}
+      if (timeOfCreation == default(DateTime))
+        timeOfCreation = DateTime.UtcNow;
+      this.timeOfCreation = timeOfCreation;
+    }
     #endregion
 
     #region [Methods: IsSharedWithPlayer, Unshare]
