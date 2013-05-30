@@ -130,6 +130,8 @@ as this will cause mixed item data in the world file and the chest database.
 Changelog
 ---------------------------------------------------------------------------------
 Version 1.0.9 [29.05.2013]
+  -Please consider donating to support the developer.
+  -Added +al|-al (auto locking) functionality to refill chests.
   -Changed the command alias /pinfo to /ptinfo.
   -Fixed a bug causing the creation time of protections not to be deserialized.
   -Fixed a bug causing chair and music box objects to be measured wrong and 

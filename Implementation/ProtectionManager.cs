@@ -533,7 +533,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     /// </returns>
     public bool SetUpRefillChest(
       TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer = null, int? lootLimit = null, 
-      bool checkPermissions = false
+      bool? autoLock = null, bool checkPermissions = false
     ) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
@@ -573,6 +573,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           refillChestData.OneLootPerPlayer = oneLootPerPlayer.Value;
         if (lootLimit != null)
           refillChestData.RemainingLoots = lootLimit.Value;
+        if (autoLock != null)
+          refillChestData.AutoLock = autoLock.Value;
 
         if (refillChestData.OneLootPerPlayer || refillChestData.RemainingLoots > 0)
           if (refillChestData.Looters == null)
@@ -607,6 +609,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         refillChestData.Looters = new Collection<int>();
       else
         refillChestData.Looters = null;
+
+      if (autoLock != null)
+        refillChestData.AutoLock = autoLock.Value;
 
       Chest tChest = Main.chest[tChestIndex];
       for (int i = 0; i < 20; i++)

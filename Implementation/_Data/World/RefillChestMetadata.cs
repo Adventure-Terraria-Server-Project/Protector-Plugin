@@ -77,6 +77,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
+    #region [Property: AutoLock]
+    private bool autoLock;
+
+    public bool AutoLock {
+      get { return this.autoLock; }
+      set { this.autoLock = value; }
+    }
+    #endregion
 
     #region [Method: Constructor]
     public RefillChestMetadata(int owner): base() {

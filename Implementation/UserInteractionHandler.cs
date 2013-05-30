@@ -1162,6 +1162,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       bool persistentMode = false;
       bool? oneLootPerPlayer = null;
       int? lootLimit = null;
+      bool? autoLock = null;
       TimeSpan? refillTime = null;
       bool invalidSyntax = (args.Parameters.Count == 0);
       if (!invalidSyntax) {
@@ -1190,9 +1191,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             lootLimit = lootTimeAmount;
             i++;
-          } else {
+          } else if (param.Equals("+al", StringComparison.InvariantCultureIgnoreCase))
+            autoLock = true;
+          else if (param.Equals("-al", StringComparison.InvariantCultureIgnoreCase))
+            autoLock = false;
+          else
             timeParameters++;
-          }
         }
 
         if (!invalidSyntax && timeParameters > 0) {
@@ -1205,7 +1209,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       if (invalidSyntax) {
-        args.Player.SendErrorMessage("Proper syntax: /refillchest [time] [+ot|-ot] [+ll amount|-ll] [+p]");
+        args.Player.SendErrorMessage("Proper syntax: /refillchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]");
         args.Player.SendErrorMessage("Type /refillchest help to get more help to this command.");
         return;
       }
@@ -1219,7 +1223,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           editType == TileEditType.PlaceWire || 
           editType == TileEditType.DestroyWire
         ) {
-          this.TrySetUpRefillChest(playerLocal, location, refillTime, oneLootPerPlayer, lootLimit);
+          this.TrySetUpRefillChest(playerLocal, location, refillTime, oneLootPerPlayer, lootLimit, autoLock);
 
           playerLocal.SendTileSquare(location);
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
@@ -1231,7 +1235,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       interaction.ChestOpenCallback += (playerLocal, location) => {
-        this.TrySetUpRefillChest(playerLocal, location, refillTime, oneLootPerPlayer, lootLimit);
+        this.TrySetUpRefillChest(playerLocal, location, refillTime, oneLootPerPlayer, lootLimit, autoLock);
         return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
       };
       interaction.TimeExpiredCallback += (playerLocal) => {
@@ -1252,7 +1256,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /refillchest (Page 1 of 5)", Color.Lime);
-          args.Player.SendMessage("/refillchest|/rchest [time] [+ot|-ot] [+ll amount|-ll] [+p]", Color.White);
+          args.Player.SendMessage("/refillchest|/rchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]", Color.White);
           args.Player.SendMessage("Converts a chest to a special chest which can automatically refill its content.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("time = Examples: 2h, 2h30m, 2h30m10s, 1d6h etc.", Color.LightGray);
@@ -1260,6 +1264,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           break;
         case 2:
           args.Player.SendMessage("+ll amount = The chest can only be looted the given amount of times in total.", Color.LightGray);
+          args.Player.SendMessage("+al = After being looted, the chest is automatically locked.", Color.LightGray);
           args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
@@ -1299,6 +1304,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool? oneLootPerPlayer = null;
       int? lootLimit = null;
+      bool? autoLock = null;
       TimeSpan? refillTime = null;
       string selector = null;
       bool invalidSyntax = (args.Parameters.Count <= 1);
@@ -1328,9 +1334,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             lootLimit = lootTimeAmount;
             i++;
-          } else {
+          } else if (param.Equals("+al", StringComparison.InvariantCultureIgnoreCase))
+            autoLock = true;
+          else if (param.Equals("-al", StringComparison.InvariantCultureIgnoreCase))
+            autoLock = false;
+          else
             timeParameters++;
-          }
         }
 
         if (!invalidSyntax && timeParameters > 0) {
@@ -1384,7 +1393,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             try {
-              this.ProtectionManager.SetUpRefillChest(args.Player, chestLocation, refillTime, oneLootPerPlayer, lootLimit);
+              this.ProtectionManager.SetUpRefillChest(
+                args.Player, chestLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock
+              );
               createdChestsCounter++;
             } catch (Exception ex) {
               Debug.WriteLine("Failed creating refill chest: " + ex);
@@ -1396,7 +1407,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       if (invalidSyntax) {
-        args.Player.SendErrorMessage("Proper syntax: /refillchestmany <selector> [time] [[+ot]|[-ot]] [[+ll [amount]]|-ll]");
+        args.Player.SendErrorMessage("Proper syntax: /refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al]");
         args.Player.SendErrorMessage("Type /refillchestmany help to get more help to this command.");
         return;
       }
@@ -1413,7 +1424,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /refillchestmany (Page 1 of 3)", Color.Lime);
-          args.Player.SendMessage("/refillchestmany|/rchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll]", Color.White);
+          args.Player.SendMessage("/refillchestmany|/rchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al]", Color.White);
           args.Player.SendMessage("Converts all selected chests to refill chests or alters them.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("selector = dungeon, sky, ocean or shadow", Color.LightGray);
@@ -1422,6 +1433,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case 2:
           args.Player.SendMessage("+ot = The chest can only be looted a single time by each player.", Color.LightGray);
           args.Player.SendMessage("+ll = The chest can only be looted the given amount of times in total.", Color.LightGray);
+          args.Player.SendMessage("+al = After being looted, the chest is automatically locked.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("This command is expected to be used on a fresh world, the specified selector might", Color.LightGray);
           args.Player.SendMessage("also select player chests. This is how chest kinds are distinguished:", Color.LightGray);
@@ -1680,6 +1692,45 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
+    // Note: chestLocation is always {0, 0}.
+    public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
+      if (this.IsDisposed)
+        return false;
+      if (chestIndex != -1 || !player.IsLoggedIn)
+        return false;
+
+      int openedChestIndex = player.TPlayer.chest;
+      if (openedChestIndex == -1)
+        return false;
+
+      Chest tChest = Main.chest[openedChestIndex];
+      if (tChest == null)
+        return false;
+
+      chestLocation = new DPoint(tChest.x, tChest.y);
+      Tile chestTile = TerrariaUtils.Tiles[chestLocation];
+      if (!chestTile.active || chestTile.type != (int)BlockType.Chest)
+        return false;
+
+      bool isLocked;
+      ChestStyle chestStyle = TerrariaUtils.Tiles.GetChestStyle(chestTile, out isLocked);
+      if (isLocked || (chestStyle != ChestStyle.GoldChest && chestStyle != ChestStyle.ShadowChest))
+        return false;
+
+      ProtectionEntry protection = null;
+      // Only need the first enumerated entry as we don't need the protections of adjacent blocks.
+      foreach (ProtectionEntry enumProtection in this.ProtectionManager.EnumerateProtectionEntries(chestLocation)) {
+        protection = enumProtection;
+        break;
+      }
+
+      if (protection == null || protection.RefillChestData == null || !protection.RefillChestData.AutoLock)
+        return false;
+
+      TerrariaUtils.Tiles.LockChest(chestLocation);
+      return false;
+    }
+
     public override bool HandleChestGetContents(TSPlayer player, DPoint location) {
       if (this.IsDisposed)
         return false;
@@ -1824,7 +1875,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public virtual bool HandleChestUnlock(TSPlayer player, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
-
+      
       ProtectionEntry protection = null;
       // Only need the first enumerated entry as we don't need the protections of adjacent blocks.
       foreach (ProtectionEntry enumProtection in this.ProtectionManager.EnumerateProtectionEntries(chestLocation)) {
@@ -1846,7 +1897,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         bool dummy;
         if (TerrariaUtils.Tiles.GetChestStyle(TerrariaUtils.Tiles[chestLocation], out dummy) == ChestStyle.GoldChest) {
           int itemIndex = Item.NewItem( 
-            chestLocation.X * TerrariaUtils.TileSize, chestLocation.Y * TerrariaUtils.TileSize, 14, 20, (int)ItemType.GoldenKey
+            chestLocation.X * TerrariaUtils.TileSize, chestLocation.Y * TerrariaUtils.TileSize, 0, 0, (int)ItemType.GoldenKey
           );
           player.SendData(PacketTypes.ItemDrop, string.Empty, itemIndex);
         }
@@ -2325,7 +2376,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public bool TrySetUpRefillChest(
-      TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer, int? lootLimit, 
+      TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer, int? lootLimit, bool? autoLock, 
       bool sendMessages = true
     ) {
       if (!player.IsLoggedIn) {
@@ -2339,9 +2390,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       try {
         if (this.ProtectionManager.SetUpRefillChest(
-          player, tileLocation, refillTime, oneLootPerPlayer, lootLimit, 
-          true)
-        ) {
+          player, tileLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock, true
+        )) {
           if (sendMessages) {
             player.SendSuccessMessage("Refill chest successfully set up.");
             player.SendSuccessMessage("As you are the owner of it, you may still freely modify its contents.");
@@ -2365,6 +2415,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
                 player.SendSuccessMessage(string.Format("This chest can now be looted only {0} more times.", lootLimit));
               else
                 player.SendSuccessMessage("This chest can now be looted endlessly.");
+            }
+            if (autoLock != null) {
+              if (autoLock.Value)
+                player.SendSuccessMessage(string.Format("This chest lock automatically if it gets looted.", lootLimit));
+              else
+                player.SendSuccessMessage("This chest will not lock automatically anymore.");
             }
           }
         }

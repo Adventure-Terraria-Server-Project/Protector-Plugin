@@ -332,6 +332,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.GetDataHookHandler.TileEdit += this.Net_TileEdit;
       this.GetDataHookHandler.SignEdit += this.Net_SignEdit;
       this.GetDataHookHandler.SignRead += this.Net_SignRead;
+      this.GetDataHookHandler.ChestOpen += Net_ChestOpen;
       this.GetDataHookHandler.ChestGetContents += this.Net_ChestGetContents;
       this.GetDataHookHandler.ChestModifySlot += this.Net_ChestModifySlot;
       this.GetDataHookHandler.ChestUnlock += this.Net_ChestUnlock;
@@ -391,6 +392,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       e.Handled = this.UserInteractionHandler.HandleSignRead(e.Player, e.Location);
+    }
+
+    private void Net_ChestOpen(object sender, ChestOpenEventArgs e) {
+      if (this.isDisposed || !this.hooksEnabled || e.Handled)
+        return;
+
+      e.Handled = this.UserInteractionHandler.HandleChestOpen(e.Player, e.ChestIndex, e.Location);
     }
 
     private void Net_ChestGetContents(object sender, TileLocationEventArgs e) {
