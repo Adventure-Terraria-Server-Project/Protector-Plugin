@@ -37,7 +37,10 @@ However when using Protector, worlds will be limited by Terraria's maximum of
 Infinite Chests. You can try to operate this plugin with other protection 
 plugins, read the "About Data Import and Compatibility" for more information.
 
-Note: This plugin requires TShock 4 or higher in order to work.
+Note: This plugin requires Terraria Server API 1.12 and TShock 4 in order to work.
+
+Suggestions? Bugs? File issues here:
+https://github.com/CoderCow/Protector-Plugin/issues
 
 
 Commands
@@ -126,8 +129,11 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
-Version 1.0.9 [20.05.2013]
+Version 1.0.9 [29.05.2013]
+  -Please consider donating to support the developer.
+  -Added +al|-al (auto locking) functionality to refill chests.
   -Changed the command alias /pinfo to /ptinfo.
+  -Fixed a bug causing the creation time of protections not to be deserialized.
   -Fixed a bug causing chair and music box objects to be measured wrong and 
    thus having a wrong protection offset.
   -Fixed a rarely occuring bug causing exceptions on server shutdown.
