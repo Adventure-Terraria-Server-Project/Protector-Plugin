@@ -19,4 +19,4 @@ Note: This plugin requires Terraria Server API 1.12 and TShock 4 in order to wor
 
 More information to this plugin can be found [here](tshock/Protector/ReadMe.txt).
 
-Suggestions? Bugs? File issues [here](issues).
+Suggestions? Bugs? File issues [here](https://github.com/CoderCow/Protector-Plugin/issues).
