@@ -306,7 +306,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
         case "summary":
         case "stats": {
-          if (!args.Player.Group.HasPermission(ProtectorPlugin.Cfg_Permission)) {
+          if (!args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
             args.Player.SendErrorMessage("You do not have the necessary permission to do that.");
             return true;
           }
@@ -1796,7 +1796,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    public virtual bool HandleChestModifySlot(TSPlayer player, short chestIndex, byte slotIndex, ItemMetadata newItem) {
+    public virtual bool HandleChestModifySlot(TSPlayer player, short chestIndex, byte slotIndex, ItemData newItem) {
       if (this.IsDisposed)
         return false;
 
@@ -1854,7 +1854,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         // As the first item is taken out, we start the refill timer.
-        ItemMetadata oldItem = ItemMetadata.FromItem(chest.item[slotIndex]);
+        ItemData oldItem = ItemData.FromItem(chest.item[slotIndex]);
         if (newItem.Type == ItemType.None || (newItem.Type == oldItem.Type && newItem.StackSize <= oldItem.StackSize)) {
           // TODO: Bad code, refill timers shouldn't be public at all.
           lock (this.ProtectionManager.RefillTimers) {
