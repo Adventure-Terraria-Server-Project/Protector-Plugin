@@ -354,7 +354,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (tChestIndex != -1) {
           Chest tChest = Main.chest[tChestIndex];
           for (int i = 0; i < 20; i++)
-            tChest.item[i] = ItemMetadata.None.ToItem();
+            tChest.item[i] = ItemData.None.ToItem();
         }
       }
 
@@ -615,7 +615,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       Chest tChest = Main.chest[tChestIndex];
       for (int i = 0; i < 20; i++)
-        refillChestData.RefillItems[i] = ItemMetadata.FromItem(tChest.item[i]);
+        refillChestData.RefillItems[i] = ItemData.FromItem(tChest.item[i]);
 
       protection.RefillChestData = refillChestData;
 
@@ -676,7 +676,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (bankChest == null) {
         bankChest = new BankChestMetadata();
         for (int i = 0; i < tChest.item.Length; i++)
-          bankChest.Items[i] = ItemMetadata.FromItem(tChest.item[i]);
+          bankChest.Items[i] = ItemData.FromItem(tChest.item[i]);
 
         this.ServerMetadataHandler.EnqueueAddOrUpdateBankChest(bankChestKey, bankChest);
       } else {

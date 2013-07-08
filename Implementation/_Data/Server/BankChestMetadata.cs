@@ -5,9 +5,9 @@ using Terraria.Plugins.Common;
 namespace Terraria.Plugins.CoderCow.Protector {
   public class BankChestMetadata {
     #region [Property: Items]
-    private ItemMetadata[] items;
+    private ItemData[] items;
 
-    public ItemMetadata[] Items {
+    public ItemData[] Items {
       get { return this.items; }
       set { this.items = value; }
     }
@@ -16,7 +16,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     #region [Method: Constructor]
     public BankChestMetadata(): base() {
-      this.items = new ItemMetadata[20];
+      this.items = new ItemData[20];
     }
     #endregion
   }

@@ -19,9 +19,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Property: RefillItems]
-    private ItemMetadata[] refillItems;
+    private ItemData[] refillItems;
 
-    public ItemMetadata[] RefillItems {
+    public ItemData[] RefillItems {
       get { return this.refillItems; }
       set { this.refillItems = value; }
     }
@@ -89,7 +89,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #region [Method: Constructor]
     public RefillChestMetadata(int owner): base() {
       this.owner = owner;
-      this.refillItems = new ItemMetadata[20];
+      this.refillItems = new ItemData[20];
       this.refillTimer = new Timer(TimeSpan.Zero, null, null);
       this.remainingLoots = -1;
     }

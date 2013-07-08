@@ -133,7 +133,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
-    public Task EnqueueUpdateBankChestItem(BankChestDataKey key, int slotIndex, ItemMetadata newItem) {
+    public Task EnqueueUpdateBankChestItem(BankChestDataKey key, int slotIndex, ItemData newItem) {
       Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
 
       lock (this.workQueueLock) {
@@ -144,7 +144,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
-    private void UpdateBankChestItem(BankChestDataKey key, int slotIndex, ItemMetadata newItem) {
+    private void UpdateBankChestItem(BankChestDataKey key, int slotIndex, ItemData newItem) {
       BankChestMetadata bankChest = this.GetBankChestMetadata(key);
       if (bankChest == null)
         throw new ArgumentException("No bank chest with the given key found.", "key");
@@ -170,12 +170,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Methods: StringToItemMetadata, ItemMetadataToString]
-    protected ItemMetadata[] StringToItemMetadata(string raw) {
+    protected ItemData[] StringToItemMetadata(string raw) {
       string[] itemsRaw = raw.Split(';');
-      ItemMetadata[] items = new ItemMetadata[itemsRaw.Length];
+      ItemData[] items = new ItemData[itemsRaw.Length];
       for (int i = 0; i < itemsRaw.Length; i++) {
         string[] itemDataRaw = itemsRaw[i].Split(',');
-        items[i] = new ItemMetadata(
+        items[i] = new ItemData(
           (ItemPrefix)int.Parse(itemDataRaw[0]),
           (ItemType)int.Parse(itemDataRaw[1]),
           int.Parse(itemDataRaw[2])
@@ -185,9 +185,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return items;
     }
 
-    protected string ItemMetadataToString(IEnumerable<ItemMetadata> items) {
+    protected string ItemMetadataToString(IEnumerable<ItemData> items) {
       StringBuilder builder = new StringBuilder();
-      foreach (ItemMetadata item in items) {
+      foreach (ItemData item in items) {
         if (builder.Length > 0)
           builder.Append(';');
 
