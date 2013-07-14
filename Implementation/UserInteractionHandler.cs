@@ -1685,7 +1685,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         } catch (AlreadyProtectedException) {
           this.PluginTrace.WriteLineError("Error: A block was tried to be auto protected on the same position of an existing protection.");
         } catch (Exception ex) {
-          this.PluginTrace.WriteLineError("Unexpected exception was thrown during auto protection: \n" + ex);
+          this.PluginTrace.WriteLineError("Unexpected exception was thrown during auto protection setup: \n" + ex);
         }
       }, TaskCreationOptions.PreferFairness);
 

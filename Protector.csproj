@@ -156,10 +156,6 @@
       <HintPath>References\TerrariaServer.exe</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="TShockAPI">
-      <HintPath>References\TShockAPI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Implementation\PluginCooperationHandler.cs" />
@@ -206,6 +202,11 @@
     <ProjectReference Include="..\Plugin Common Library\Plugin Common Library.csproj">
       <Project>{1d38e0cf-bf13-4229-860f-3809f39f0892}</Project>
       <Name>Plugin Common Library</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TShock\TShockAPI\TShockAPI.csproj">
+      <Project>{49606449-072b-4cf5-8088-aa49da586694}</Project>
+      <Name>TShockAPI</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

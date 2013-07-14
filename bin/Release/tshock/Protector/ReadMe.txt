@@ -55,8 +55,8 @@ Commands
 /SharePublic
 /UnsharePublic
 /BankChest <number>
-/RefillChest [time] [+ot|-ot] [+ll amount|-ll]
-/RefillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll]
+/RefillChest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
+/RefillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
 /LockChest
 /Protector
 /Protector Commands
