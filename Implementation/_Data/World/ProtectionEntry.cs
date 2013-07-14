@@ -19,10 +19,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Property: TileLocation]
-    private readonly DPoint tileLocation;
+    private DPoint tileLocation;
 
     public DPoint TileLocation {
       get { return this.tileLocation; }
+      set { this.tileLocation = value; }
     }
     #endregion
 
