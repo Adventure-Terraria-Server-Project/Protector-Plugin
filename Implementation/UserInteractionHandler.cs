@@ -1697,11 +1697,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (chestIndex != -1 || !player.IsLoggedIn)
         return false;
 
-      int openedChestIndex = player.TPlayer.chest;
-      if (openedChestIndex == -1)
+      int closedChestIndex = player.TPlayer.chest;
+      if (closedChestIndex < 0)
         return false;
 
-      Chest tChest = Main.chest[openedChestIndex];
+      Chest tChest = Main.chest[closedChestIndex];
       if (tChest == null)
         return false;
 
@@ -1722,10 +1722,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
         break;
       }
 
-      if (protection == null || protection.RefillChestData == null || !protection.RefillChestData.AutoLock)
+      if (protection == null || protection.RefillChestData == null)
         return false;
 
-      TerrariaUtils.Tiles.LockChest(chestLocation);
+      if (protection.RefillChestData.AutoLock)
+        TerrariaUtils.Tiles.LockChest(chestLocation);
+
       return false;
     }
 

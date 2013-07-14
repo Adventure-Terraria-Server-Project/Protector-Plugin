@@ -130,6 +130,7 @@ as this will cause mixed item data in the world file and the chest database.
 Changelog
 ---------------------------------------------------------------------------------
 Version 1.2 [14.07.2013]
+  -Fixed a bug causing exceptions thrown when Piggy Banks or Safes were closed.
   -/refillchestmany dungeon will now also consider wooden chests.
 Version 1.1 [29.05.2013]
   -Please consider donating to support the developer.
