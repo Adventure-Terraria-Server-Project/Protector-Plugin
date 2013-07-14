@@ -460,7 +460,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       try {
         lock (this.WorldMetadataHandler.Metadata.Protections) {
+          Stopwatch watch = new Stopwatch();
+          watch.Start();
           this.WorldMetadataHandler.WriteMetadata();
+          watch.Stop();
+
+          string format = "Serializing the protection data took {0}ms.";
+          if (watch.ElapsedMilliseconds == 0)
+            format = "Serializing the protection data took less than 1ms.";
+
+          this.Trace.WriteLineInfo(format, watch.ElapsedMilliseconds);
         }
       } catch (Exception ex) {
         this.Trace.WriteLineError("Unhandled exception in SaveWorld handler:\n" + ex);
