@@ -1351,65 +1351,63 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      if (!invalidSyntax) {
-        ChestKind chestKindToSelect = ChestKind.Unknown;
-        switch (selector) {
-          case "dungeon":
-            chestKindToSelect = ChestKind.DungeonChest;
-            break;
-          case "sky":
-            chestKindToSelect = ChestKind.SkyIslandChest;
-            break;
-          case "ocean":
-            chestKindToSelect = ChestKind.OceanChest;
-            break;
-          case "shadow":
-            chestKindToSelect = ChestKind.HellShadowChest;
-            break;
-          default:
-            invalidSyntax = true;
-            break;
-        }
-
-        if (!invalidSyntax && chestKindToSelect != ChestKind.Unknown) {
-          int createdChestsCounter = 0;
-          for (int i = 0; i < Main.chest.Length; i++) {
-            Chest chest = Main.chest[i];
-            if (chest == null)
-              continue;
-
-            DPoint chestLocation = new DPoint(chest.x, chest.y);
-            if (!TerrariaUtils.Tiles[chestLocation].active || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest)
-              continue;
-
-            if (TerrariaUtils.Tiles.GuessChestKind(chestLocation) != chestKindToSelect)
-              continue;
-
-            try {
-              ProtectionEntry protection = this.ProtectionManager.CreateProtection(args.Player, chestLocation, false);
-              protection.IsSharedWithAll = this.Config.AutoShareRefillChests;
-            } catch (Exception ex) {
-              Debug.WriteLine("Failed creating protection: " + ex);
-            }
-
-            try {
-              this.ProtectionManager.SetUpRefillChest(
-                args.Player, chestLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock
-              );
-              createdChestsCounter++;
-            } catch (Exception ex) {
-              Debug.WriteLine("Failed creating refill chest: " + ex);
-            }
-          }
-
-          args.Player.SendSuccessMessage(string.Format("{0} refill chests were created.", createdChestsCounter));
-        }
+      ChestKind chestKindToSelect = ChestKind.Unknown;
+      switch (selector) {
+        case "dungeon":
+          chestKindToSelect = ChestKind.DungeonChest;
+          break;
+        case "sky":
+          chestKindToSelect = ChestKind.SkyIslandChest;
+          break;
+        case "ocean":
+          chestKindToSelect = ChestKind.OceanChest;
+          break;
+        case "shadow":
+          chestKindToSelect = ChestKind.HellShadowChest;
+          break;
+        default:
+          invalidSyntax = true;
+          break;
       }
 
       if (invalidSyntax) {
         args.Player.SendErrorMessage("Proper syntax: /refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al]");
         args.Player.SendErrorMessage("Type /refillchestmany help to get more help to this command.");
         return;
+      }
+
+      if (chestKindToSelect != ChestKind.Unknown) {
+        int createdChestsCounter = 0;
+        for (int i = 0; i < Main.chest.Length; i++) {
+          Chest chest = Main.chest[i];
+          if (chest == null)
+            continue;
+
+          DPoint chestLocation = new DPoint(chest.x, chest.y);
+          if (!TerrariaUtils.Tiles[chestLocation].active || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest)
+            continue;
+
+          if (TerrariaUtils.Tiles.GuessChestKind(chestLocation) != chestKindToSelect)
+            continue;
+
+          try {
+            ProtectionEntry protection = this.ProtectionManager.CreateProtection(args.Player, chestLocation, false);
+            protection.IsSharedWithAll = this.Config.AutoShareRefillChests;
+          } catch (Exception ex) {
+            this.PluginTrace.WriteLineWarning("Failed to create protection at {0}: \n{1}", chestLocation, ex);
+          }
+
+          try {
+            this.ProtectionManager.SetUpRefillChest(
+              args.Player, chestLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock
+            );
+            createdChestsCounter++;
+          } catch (Exception ex) {
+            this.PluginTrace.WriteLineWarning("Failed to create / update refill chest at {0}: \n{1}", chestLocation, ex);
+          }
+        }
+
+        args.Player.SendSuccessMessage(string.Format("{0} refill chests were created.", createdChestsCounter));
       }
     }
 
