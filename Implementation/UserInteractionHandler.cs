@@ -1164,7 +1164,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       int? lootLimit = null;
       bool? autoLock = null;
       TimeSpan? refillTime = null;
-      bool invalidSyntax = (args.Parameters.Count == 0);
+      bool invalidSyntax = false;
       if (!invalidSyntax) {
         int timeParameters = 0;
         for (int i = 0; i < args.Parameters.Count; i++) {
@@ -1690,7 +1690,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    // Note: chestLocation is always {0, 0}.
+    // Note: chestLocation is always {0, 0}. chestIndex == -2 if piggy bank is opened.
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
@@ -1725,7 +1725,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (protection == null || protection.RefillChestData == null)
         return false;
 
-      if (protection.RefillChestData.AutoLock)
+      if (protection.RefillChestData.AutoLock && protection.RefillChestData.RefillTime == TimeSpan.Zero)
         TerrariaUtils.Tiles.LockChest(chestLocation);
 
       return false;
@@ -1739,7 +1739,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (!TerrariaUtils.Tiles[location].active)
         return true;
       if (this.Config.LoginRequiredForChestUsage && !player.IsLoggedIn) {
-        player.SendErrorMessage("You have to be logged in to use chests.");
+        player.SendErrorMessage("You have to be logged in to make use of chests.");
         return true;
       }
       
@@ -1752,7 +1752,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool playerHasAccess = true;
       if (protection != null)
-        playerHasAccess = this.ProtectionManager.CheckProtectionAccess(protection, player, false);
+        playerHasAccess = this.ProtectionManager.CheckProtectionAccess(protection, player);
 
       if (!playerHasAccess) {
         player.SendErrorMessage("This chest is protected.");
@@ -1786,6 +1786,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
             if (this.ProtectionManager.RefillTimers.IsTimerRunning(refillChest.RefillTimer)) {
               TimeSpan timeLeft = (refillChest.RefillStartTime + refillChest.RefillTime) - DateTime.Now;
               player.SendMessage(string.Format("This chest will refill in {0}.", timeLeft.ToLongString()), Color.OrangeRed);
+            } else {
+              player.SendMessage("This chest will refill its content.", Color.OrangeRed);
             }
           }
         } else {
@@ -1857,9 +1859,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
         ItemData oldItem = ItemData.FromItem(chest.item[slotIndex]);
         if (newItem.Type == ItemType.None || (newItem.Type == oldItem.Type && newItem.StackSize <= oldItem.StackSize)) {
           // TODO: Bad code, refill timers shouldn't be public at all.
-          lock (this.ProtectionManager.RefillTimers) {
+          lock (this.ProtectionManager.RefillTimers)
             this.ProtectionManager.RefillTimers.StartTimer(refillChest.RefillTimer);
-          }
         } else {
           player.SendErrorMessage("You can not put items into this chest.");
           return true;

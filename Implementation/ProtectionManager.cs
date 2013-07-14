@@ -694,14 +694,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Method: TryRefillChest]
-    public bool TryRefillChest(Chest tChest, RefillChestMetadata refillChestData) {
-
-      for (int i = 0; i < 20; i++)
-        tChest.item[i] = refillChestData.RefillItems[i].ToItem();
-      
-      return true;
-    }
-
     public bool TryRefillChest(DPoint chestLocation, RefillChestMetadata refillChestData) {
       int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
       if (tChestIndex == -1)
@@ -711,7 +703,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (tChest == null)
         return false;
 
-      return this.TryRefillChest(tChest, refillChestData);
+      for (int i = 0; i < 20; i++)
+        tChest.item[i] = refillChestData.RefillItems[i].ToItem();
+
+      if (
+        refillChestData.AutoLock && refillChestData.RefillTime != TimeSpan.Zero && 
+        !TerrariaUtils.Tiles.IsChestLocked(TerrariaUtils.Tiles[chestLocation])
+      ) {
+        TerrariaUtils.Tiles.LockChest(chestLocation);
+      }
+
+      return true;
     }
     #endregion
 
