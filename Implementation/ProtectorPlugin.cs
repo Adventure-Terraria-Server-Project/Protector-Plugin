@@ -32,6 +32,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public const string UseEverything_Permision         = "prot_useeverything";
     public const string SetRefillChests_Permission      = "prot_setrefillchest";
     public const string SetBankChests_Permission        = "prot_setbankchest";
+    public const string DumpBankChests_Permission       = "prot_dumpbankchest";
     public const string BankChestShare_Permission       = "prot_bankchestshare";
     public const string NoBankChestLimits_Permision     = "prot_nobankchestlimits";
     public const string Utility_Permission              = "prot_utility";

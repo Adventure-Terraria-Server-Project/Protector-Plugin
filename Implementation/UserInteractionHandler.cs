@@ -102,42 +102,53 @@ namespace Terraria.Plugins.CoderCow.Protector {
       );
       base.RegisterCommand(
         new[] { "protect", "pt" },
-        this.ProtectCommand_Exec, this.ProtectCommand_HelpCallback, ProtectorPlugin.ManualProtect_Permission
+        this.ProtectCommand_Exec, this.ProtectCommand_HelpCallback, ProtectorPlugin.ManualProtect_Permission, 
+        allowServer: false
       );
       base.RegisterCommand(
         new[] { "deprotect", "dp" },
-        this.DeprotectCommand_Exec, this.DeprotectCommand_HelpCallback, ProtectorPlugin.ManualDeprotect_Permission
+        this.DeprotectCommand_Exec, this.DeprotectCommand_HelpCallback, ProtectorPlugin.ManualDeprotect_Permission,
+        allowServer: false
       );
       base.RegisterCommand(
-        new[] { "protectioninfo", "ptinfo", "pi" }, this.ProtectionInfoCommand_Exec, this.ProtectionInfoCommand_HelpCallback
+        new[] { "protectioninfo", "ptinfo", "pi" }, this.ProtectionInfoCommand_Exec, this.ProtectionInfoCommand_HelpCallback,
+        allowServer: false
       );
       base.RegisterCommand(
-        new[] { "share" }, this.ShareCommand_Exec, this.ShareCommandHelpCallback
+        new[] { "share" }, this.ShareCommand_Exec, this.ShareCommandHelpCallback,
+        allowServer: false
       );
       base.RegisterCommand(
-        new[] { "unshare" }, this.UnshareCommand_Exec, this.UnshareCommand_HelpCallback
+        new[] { "unshare" }, this.UnshareCommand_Exec, this.UnshareCommand_HelpCallback,
+        allowServer: false
       );
       base.RegisterCommand(
-        new[] { "sharepublic" }, this.SharePublicCommand_Exec, this.SharePublicCommandHelpCallback
+        new[] { "sharepublic" }, this.SharePublicCommand_Exec, this.SharePublicCommandHelpCallback,
+        allowServer: false
       );
       base.RegisterCommand(
-        new[] { "unsharepublic" }, this.UnsharePublicCommand_Exec, this.UnsharePublicCommand_HelpCallback
+        new[] { "unsharepublic" }, this.UnsharePublicCommand_Exec, this.UnsharePublicCommand_HelpCallback,
+        allowServer: false
       );
       base.RegisterCommand(
         new[] { "sharegroup" }, this.ShareGroupCommand_Exec, this.ShareGroupCommand_HelpCallback, 
-        ProtectorPlugin.ShareWithGroups_Permission
+        ProtectorPlugin.ShareWithGroups_Permission,
+        allowServer: false
       );
       base.RegisterCommand(
         new[] { "unsharegroup" }, this.UnshareGroupCommand_Exec, this.UnshareGroup_HelpCallback, 
-        ProtectorPlugin.ShareWithGroups_Permission
+        ProtectorPlugin.ShareWithGroups_Permission,
+        allowServer: false
       );
       base.RegisterCommand(
         new[] { "lockchest", "lchest" },
-        this.LockChestCommand_Exec, this.LockChestCommand_HelpCallback, ProtectorPlugin.Utility_Permission
+        this.LockChestCommand_Exec, this.LockChestCommand_HelpCallback, ProtectorPlugin.Utility_Permission,
+        allowServer: false
       );
       base.RegisterCommand(
         new[] { "refillchest", "rchest" },
-        this.RefillChestCommand_Exec, this.RefillChestCommand_HelpCallback, ProtectorPlugin.SetRefillChests_Permission
+        this.RefillChestCommand_Exec, this.RefillChestCommand_HelpCallback, ProtectorPlugin.SetRefillChests_Permission,
+        allowServer: false
       );
       base.RegisterCommand(
         new[] { "refillchestmany", "rchestmany" },
@@ -145,7 +156,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       );
       base.RegisterCommand(
         new[] { "bankchest", "bchest" },
-        this.BankChestCommand_Exec, this.BankChestCommand_HelpCallback, ProtectorPlugin.SetBankChests_Permission
+        this.BankChestCommand_Exec, this.BankChestCommand_HelpCallback, ProtectorPlugin.SetBankChests_Permission,
+        allowServer: false
+      );
+      base.RegisterCommand(
+        new[] { "dumpbankchest", "bchest" },
+        this.DumpBankChestCommand_Exec, this.DumpBankChestCommand_HelpCallback, ProtectorPlugin.DumpBankChests_Permission,
+        allowServer: false
       );
       #endregion
     }
@@ -1556,6 +1573,87 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case 5:
           args.Player.SendMessage("Example #1: Create a bank chest with the number 1:", Color.LightGray);
           args.Player.SendMessage("  /bankchest 1", Color.White);
+          break;
+      }
+    }
+    #endregion
+
+    #region [Command Handling /dumpbankchest]
+    private void DumpBankChestCommand_Exec(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return;
+
+      bool persistentMode = false;
+      if (args.Parameters.Count > 0) {
+        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+          persistentMode = true;
+        } else {
+          args.Player.SendErrorMessage("Proper syntax: /dumpbankchest [+p]");
+          args.Player.SendInfoMessage("Type /dumpbankchest help to get more help to this command.");
+          return;
+        }
+      }
+
+      Action<TSPlayer,DPoint> dumpBankChest = (playerLocal, chestLocation) => {
+        foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(chestLocation)) {
+          if (protection.BankChestKey == BankChestDataKey.Invalid) {
+            args.Player.SendErrorMessage("This is not a bank chest.");
+            return;
+          }
+
+          protection.BankChestKey = BankChestDataKey.Invalid;
+          args.Player.SendSuccessMessage("The bank chest content was sucessfully dumped and the bank chest instance was removed.");
+          return;
+        }
+
+        args.Player.SendErrorMessage("This chest is not protected by Protector at all.");
+      };
+
+      PlayerCommandInteraction interaction = base.StartOrResetCommandInteraction(args.Player);
+      interaction.DoesNeverComplete = persistentMode;
+      interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
+        if (
+          editType == TileEditType.TileKill || 
+          editType == TileEditType.TileKillNoItem || 
+          editType == TileEditType.PlaceWire || 
+          editType == TileEditType.DestroyWire
+        ) {
+          dumpBankChest(playerLocal, location);
+          playerLocal.SendTileSquare(location);
+
+          return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
+        }
+
+        return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
+      };
+      interaction.ChestOpenCallback += (playerLocal, chestLocation) => {
+        dumpBankChest(playerLocal, chestLocation);
+        return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
+      };
+      interaction.TimeExpiredCallback += (player) => {
+        player.SendErrorMessage("Waited too long, no bank chest will be dumped.");
+      };
+      args.Player.SendInfoMessage("Open a bank chest to dump its content.");
+    }
+
+    private void DumpBankChestCommand_HelpCallback(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return;
+
+      int pageNumber;
+      if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
+        return;
+
+      switch (pageNumber) {
+        default:
+          args.Player.SendMessage("Command reference for /dumpbankchest (Page 1 of 2)", Color.Lime);
+          args.Player.SendMessage("/dumpbankchest [+p]", Color.White);
+          args.Player.SendMessage("Removes a bank chest instance but keeps its content in place actually duplicating all items.", Color.LightGray);
+          args.Player.SendMessage("This allows you to use bank chests like chest-templates.", Color.LightGray);
+          break;
+        case 2:
+          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
     }
