@@ -14,14 +14,15 @@ using Formatting = Newtonsoft.Json.Formatting;
 namespace Terraria.Plugins.CoderCow.Protector {
   public class WorldMetadata: IMetadataFile {
     #region [Constants]
-    protected const string CurrentVersion = "1.1";
+    protected const string CurrentVersion = "1.2";
     #endregion
 
     #region [Property: Version]
-    private readonly string version;
+    private string version;
 
     public string Version {
       get { return this.version; }
+      set { this.version = value; }
     }
     #endregion
 
@@ -43,6 +44,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public void Write(string filePath) {
+      this.version = WorldMetadata.CurrentVersion;
+
       using (StreamWriter fileWriter = new StreamWriter(filePath)) {
         fileWriter.Write(JsonConvert.SerializeObject(this, Formatting.Indented, new JsonUnixTimestampConverter()));
       }

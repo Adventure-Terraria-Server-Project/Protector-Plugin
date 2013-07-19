@@ -159,5 +159,5 @@
   <!-- 
     Whether players are notified if a tile they just destroyed got automatically deprotected or not.
   -->
-  <NotifyAutoDeprotection>false</NotifyAutoDeprotection>
+  <NotifyAutoDeprotection>true</NotifyAutoDeprotection>
 </ProtectorConfiguration>

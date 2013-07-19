@@ -4,12 +4,25 @@ using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using DPoint = System.Drawing.Point;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+
 using TShockAPI;
 
+using Terraria.Plugins.Common;
 using Terraria.Plugins.Common.Collections;
 
 namespace Terraria.Plugins.CoderCow.Protector {
+  [JsonConverter(typeof(ProtectionEntry.ProtectionEntryConverter))]
   public class ProtectionEntry {
+    #region [Nested: ProtectionEntryConverter]
+    internal class ProtectionEntryConverter: CustomCreationConverter<ProtectionEntry> {
+      public override ProtectionEntry Create(Type objectType) {
+        return ProtectionEntry.DeserializationCreate();
+      }
+    }
+    #endregion
+
     #region [Property: Owner]
     private int owner;
 
@@ -24,6 +37,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public DPoint TileLocation {
       get { return this.tileLocation; }
       set { this.tileLocation = value; }
+    }
+    #endregion
+
+    #region [Property: BlockType]
+    private BlockType blockType;
+
+    public BlockType BlockType {
+      get { return this.blockType; }
+      set { this.blockType = value; }
     }
     #endregion
 
@@ -95,13 +117,20 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
 
     #region [Methods: Constructors]
-    public ProtectionEntry(int owner, DPoint tileLocation, DateTime timeOfCreation = default(DateTime)) {
+    public ProtectionEntry(int owner, DPoint tileLocation, BlockType blockType, DateTime timeOfCreation = default(DateTime)) {
       this.owner = owner;
       this.tileLocation = tileLocation;
+      this.blockType = blockType;
 
       if (timeOfCreation == default(DateTime))
         timeOfCreation = DateTime.UtcNow;
       this.timeOfCreation = timeOfCreation;
+    }
+
+    private ProtectionEntry() {}
+
+    private static ProtectionEntry DeserializationCreate() {
+      return new ProtectionEntry { BlockType = BlockType.Invalid };
     }
     #endregion
 

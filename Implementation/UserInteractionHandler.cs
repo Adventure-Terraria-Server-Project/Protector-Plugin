@@ -1574,35 +1574,61 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (editType) {
         case TileEditType.TileKill:
         case TileEditType.TileKillNoItem: {
-          // Is the tile really going to be destroyed or just hit?
+          // Is the tile really going to be destroyed or just being hit?
           if (blockType != 0)
             break;
 
-          Tile protectedTile = null;
+          // Because Terraria is dumb-assed, TileKill which is usually only sent on a chest being removed, is also sent
+          // when the chest is filled but was hit enought times to be removed, thus we have to work around this by checking
+          // if there's content in the chest.
+          if (TerrariaUtils.Tiles[location].active && TerrariaUtils.Tiles[location].type == (int)BlockType.Chest) {
+            DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
+            int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
+            // Non existing chests are considered empty.
+            if (chestIndex != -1) {
+              Chest tChest = Main.chest[chestIndex];
+              bool isFilled = tChest.item.Any(i => i != null && i.stack > 0);
+              if (isFilled) {
+                lock (this.WorldMetadata.Protections) {
+                  ProtectionEntry protection;
+                  if (
+                    !this.WorldMetadata.Protections.TryGetValue(chestLocation, out protection) ||
+                    protection.BankChestKey == BankChestDataKey.Invalid
+                  ) {
+                    break;
+                  }
+                }
+              }
+            }
+          }
 
+          Tile protectedTile = null;
           foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(location)) {
+            protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
+
+            // If the protection is invalid, just remove it.
+            if (!protectedTile.active || protectedTile.type != (int)protection.BlockType) {
+              this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
+              protectedTile = null;
+              continue;
+            }
+
             if (
               protection.Owner == player.UserID || (
                 this.Config.AutoDeprotectEverythingOnDestruction &&
                 player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)
               )
             ) {
-              Tile tileToDeprotect = TerrariaUtils.Tiles[protection.TileLocation];
-              try {
-                this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
-              } catch (InvalidBlockTypeException) {
-                player.SendErrorMessage(string.Format(
-                  "Protections for blocks of type {0} are not removeable.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)tileToDeprotect.type)
-                ));
-              }
+              this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
 
               if (this.Config.NotifyAutoDeprotections) {
                 player.SendWarningMessage(string.Format(
-                  "The {0} is not protected anymore.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)tileToDeprotect.type)
+                  "The {0} is not protected anymore.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)protectedTile.type)
                 ));
               }
-            } else {
-              protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
+
+              protectedTile = null;
+              continue;
             }
           }
 

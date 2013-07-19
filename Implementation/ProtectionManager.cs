@@ -321,7 +321,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      protection = new ProtectionEntry(player.UserID, tileLocation);
+      protection = new ProtectionEntry(player.UserID, tileLocation, (BlockType)tile.type);
       
       lock (this.WorldMetadata.Protections)
         this.WorldMetadata.Protections.Add(tileLocation, protection);
@@ -731,8 +731,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
           ProtectionEntry protection = protectionPair.Value;
           Tile tile = TerrariaUtils.Tiles[location];
 
-          if (!tile.active)
+          if (!tile.active || (BlockType)tile.type != protection.BlockType) {
             invalidProtectionLocations.Add(location);
+            continue;
+          }
 
           if (protection.RefillChestData != null) {
             int tChestIndex = Chest.FindChest(location.X, location.Y);

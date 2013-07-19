@@ -133,8 +133,13 @@ Version 1.2 [19.07.2013]
   -Added /protector invalidate|ensure command to remove invalid protections and  
    bank chests.
   -Added "AllowRefillChestContentChanges" setting.
+  -Improved protection management: Protections which became invalid due to 
+   unknown tile changes (done by other plugins for example, or by falling blocks) 
+   will now be automatically removed if Protector notices that they're invalid.
   -Refill chest with auto locking will now only lock when they refill their 
    content, not each time they're closed.
+  -Fixed a bug causing chest protections to be removed when a chest was hit, but 
+   not destroyed.
   -Fixed /refillchest and /refillchestmany not working without time parameters.
   -Fixed a bug causing exceptions thrown when Piggy Banks or Safes were closed.
   -Fixed a bug causing the -ll on refill chest commands to not work properly.
