@@ -538,7 +538,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
-      Contract.Requires<ArgumentOutOfRangeException>(lootLimit == null || lootLimit > -1);
+      Contract.Requires<ArgumentOutOfRangeException>(lootLimit == null || lootLimit >= -1);
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       BlockType blockType = (BlockType)tile.type;
@@ -582,10 +582,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         else
           refillChestData.Looters = null;
 
-        lock (this.RefillTimers) {
+        lock (this.RefillTimers)
           if (this.RefillTimers.IsTimerRunning(refillChestData.RefillTimer))
             this.RefillTimers.RemoveTimer(refillChestData.RefillTimer);
-        }
 
         return false;
       }

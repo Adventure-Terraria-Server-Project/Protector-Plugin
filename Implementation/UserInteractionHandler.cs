@@ -1403,6 +1403,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           try {
             ProtectionEntry protection = this.ProtectionManager.CreateProtection(args.Player, chestLocation, false);
             protection.IsSharedWithAll = this.Config.AutoShareRefillChests;
+          } catch (AlreadyProtectedException) {
           } catch (Exception ex) {
             this.PluginTrace.WriteLineWarning("Failed to create protection at {0}: \n{1}", chestLocation, ex);
           }
@@ -1417,7 +1418,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           }
         }
 
-        args.Player.SendSuccessMessage(string.Format("{0} refill chests were created.", createdChestsCounter));
+        args.Player.SendSuccessMessage(string.Format("{0} refill chests were created / updated.", createdChestsCounter));
       }
     }
 

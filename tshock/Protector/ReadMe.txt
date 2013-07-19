@@ -137,6 +137,7 @@ Version 1.2 [19.07.2013]
    content, not each time they're closed.
   -Fixed /refillchest not working without parameters.
   -Fixed a bug causing exceptions thrown when Piggy Banks or Safes were closed.
+  -Fixed a bug causing the -ll on refill chest commands to not work properly.
   -/refillchestmany dungeon will now also consider wooden chests.
 Version 1.1 [29.05.2013]
   -Please consider donating to support the developer.

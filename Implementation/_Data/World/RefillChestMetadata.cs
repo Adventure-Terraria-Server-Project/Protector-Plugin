@@ -86,6 +86,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
+
     #region [Method: Constructor]
     public RefillChestMetadata(int owner): base() {
       this.owner = owner;
