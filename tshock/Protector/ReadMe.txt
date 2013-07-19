@@ -129,7 +129,7 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
-Version 1.2 [19.07.2013]
+Version 1.2 [07/19/2013]
   -Added /protector invalidate|ensure command to remove invalid protections and  
    bank chests.
   -Added "AllowRefillChestContentChanges" setting.
@@ -144,7 +144,7 @@ Version 1.2 [19.07.2013]
   -Fixed a bug causing exceptions thrown when Piggy Banks or Safes were closed.
   -Fixed a bug causing the -ll on refill chest commands to not work properly.
   -/refillchestmany dungeon will now also consider wooden chests.
-Version 1.1 [29.05.2013]
+Version 1.1 [05/29/2013]
   -Please consider donating to support the developer.
   -Added +al|-al (auto locking) functionality to refill chests.
   -Changed the command alias /pinfo to /ptinfo.
@@ -152,10 +152,10 @@ Version 1.1 [29.05.2013]
   -Fixed a bug causing chair and music box objects to be measured wrong and 
    thus having a wrong protection offset.
   -Fixed a rarely occuring bug causing exceptions on server shutdown.
-Version 1.0.8 [24.04.2013]
+Version 1.0.8 [04/24/2013]
   -Fixed a bug causing an invalid table for bank chest data being created for
    MySql databases.
   -Fixed a bug causing no message to be displayed for protected chests.
 
-Version 1.0.7 [08.04.2013]
+Version 1.0.7 [04/08/2013]
   -First public release by CoderCow.
