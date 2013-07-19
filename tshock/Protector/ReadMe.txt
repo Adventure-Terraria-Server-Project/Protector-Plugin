@@ -135,7 +135,7 @@ Version 1.2 [19.07.2013]
   -Added "AllowRefillChestContentChanges" setting.
   -Refill chest with auto locking will now only lock when they refill their 
    content, not each time they're closed.
-  -Fixed /refillchest not working without parameters.
+  -Fixed /refillchest and /refillchestmany not working without time parameters.
   -Fixed a bug causing exceptions thrown when Piggy Banks or Safes were closed.
   -Fixed a bug causing the -ll on refill chest commands to not work properly.
   -/refillchestmany dungeon will now also consider wooden chests.

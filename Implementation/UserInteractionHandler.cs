@@ -1317,7 +1317,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       bool? autoLock = null;
       TimeSpan? refillTime = null;
       string selector = null;
-      bool invalidSyntax = (args.Parameters.Count <= 1);
+      bool invalidSyntax = (args.Parameters.Count == 0);
       if (!invalidSyntax) {
         selector = args.Parameters[0].ToLowerInvariant();
 
