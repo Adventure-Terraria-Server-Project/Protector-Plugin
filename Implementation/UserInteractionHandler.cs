@@ -1835,7 +1835,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (protection != null && protection.RefillChestData != null) {
         RefillChestMetadata refillChest = protection.RefillChestData;
         // The player who set up the refill chest or masters shall modify its contents.
-        if (refillChest.Owner == player.UserID || player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+        if (
+          this.Config.AllowRefillChestContentChanges &&
+          (refillChest.Owner == player.UserID || player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
+        ) {
           refillChest.RefillItems[slotIndex] = newItem;
 
           this.ProtectionManager.TryRefillChest(location, refillChest);
@@ -2600,7 +2603,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
 
-      if (player.UserID != refillChest.Owner && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+      if (
+        !this.Config.AllowRefillChestContentChanges || 
+        (player.UserID != refillChest.Owner && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
+      ) {
         if (refillChest.RemainingLoots == 0) {
           if (sendReasonMessages)
             player.SendErrorMessage("This chest has a loot limit attached to it and can not be looted anymore.");

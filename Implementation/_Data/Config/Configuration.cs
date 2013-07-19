@@ -58,6 +58,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
+    #region [Property: AllowRefillChestContentChanges]
+    private bool allowRefillChestContentChanges;
+
+    public bool AllowRefillChestContentChanges {
+      get { return this.allowRefillChestContentChanges; }
+      set { this.allowRefillChestContentChanges = value; }
+    }
+    #endregion
+
     #region [Property: EnableBedSpawnProtection]
     private bool enableBedSpawnProtection;
 
@@ -176,6 +185,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Configuration.UpdateTileIdArrayByString(resultingConfig.notDeprotectableTiles, rootElement["NotDeprotectableTiles"].InnerXml);
       resultingConfig.maxProtectionsPerPlayerPerWorld = int.Parse(rootElement["MaxProtectionsPerPlayerPerWorld"].InnerText);
       resultingConfig.maxBankChestsPerPlayer = int.Parse(rootElement["MaxBankChestsPerPlayer"].InnerXml);
+
+      XmlElement subElement = rootElement["AllowRefillChestContentChanges"];
+      if (subElement == null)
+        resultingConfig.AllowRefillChestContentChanges = true;
+      else
+        resultingConfig.AllowRefillChestContentChanges = BoolEx.ParseEx(subElement.InnerXml);
+
       resultingConfig.enableBedSpawnProtection = BoolEx.ParseEx(rootElement["EnableBedSpawnProtection"].InnerXml);
       resultingConfig.loginRequiredForChestUsage = BoolEx.ParseEx(rootElement["LoginRequiredForChestUsage"].InnerXml);
       resultingConfig.autoShareRefillChests = BoolEx.ParseEx(rootElement["AutoShareRefillChests"].InnerXml);

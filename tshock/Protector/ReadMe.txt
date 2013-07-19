@@ -132,6 +132,7 @@ Changelog
 Version 1.2 [19.07.2013]
   -Added /protector invalidate|ensure command to remove invalid protections and  
    bank chests.
+  -Added "AllowRefillChestContentChanges" setting.
   -Refill chest with auto locking will now only lock when they refill their 
    content, not each time they're closed.
   -Fixed /refillchest not working without parameters.

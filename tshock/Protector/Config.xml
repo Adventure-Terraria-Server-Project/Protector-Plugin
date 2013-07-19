@@ -91,6 +91,13 @@
   <MaxBankChestsPerPlayer>10</MaxBankChestsPerPlayer>
   
   <!--
+    Whether the owner of a refill chest (or someone with the "prot_protectionmaster" permission) can edit the content of
+    an existing refill chest afterwards.
+    If you want to use refill chests like a regular user, set this to "false".
+  -->
+  <AllowRefillChestContentChanges>true</AllowRefillChestContentChanges>
+  
+  <!--
     Sets if users can spawn at or teleport to a protected bed they don't own or have a share on.
     
     NOTE: If spawning at or teleporting to a protected bed fails, the character is moved back to the world's spawn point.
