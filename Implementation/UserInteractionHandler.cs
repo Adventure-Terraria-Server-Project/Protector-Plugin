@@ -304,6 +304,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           return true;
         }
+        case "invalidate":
+        case "ensure": {
+          if (!args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
+            args.Player.SendErrorMessage("You do not have the necessary permission to do that.");
+            return true;
+          }
+
+          this.EnsureProtectionData(args.Player);
+          return true;
+        }
         case "summary":
         case "stats": {
           if (!args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
