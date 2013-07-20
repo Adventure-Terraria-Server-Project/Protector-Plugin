@@ -464,6 +464,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           Stopwatch watch = new Stopwatch();
           watch.Start();
           this.WorldMetadataHandler.WriteMetadata();
+          Console.WriteLine(File.GetLastWriteTime(Main.worldPathName));
           watch.Stop();
 
           string format = "Serializing the protection data took {0}ms.";

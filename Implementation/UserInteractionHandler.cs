@@ -160,7 +160,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         allowServer: false
       );
       base.RegisterCommand(
-        new[] { "dumpbankchest", "bchest" },
+        new[] { "dumpbankchest", "dbchest" },
         this.DumpBankChestCommand_Exec, this.DumpBankChestCommand_HelpCallback, ProtectorPlugin.DumpBankChests_Permission,
         allowServer: false
       );
@@ -241,8 +241,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
           }
           if (args.Player.Group.HasPermission(ProtectorPlugin.SetBankChests_Permission))
             terms.Add("/bankchest");
+          if (args.Player.Group.HasPermission(ProtectorPlugin.DumpBankChests_Permission))
+            terms.Add("/dumpbankchest");
           if (args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
             terms.Add("/lockchest");
+            if (args.Player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+              terms.Add("/protector cleanup");
+              terms.Add("/protector removeall");
+            }
+
             terms.Add("/protector removeemptychests");
             terms.Add("/protector summary");
           }
@@ -257,6 +264,143 @@ namespace Terraria.Plugins.CoderCow.Protector {
             HeaderFormat = "Protector Commands (Page {0} of {1})",
             LineTextColor = Color.LightGray,
           });
+
+          return true;
+        }
+        case "cleanup": {
+          if (
+            !args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission) ||
+            !args.Player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)
+          ) {
+            args.Player.SendErrorMessage("You do not have the necessary permission to do that.");
+            return true;
+          }
+
+          bool destroyRelatedTiles = true;
+          if (args.Parameters.Count > 1) {
+            if (args.Parameters[1].Equals("-d", StringComparison.InvariantCultureIgnoreCase)) {
+              destroyRelatedTiles = false;
+            } else if (args.Parameters[1].Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
+              args.Player.SendMessage("Command reference for /protector cleanup (Page 1 of 1)", Color.Lime);
+              args.Player.SendMessage("/protector cleanup", Color.White);
+              args.Player.SendMessage("Removes all protections of owned by user ids which do not exists in the TShock", Color.LightGray);
+              args.Player.SendMessage("database anymore.", Color.LightGray);
+              args.Player.SendMessage(string.Empty, Color.LightGray);
+              args.Player.SendMessage("-d = Does not destroy the tiles where the protections were set for.", Color.LightGray);
+              return true;
+            } else {
+              args.Player.SendErrorMessage("Proper syntax: /protector cleanup [-d]");
+              args.Player.SendErrorMessage("Type /protector cleanup help to get more help to this command.");
+              return true;
+            }
+          }
+
+          List<DPoint> protectionsToRemove = new List<DPoint>();
+          lock (this.WorldMetadata.Protections) {
+            foreach (KeyValuePair<DPoint,ProtectionEntry> protectionPair in this.WorldMetadata.Protections) {
+              DPoint location = protectionPair.Key;
+              ProtectionEntry protection = protectionPair.Value;
+
+              TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(protection.Owner);
+              if (tsUser == null)
+                protectionsToRemove.Add(location);
+            }
+
+            foreach (DPoint protectionLocation in protectionsToRemove) {
+              this.WorldMetadata.Protections.Remove(protectionLocation);
+              if (destroyRelatedTiles)
+                this.DestroyBlockOrObject(protectionLocation);
+            }
+          }
+          if (args.Player != TSPlayer.Server)
+            args.Player.SendSuccessMessage("{0} protections removed.", protectionsToRemove.Count);
+          this.PluginTrace.WriteLineInfo("{0} protections removed.", protectionsToRemove.Count);
+
+          return true;
+        }
+        case "removeall": {
+          if (
+            !args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission) ||
+            !args.Player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)
+          ) {
+            args.Player.SendErrorMessage("You do not have the necessary permission to do that.");
+            return true;
+          }
+
+          bool destroyRelatedTiles = true;
+          bool regionMode = true;
+          string target = null;
+          bool invalidSyntax = (args.Parameters.Count < 3 || args.Parameters.Count > 4);
+          if (!invalidSyntax) {
+            if (args.Parameters[1].Equals("region", StringComparison.InvariantCultureIgnoreCase))
+              regionMode = true;
+            else if (args.Parameters[1].Equals("user", StringComparison.InvariantCultureIgnoreCase))
+              regionMode = false;
+            else if (args.Parameters[1].Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
+              args.Player.SendMessage("Command reference for /protector removeall (Page 1 of 1)", Color.Lime);
+              args.Player.SendMessage("/protector removeall <region <region>|user <user>> [-d]", Color.White);
+              args.Player.SendMessage("Removes all protections either from the given region or owned by the given user.", Color.LightGray);
+              args.Player.SendMessage(string.Empty, Color.LightGray);
+              args.Player.SendMessage("region <region> = Removes all protections inside <region>.", Color.LightGray);
+              args.Player.SendMessage("user <user> = Removes all protections owned by <user> in this world.", Color.LightGray);
+              args.Player.SendMessage("-d = Does not destroy the tiles where the protections were set for.", Color.LightGray);
+              return true;
+            } else {
+              invalidSyntax = true;
+            }
+          }
+          if (!invalidSyntax) {
+            target = args.Parameters[2];
+            
+            if (args.Parameters.Count == 4) {
+              if (args.Parameters[3].Equals("-d", StringComparison.InvariantCultureIgnoreCase))
+                destroyRelatedTiles = false;
+              else
+                invalidSyntax = true;
+            }
+          }
+          if (invalidSyntax) {
+            args.Player.SendErrorMessage("Proper syntax: /protector removeall <region <region>|user <user>> [-d]");
+            args.Player.SendErrorMessage("Type /protector removeall help to get more help to this command.");
+            return true;
+          }
+
+          List<DPoint> protectionsToRemove;
+          lock (this.WorldMetadata.Protections) {
+            if (regionMode) {
+              TShockAPI.DB.Region tsRegion = TShock.Regions.GetRegionByName(target);
+              if (tsRegion == null) {
+                args.Player.SendErrorMessage("Region \"{0}\" does not exist.", target);
+                return true;
+              }
+
+              protectionsToRemove = new List<DPoint>(
+                from loc in this.WorldMetadata.Protections.Keys
+                where tsRegion.InArea(loc.X, loc.Y)
+                select loc
+              );
+            } else {
+              int userId;
+              if (!TShockEx.MatchUserIdByPlayerName(target, out userId, args.Player))
+                return true;
+
+              protectionsToRemove = new List<DPoint>(
+                from pt in this.WorldMetadata.Protections.Values
+                where pt.Owner == userId
+                select pt.TileLocation
+              );
+            }
+
+            foreach (DPoint protectionLocation in protectionsToRemove) {
+              this.WorldMetadata.Protections.Remove(protectionLocation);
+              if (destroyRelatedTiles)
+                this.DestroyBlockOrObject(protectionLocation);
+            }
+          }
+
+          if (args.Player != TSPlayer.Server)
+            args.Player.SendSuccessMessage("{0} protections removed.", protectionsToRemove.Count);
+          this.PluginTrace.WriteLineInfo("{0} protections removed.", protectionsToRemove.Count);
 
           return true;
         }
@@ -314,10 +458,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
           }
 
-          args.Player.SendSuccessMessage(string.Format(
-            "{0} empty and unprotected chests were removed. {1} invalid chest entries were removed.", 
+          if (args.Player != TSPlayer.Server) {
+            args.Player.SendSuccessMessage(string.Format(
+              "{0} empty and unprotected chests were removed. {1} invalid chest entries were removed.", 
+              cleanedUpChestsCount, cleanedUpInvalidChestDataCount
+            ));
+          }
+          this.PluginTrace.WriteLineInfo(
+            "{0} empty and unprotected chests were removed. {1} invalid chest entries were removed.",
             cleanedUpChestsCount, cleanedUpInvalidChestDataCount
-          ));
+          );
 
           return true;
         }
@@ -325,6 +475,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case "ensure": {
           if (!args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
             args.Player.SendErrorMessage("You do not have the necessary permission to do that.");
+            return true;
+          }
+
+          if (args.Parameters.Count > 1 && args.Parameters[1].Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
+            args.Player.SendMessage("Command reference for /protector invalidate (Page 1 of 1)", Color.Lime);
+            args.Player.SendMessage("/protector invalidate|ensure", Color.White);
+            args.Player.SendMessage("Removes or fixes all invalid protections of the current world.", Color.LightGray);
             return true;
           }
 
@@ -372,19 +529,37 @@ namespace Terraria.Plugins.CoderCow.Protector {
             );
           }
           
-          args.Player.SendInfoMessage(string.Format(
+          if (args.Player != TSPlayer.Server) {
+            args.Player.SendInfoMessage(string.Format(
+              "There are {0} of {1} chests and {2} of {3} signs in this world.", 
+              chestCount, Main.chest.Length, signCount, Sign.maxSigns
+            ));
+            args.Player.SendInfoMessage(string.Format(
+              "{0} protections are intact, {1} of them are shared with other players,",
+              protectionsCount, sharedProtectionsCount
+            ));
+            args.Player.SendInfoMessage(string.Format(
+              "{0} refill chests have been set up and {1} users reached their protection limit.",
+              refillChestsCount, usersWhoReachedProtectionLimitCount
+            ));
+            args.Player.SendInfoMessage(string.Format(
+              "The database holds {0} bank chests, {1} of them are instanced in this world.",
+              bankChestCount, bankChestInstancesCount
+            ));
+          }
+          this.PluginTrace.WriteLineInfo(string.Format(
             "There are {0} of {1} chests and {2} of {3} signs in this world.", 
             chestCount, Main.chest.Length, signCount, Sign.maxSigns
           ));
-          args.Player.SendInfoMessage(string.Format(
+          this.PluginTrace.WriteLineInfo(string.Format(
             "{0} protections are intact, {1} of them are shared with other players,",
             protectionsCount, sharedProtectionsCount
           ));
-          args.Player.SendInfoMessage(string.Format(
+          this.PluginTrace.WriteLineInfo(string.Format(
             "{0} refill chests have been set up and {1} users reached their protection limit.",
             refillChestsCount, usersWhoReachedProtectionLimitCount
           ));
-          args.Player.SendInfoMessage(string.Format(
+          this.PluginTrace.WriteLineInfo(string.Format(
             "The database holds {0} bank chests, {1} of them are instanced in this world.",
             bankChestCount, bankChestInstancesCount
           ));
@@ -1647,7 +1822,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /dumpbankchest (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/dumpbankchest [+p]", Color.White);
+          args.Player.SendMessage("/dumpbankchest|dbchest [+p]", Color.White);
           args.Player.SendMessage("Removes a bank chest instance but keeps its content in place actually duplicating all items.", Color.LightGray);
           args.Player.SendMessage("This allows you to use bank chests like chest-templates.", Color.LightGray);
           break;
@@ -2698,7 +2873,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
-    #region [Method: EnsureProtectionData]
+    #region [Methods: EnsureProtectionData, DestroyBlockOrObject]
     public void EnsureProtectionData(TSPlayer player) {
       int invalidProtectionsCount;
       int invalidRefillChestCount;
@@ -2708,14 +2883,44 @@ namespace Terraria.Plugins.CoderCow.Protector {
         out invalidProtectionsCount, out invalidRefillChestCount, out invalidBankChestCount
       );
 
+      if (player != TSPlayer.Server) {
+        if (invalidProtectionsCount > 0)
+          player.SendWarningMessage("{0} invalid protections removed.", invalidProtectionsCount);
+        if (invalidRefillChestCount > 0)
+          player.SendWarningMessage("{0} invalid refill chests removed.", invalidRefillChestCount);
+        if (invalidBankChestCount > 0)
+          player.SendWarningMessage("{0} invalid bank chest instances removed.", invalidBankChestCount);
+
+        player.SendInfoMessage("Finished ensuring protection data.");
+      }
+
       if (invalidProtectionsCount > 0)
-        this.PluginTrace.WriteLineWarning(string.Format("{0} invalid protections removed.", invalidProtectionsCount));
+        this.PluginTrace.WriteLineWarning("{0} invalid protections removed.", invalidProtectionsCount);
       if (invalidRefillChestCount > 0)
-        this.PluginTrace.WriteLineWarning(string.Format("{0} invalid refill chests removed.", invalidRefillChestCount));
+        this.PluginTrace.WriteLineWarning("{0} invalid refill chests removed.", invalidRefillChestCount);
       if (invalidBankChestCount > 0)
-        this.PluginTrace.WriteLineWarning(string.Format("{0} invalid bank chest instances removed.", invalidBankChestCount));
+        this.PluginTrace.WriteLineWarning("{0} invalid bank chest instances removed.", invalidBankChestCount);
 
       this.PluginTrace.WriteLineInfo("Finished ensuring protection data.");
+    }
+
+    private void DestroyBlockOrObject(DPoint tileLocation) {
+      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      if (!tile.active)
+        return;
+
+      if (tile.type == (int)BlockType.Chest) {
+        DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
+        int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
+        if (chestIndex != -1) {
+          Chest tChest = Main.chest[chestIndex];
+          for (int i = 0; i < Chest.maxItems; i++)
+            tChest.item[i] = ItemData.None.ToItem();
+        }
+      }
+
+      WorldGen.KillTile(tileLocation.X, tileLocation.Y, false, false, true);
+      TSPlayer.All.SendTileSquare(tileLocation);
     }
     #endregion
 

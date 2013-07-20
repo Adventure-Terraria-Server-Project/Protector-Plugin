@@ -28,6 +28,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public int Owner {
       get { return this.owner; }
+      set { this.owner = value; }
     }
     #endregion
 
@@ -59,6 +60,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Property: IsShared]
+    [JsonIgnore]
     public bool IsShared {
       get {
         return (
