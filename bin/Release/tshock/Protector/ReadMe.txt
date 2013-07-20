@@ -91,6 +91,8 @@ prot_bankchestshare
   Can share bank chests.
 prot_nobankchestlimits
   Can set up unlimited bank chests.
+prot_dumpbankchest
+  Can dump bank chest content (Warning: duplicates the bank chest's items).
 
 prot_nolimits
   Can create an unlimited amount of protections.
@@ -129,7 +131,32 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
-Version 1.0.9 [29.05.2013]
+Version 1.2 [07/20/2013]
+  -Added /dumpbankchest command allowing admins to use bank chests like chest 
+   templates.
+  -Added /protector invalidate command to remove invalid protections and  
+   lost bank chests instances.
+  -Added /protector removeall command to either remove all protections inside a
+   specific region or owned by a specific user.
+  -Added /protector cleanup command to remove all protections of users which where
+   already removed from the TShock database.
+  -Added "AllowRefillChestContentChanges" setting.
+  -Improved protection management: Protections which became invalid due to 
+   unknown tile changes (done by other plugins for example, or by falling blocks) 
+   will now be automatically removed if Protector notices that they're invalid.
+  -/refillchestmany dungeon will now also consider wooden dungeon chests.
+  -Refill chest with auto locking will now lock when they actually refill their 
+   content, instead of locking each time they're closed.
+  -Fixed a bug causing chest protections to be removed when a chest was hit, but 
+   not destroyed.
+  -Fixed /refillchest and /refillchestmany not working without time parameters.
+  -Fixed a bug causing exceptions thrown when Piggy Banks or Safes were closed.
+  -Fixed a bug causing the -ll on refill chest commands to not work properly.
+  -Fixed server being able to execute most Protector commands it shouldn't be
+   able to.
+  -Updated to Common Lib 2.0.
+
+Version 1.1 [05/29/2013]
   -Please consider donating to support the developer.
   -Added +al|-al (auto locking) functionality to refill chests.
   -Changed the command alias /pinfo to /ptinfo.
@@ -137,10 +164,11 @@ Version 1.0.9 [29.05.2013]
   -Fixed a bug causing chair and music box objects to be measured wrong and 
    thus having a wrong protection offset.
   -Fixed a rarely occuring bug causing exceptions on server shutdown.
-Version 1.0.8 [24.04.2013]
+
+Version 1.0.8 [04/24/2013]
   -Fixed a bug causing an invalid table for bank chest data being created for
    MySql databases.
   -Fixed a bug causing no message to be displayed for protected chests.
 
-Version 1.0.7 [08.04.2013]
+Version 1.0.7 [04/08/2013]
   -First public release by CoderCow.
