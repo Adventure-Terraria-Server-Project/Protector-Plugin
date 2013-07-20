@@ -45,6 +45,7 @@
         
         <xs:element name="MaxProtectionsPerPlayerPerWorld" type="xs:int" />
         <xs:element name="MaxBankChestsPerPlayer" type="xs:int" />
+        <xs:element name="AllowRefillChestContentChanges" type="FlexBool" minOccurs="0" />
         <xs:element name="EnableBedSpawnProtection" type="FlexBool" />
         <xs:element name="AllowChainedSharing" type="FlexBool" />
         <xs:element name="AllowChainedShareAltering" type="FlexBool" />
