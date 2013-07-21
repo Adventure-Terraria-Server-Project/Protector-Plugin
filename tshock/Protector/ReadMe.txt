@@ -55,6 +55,7 @@ Commands
 /SharePublic
 /UnsharePublic
 /BankChest <number>
+/DumpBankChest
 /RefillChest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
 /RefillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
 /LockChest
@@ -62,6 +63,8 @@ Commands
 /Protector Commands
 /Protector RemoveEmptyChests
 /Protector Summary
+/Protector Cleanup [-d]
+/Protector RemoveAll <region <region>|user <user>> [-d]
 /Protector ImportInfiniteChests
 /Protector ImportInfiniteSigns
 /Protector ReloadConfig
