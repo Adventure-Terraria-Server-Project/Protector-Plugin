@@ -276,18 +276,20 @@ namespace Terraria.Plugins.CoderCow.Protector {
             return true;
           }
 
+          if (args.Parameters.Count == 2 && args.Parameters[1].Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
+            args.Player.SendMessage("Command reference for /protector cleanup (Page 1 of 1)", Color.Lime);
+            args.Player.SendMessage("/protector cleanup", Color.White);
+            args.Player.SendMessage("Removes all protections owned by user ids which do not exists in the TShock", Color.LightGray);
+            args.Player.SendMessage("database anymore.", Color.LightGray);
+            args.Player.SendMessage(string.Empty, Color.LightGray);
+            args.Player.SendMessage("-d = Does not destroy the tiles where the protections were set for.", Color.LightGray);
+            return true;
+          }
+
           bool destroyRelatedTiles = true;
           if (args.Parameters.Count > 1) {
             if (args.Parameters[1].Equals("-d", StringComparison.InvariantCultureIgnoreCase)) {
               destroyRelatedTiles = false;
-            } else if (args.Parameters[1].Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
-              args.Player.SendMessage("Command reference for /protector cleanup (Page 1 of 1)", Color.Lime);
-              args.Player.SendMessage("/protector cleanup", Color.White);
-              args.Player.SendMessage("Removes all protections of owned by user ids which do not exists in the TShock", Color.LightGray);
-              args.Player.SendMessage("database anymore.", Color.LightGray);
-              args.Player.SendMessage(string.Empty, Color.LightGray);
-              args.Player.SendMessage("-d = Does not destroy the tiles where the protections were set for.", Color.LightGray);
-              return true;
             } else {
               args.Player.SendErrorMessage("Proper syntax: /protector cleanup [-d]");
               args.Player.SendErrorMessage("Type /protector cleanup help to get more help to this command.");
@@ -1878,11 +1880,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           Tile protectedTile = null;
           foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(location)) {
+            if (!TerrariaUtils.Tiles.IsValidCoord(protection.TileLocation)) {
+              this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
+              protectedTile = null;
+              continue;
+            }
             protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
 
             // If the protection is invalid, just remove it.
             if (!protectedTile.active || protectedTile.type != (int)protection.BlockType) {
-              this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
+              this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
               protectedTile = null;
               continue;
             }
@@ -2829,6 +2836,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       } catch (MissingPermissionException) {
         if (sendMessages)
           player.SendErrorMessage("You are not allowed to define bank chests.");
+
+        return false;
+      } catch (InvalidBlockTypeException) {
+        if (sendMessages)
+          player.SendErrorMessage("Only chests can be converted to bank chests.");
 
         return false;
       } catch (NoProtectionException) {
