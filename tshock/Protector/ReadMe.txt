@@ -134,6 +134,9 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.2.1 [08/01/2013]
+  -Fixed a bug causing /protector removeall help to not state the help test.
+
 Version 1.2 [07/20/2013]
   -Added /dumpbankchest command allowing admins to use bank chests like chest 
    templates.

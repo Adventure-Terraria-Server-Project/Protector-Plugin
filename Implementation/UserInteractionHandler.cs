@@ -218,7 +218,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             terms.Add("/protect");
           if (args.Player.Group.HasPermission(ProtectorPlugin.ManualDeprotect_Permission))
             terms.Add("/deprotect");
-          terms.Add("/protectioninfo ");
+          terms.Add("/protectioninfo");
           if (
             args.Player.Group.HasPermission(ProtectorPlugin.ChestSharing_Permission) ||
             args.Player.Group.HasPermission(ProtectorPlugin.SwitchSharing_Permission) ||
@@ -327,6 +327,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
             return true;
           }
 
+          if (args.Parameters.Count == 2 && args.Parameters[1].Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
+            args.Player.SendMessage("Command reference for /protector removeall (Page 1 of 1)", Color.Lime);
+            args.Player.SendMessage("/protector removeall <region <region>|user <user>> [-d]", Color.White);
+            args.Player.SendMessage("Removes all protections either from the given region or owned by the given user.", Color.LightGray);
+            args.Player.SendMessage(string.Empty, Color.LightGray);
+            args.Player.SendMessage("region <region> = Removes all protections inside <region>.", Color.LightGray);
+            args.Player.SendMessage("user <user> = Removes all protections owned by <user> in this world.", Color.LightGray);
+            args.Player.SendMessage("-d = Does not destroy the tiles where the protections were set for.", Color.LightGray);
+            return true;
+          }
+
           bool destroyRelatedTiles = true;
           bool regionMode = true;
           string target = null;
@@ -336,18 +347,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
               regionMode = true;
             else if (args.Parameters[1].Equals("user", StringComparison.InvariantCultureIgnoreCase))
               regionMode = false;
-            else if (args.Parameters[1].Equals("help", StringComparison.InvariantCultureIgnoreCase)) {
-              args.Player.SendMessage("Command reference for /protector removeall (Page 1 of 1)", Color.Lime);
-              args.Player.SendMessage("/protector removeall <region <region>|user <user>> [-d]", Color.White);
-              args.Player.SendMessage("Removes all protections either from the given region or owned by the given user.", Color.LightGray);
-              args.Player.SendMessage(string.Empty, Color.LightGray);
-              args.Player.SendMessage("region <region> = Removes all protections inside <region>.", Color.LightGray);
-              args.Player.SendMessage("user <user> = Removes all protections owned by <user> in this world.", Color.LightGray);
-              args.Player.SendMessage("-d = Does not destroy the tiles where the protections were set for.", Color.LightGray);
-              return true;
-            } else {
+            else
               invalidSyntax = true;
-            }
           }
           if (!invalidSyntax) {
             target = args.Parameters[2];
