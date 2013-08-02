@@ -134,6 +134,14 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.2.1 [08/01/2013]
+  -Improved protection management.
+  -Protector will no longer throw an exception when a user tried to create a bank
+   chest instance on a tile which is no chest.
+  -Protector will no longer throw an exception when protections with invalid
+   tile locations get removed.
+  -Fixed a bug causing /protector removeall help to not state the help test.
+
 Version 1.2 [07/20/2013]
   -Added /dumpbankchest command allowing admins to use bank chests like chest 
    templates.

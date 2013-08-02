@@ -331,16 +331,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public void RemoveProtection(TSPlayer player, DPoint tileLocation, bool checkIfBlockTypeDeprotectableByConfig = true) {
       Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
 
       bool canDeprotectEverything = player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission);
       if (TerrariaUtils.Tiles.IsValidCoord(tileLocation)) {
         Tile tile = TerrariaUtils.Tiles[tileLocation];
-        if (!canDeprotectEverything && checkIfBlockTypeDeprotectableByConfig && this.Config.NotDeprotectableTiles[tile.type])
-          throw new InvalidBlockTypeException((BlockType)tile.type);
-
-        tileLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
+        if (tile.active) {
+          if (!canDeprotectEverything && checkIfBlockTypeDeprotectableByConfig && this.Config.NotDeprotectableTiles[tile.type])
+            throw new InvalidBlockTypeException((BlockType)tile.type);
+        
+          tileLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
+        }
       }
 
       ProtectionEntry protection;
