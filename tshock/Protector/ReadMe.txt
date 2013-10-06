@@ -37,7 +37,7 @@ However when using Protector, worlds will be limited by Terraria's maximum of
 Infinite Chests. You can try to operate this plugin with other protection 
 plugins, read the "About Data Import and Compatibility" for more information.
 
-Note: This plugin requires Terraria Server API 1.12 and TShock 4 in order to work.
+Note: This plugin requires Terraria Server API 1.14 and TShock 4.2 in order to work.
 
 Suggestions? Bugs? File issues here:
 https://github.com/CoderCow/Protector-Plugin/issues
@@ -45,20 +45,20 @@ https://github.com/CoderCow/Protector-Plugin/issues
 
 Commands
 ---------------------------------------------------------------------------------
-/Protect
-/Deprotect
-/ProtectionInfo
-/Share <player name>
-/Unshare <player name>
-/ShareGroup <group name>
-/UnshareGroup <group name>
-/SharePublic
-/UnsharePublic
+/Protect [+p]
+/Deprotect [+p]
+/ProtectionInfo [+p]
+/Share <player name> [+p]
+/Unshare <player name> [+p]
+/ShareGroup <group name> [+p]
+/UnshareGroup <group name> [+p]
+/SharePublic [+p]
+/UnsharePublic [+p]
 /BankChest <number>
 /DumpBankChest
 /RefillChest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
 /RefillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
-/LockChest
+/LockChest [+p]
 /Protector
 /Protector Commands
 /Protector RemoveEmptyChests
