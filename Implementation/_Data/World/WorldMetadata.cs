@@ -13,30 +13,12 @@ using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class WorldMetadata: IMetadataFile {
-    #region [Constants]
     protected const string CurrentVersion = "1.2";
-    #endregion
 
-    #region [Property: Version]
-    private string version;
-
-    public string Version {
-      get { return this.version; }
-      set { this.version = value; }
-    }
-    #endregion
-
-    #region [Property: Protections]
-    private Dictionary<DPoint,ProtectionEntry> protections;
-
-    public Dictionary<DPoint,ProtectionEntry> Protections {
-      get { return this.protections; }
-      set { this.protections = value; }
-    }
-    #endregion
+    public string Version { get; set; }
+    public Dictionary<DPoint,ProtectionEntry> Protections { get; set; }
 
 
-    #region [Methods: Static Read, Write]
     public static WorldMetadata Read(string filePath) {
       using (StreamReader fileReader = new StreamReader(filePath)) {
         return JsonConvert.DeserializeObject<WorldMetadata>(fileReader.ReadToEnd(), new JsonUnixTimestampConverter());
@@ -44,27 +26,23 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public void Write(string filePath) {
-      this.version = WorldMetadata.CurrentVersion;
+      this.Version = WorldMetadata.CurrentVersion;
 
       using (StreamWriter fileWriter = new StreamWriter(filePath)) {
         fileWriter.Write(JsonConvert.SerializeObject(this, Formatting.Indented, new JsonUnixTimestampConverter()));
       }
     }
-    #endregion
 
-    #region [Method: Constructor]
+
     public WorldMetadata() {
-      this.version = WorldMetadata.CurrentVersion;
-      this.protections = new Dictionary<DPoint,ProtectionEntry>(40);
+      this.Version = WorldMetadata.CurrentVersion;
+      this.Protections = new Dictionary<DPoint,ProtectionEntry>(40);
     }
-    #endregion
 
-    #region [Method: CountUserProtections]
     public int CountUserProtections(int userId) {
       lock (this.Protections) {
         return this.Protections.Values.Count(p => p.Owner == userId);
       }
     }
-    #endregion
   }
 }

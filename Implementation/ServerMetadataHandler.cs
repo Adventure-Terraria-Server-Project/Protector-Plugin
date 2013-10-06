@@ -12,20 +12,13 @@ using TShockAPI.DB;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class ServerMetadataHandler: DatabaseHandlerBase {
-    #region [Property: WorkQueue]
-    private readonly AsyncWorkQueue workQueue;
-
-    protected AsyncWorkQueue WorkQueue {
-      get { return this.workQueue; }
-    }
-    #endregion
-
     private readonly object workQueueLock = new object();
 
+    protected AsyncWorkQueue WorkQueue { get; private set; }
 
-    #region [Methods: Constructor, EnsureDataStructure]
+
     public ServerMetadataHandler(string sqliteFilePath): base(sqliteFilePath) {
-      this.workQueue = new AsyncWorkQueue();
+      this.WorkQueue = new AsyncWorkQueue();
     }
 
     public override void EnsureDataStructure() {      
@@ -37,9 +30,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         new SqlColumn("Content", MySqlDbType.Text)
       ));
     }
-    #endregion
 
-    #region [Methods: EnqueueGetBankChestCount, EnqueueGetBankChestMetadata]
     public Task<int> EnqueueGetBankChestCount() {
       Contract.Requires<ObjectDisposedException>(!base.IsDisposed);
 
@@ -92,9 +83,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return new BankChestMetadata { Items = itemData };
       };
     }
-    #endregion
 
-    #region [Methods: EnqueueAddOrUpdateBankChest, EnqueueUpdateBankChestItem, EnqueueDeleteBankChestsOfUser]
     public Task EnqueueAddOrUpdateBankChest(BankChestDataKey key, BankChestMetadata bankChest) {
       Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
 
@@ -162,9 +151,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private void DeleteBankChestsOfUser(int userId) {
       this.DbConnection.Query("DELETE FROM Protector_BankChests WHERE UserId = @0", userId);
     }
-    #endregion
 
-    #region [Methods: StringToItemMetadata, ItemMetadataToString]
     protected ItemData[] StringToItemMetadata(string raw) {
       string[] itemsRaw = raw.Split(';');
       ItemData[] items = new ItemData[itemsRaw.Length];
@@ -195,7 +182,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       return builder.ToString();
     }
-    #endregion
 
     #region [IDisposable Implementation]
     protected override void Dispose(bool isDisposing) {

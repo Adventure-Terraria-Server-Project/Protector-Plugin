@@ -31,39 +31,23 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public static readonly BankChestDataKey Invalid = default(BankChestDataKey);
 
-    #region [Property: UserId]
-    private readonly int userId;
+    public int UserId { get; private set; }
+    public int BankChestIndex { get; private set; }
 
-    public int UserId {
-      get { return this.userId; }
+
+    public BankChestDataKey(int userId, int bankChestIndex): this() {
+      this.UserId = userId;
+      this.BankChestIndex = bankChestIndex;
     }
-    #endregion
 
-    #region [Property: BankChestIndex]
-    private readonly int bankChestIndex;
-
-    public int BankChestIndex {
-      get { return this.bankChestIndex; }
-    }
-    #endregion
-
-
-    #region [Method: Constructor]
-    public BankChestDataKey(int userId, int bankChestIndex) {
-      this.userId = userId;
-      this.bankChestIndex = bankChestIndex;
-    }
-    #endregion
-
-    #region [Methods: GetHashCode, Equals, ==, !=]
     public override int GetHashCode() {
       return this.UserId ^ this.BankChestIndex;
     }
 
     public bool Equals(BankChestDataKey other) {
       return (
-        this.userId == other.userId &&
-        this.bankChestIndex == other.bankChestIndex
+        this.UserId == other.UserId &&
+        this.BankChestIndex == other.BankChestIndex
       );
     }
 
@@ -81,12 +65,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public static bool operator !=(BankChestDataKey a, BankChestDataKey b) {
       return !a.Equals(b);
     }
-    #endregion
 
-    #region [Method: ToString]
     public override string ToString() {
       return string.Format("{{UserId = {0}, BankChestIndex = {1}}}", this.UserId, this.BankChestIndex);
     }
-    #endregion
   }
 }

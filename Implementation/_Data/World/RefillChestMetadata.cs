@@ -9,23 +9,8 @@ using Newtonsoft.Json;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class RefillChestMetadata {
-    #region [Property: Owner]
-    private int owner;
-
-    public int Owner {
-      get { return this.owner; }
-      set { this.owner = value; }
-    }
-    #endregion
-
-    #region [Property: RefillItems]
-    private ItemData[] refillItems;
-
-    public ItemData[] RefillItems {
-      get { return this.refillItems; }
-      set { this.refillItems = value; }
-    }
-    #endregion
+    public int Owner { get; set; }
+    public ItemData[] RefillItems { get; set; }
 
     #region [Property: RefillTimer, RefillStartTime, RefillTime]
     private Timer refillTimer;
@@ -49,50 +34,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
-    #region [Property: OneLootPerPlayer]
-    private bool oneLootPerPlayer;
-
-    public bool OneLootPerPlayer {
-      get { return this.oneLootPerPlayer; }
-      set { this.oneLootPerPlayer = value; }
-    }
-    #endregion
-
-    #region [Property: LootLimit]
-    private int remainingLoots;
-
-    public int RemainingLoots {
-      get { return this.remainingLoots; }
-      set { this.remainingLoots = value; }
-    }
-    #endregion
-
-    #region [Property: Looters]
-    private Collection<int> looters;
-
-    public Collection<int> Looters {
-      get { return this.looters; }
-      set { this.looters = value; }
-    }
-    #endregion
-
-    #region [Property: AutoLock]
-    private bool autoLock;
-
-    public bool AutoLock {
-      get { return this.autoLock; }
-      set { this.autoLock = value; }
-    }
-    #endregion
+    public bool OneLootPerPlayer { get; set; }
+    public int RemainingLoots { get; set; }
+    public Collection<int> Looters { get; set; }
+    public bool AutoLock { get; set; }
 
 
-    #region [Method: Constructor]
     public RefillChestMetadata(int owner): base() {
-      this.owner = owner;
-      this.refillItems = new ItemData[Chest.maxItems];
+      this.Owner = owner;
+      this.RefillItems = new ItemData[Chest.maxItems];
       this.refillTimer = new Timer(TimeSpan.Zero, null, null);
-      this.remainingLoots = -1;
+      this.RemainingLoots = -1;
     }
-    #endregion
   }
 }

@@ -9,147 +9,25 @@ using Terraria.Plugins.Common;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class Configuration {
-    #region [Constants]
     public const string CurrentVersion = "1.0";
-    #endregion
 
-    #region [Property: ManuallyProtectableTiles]
-    private bool[] manuallyProtectableTiles;
-
-    public bool[] ManuallyProtectableTiles {
-      get { return this.manuallyProtectableTiles; }
-      set { this.manuallyProtectableTiles = value; }
-    }
-    #endregion
-
-    #region [Property: AutoProtectedTiles]
-    private bool[] autoProtectedTiles;
-
-    public bool[] AutoProtectedTiles {
-      get { return this.autoProtectedTiles; }
-      set { this.autoProtectedTiles = value; }
-    }
-    #endregion
-
-    #region [Property: NotDeprotectableTiles]
-    private bool[] notDeprotectableTiles;
-
-    public bool[] NotDeprotectableTiles {
-      get { return this.notDeprotectableTiles; }
-      set { this.notDeprotectableTiles = value; }
-    }
-    #endregion
-
-    #region [Property: MaxProtectionsPerPlayerPerWorld]
-    private int maxProtectionsPerPlayerPerWorld;
-
-    public int MaxProtectionsPerPlayerPerWorld {
-      get { return this.maxProtectionsPerPlayerPerWorld; }
-      set { this.maxProtectionsPerPlayerPerWorld = value; }
-    }
-    #endregion
-
-    #region [Property: MaxBankChestsPerPlayer]
-    private int maxBankChestsPerPlayer;
-
-    public int MaxBankChestsPerPlayer {
-      get { return this.maxBankChestsPerPlayer; }
-      set { this.maxBankChestsPerPlayer = value; }
-    }
-    #endregion
-
-    #region [Property: AllowRefillChestContentChanges]
-    private bool allowRefillChestContentChanges;
-
-    public bool AllowRefillChestContentChanges {
-      get { return this.allowRefillChestContentChanges; }
-      set { this.allowRefillChestContentChanges = value; }
-    }
-    #endregion
-
-    #region [Property: EnableBedSpawnProtection]
-    private bool enableBedSpawnProtection;
-
-    public bool EnableBedSpawnProtection {
-      get { return this.enableBedSpawnProtection; }
-      set { this.enableBedSpawnProtection = value; }
-    }
-    #endregion
-
-    #region [Property: LoginRequiredForChestUsage]
-    private bool loginRequiredForChestUsage;
-
-    public bool LoginRequiredForChestUsage {
-      get { return this.loginRequiredForChestUsage; }
-      set { this.loginRequiredForChestUsage = value; }
-    }
-    #endregion
-
-    #region [Property: AutoShareRefillChests]
-    private bool autoShareRefillChests;
-
-    public bool AutoShareRefillChests {
-      get { return this.autoShareRefillChests; }
-      set { this.autoShareRefillChests = value; }
-    }
-    #endregion
-
-    #region [Property: AutoDeprotectEverythingOnDestruction]
-    private bool autoDeprotectEverythingOnDestruction;
-
-    public bool AutoDeprotectEverythingOnDestruction {
-      get { return this.autoDeprotectEverythingOnDestruction; }
-      set { this.autoDeprotectEverythingOnDestruction = value; }
-    }
-    #endregion
-
-    #region [Property: AllowChainedSharing]
-    private bool allowChainedSharing;
-
-    public bool AllowChainedSharing {
-      get { return this.allowChainedSharing; }
-      set { this.allowChainedSharing = value; }
-    }
-    #endregion
-
-    #region [Property: AllowChainedShareAltering]
-    private bool allowChainedShareAltering;
-
-    public bool AllowChainedShareAltering {
-      get { return this.allowChainedShareAltering; }
-      set { this.allowChainedShareAltering = value; }
-    }
-    #endregion
-
-    #region [Property: AllowWiringProtectedBlocks]
-    private bool allowWiringProtectedBlocks;
-
-    public bool AllowWiringProtectedBlocks {
-      get { return this.allowWiringProtectedBlocks; }
-      set { this.allowWiringProtectedBlocks = value; }
-    }
-    #endregion
-
-    #region [Property: NotifyAutoProtections]
-    private bool notifyAutoProtections;
-
-    public bool NotifyAutoProtections {
-      get { return this.notifyAutoProtections; }
-      set { this.notifyAutoProtections = value; }
-    }
-    #endregion
-
-    #region [Property: NotifyAutoDeprotections]
-    private bool notifyAutoDeprotections;
-
-    public bool NotifyAutoDeprotections {
-      get { return this.notifyAutoDeprotections; }
-      set { this.notifyAutoDeprotections = value; }
-    }
-    #endregion
+    public bool[] ManuallyProtectableTiles { get; set; }
+    public bool[] AutoProtectedTiles { get; set; }
+    public bool[] NotDeprotectableTiles { get; set; }
+    public int MaxProtectionsPerPlayerPerWorld { get; set; }
+    public int MaxBankChestsPerPlayer { get; set; }
+    public bool AllowRefillChestContentChanges { get; set; }
+    public bool EnableBedSpawnProtection { get; set; }
+    public bool LoginRequiredForChestUsage { get; set; }
+    public bool AutoShareRefillChests { get; set; }
+    public bool AutoDeprotectEverythingOnDestruction { get; set; }
+    public bool AllowChainedSharing { get; set; }
+    public bool AllowChainedShareAltering { get; set; }
+    public bool AllowWiringProtectedBlocks { get; set; }
+    public bool NotifyAutoProtections { get; set; }
+    public bool NotifyAutoDeprotections { get; set; }
 
 
-    #region [Methods: Static Read]
     public static Configuration Read(string filePath) {
       XmlReaderSettings configReaderSettings = new XmlReaderSettings {
         ValidationType = ValidationType.Schema,
@@ -179,11 +57,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
       
       Configuration resultingConfig = new Configuration();
-      Configuration.UpdateTileIdArrayByString(resultingConfig.manuallyProtectableTiles, rootElement["ManuallyProtectableTiles"].InnerXml);
-      Configuration.UpdateTileIdArrayByString(resultingConfig.autoProtectedTiles, rootElement["AutoProtectedTiles"].InnerXml);
-      Configuration.UpdateTileIdArrayByString(resultingConfig.notDeprotectableTiles, rootElement["NotDeprotectableTiles"].InnerXml);
-      resultingConfig.maxProtectionsPerPlayerPerWorld = int.Parse(rootElement["MaxProtectionsPerPlayerPerWorld"].InnerText);
-      resultingConfig.maxBankChestsPerPlayer = int.Parse(rootElement["MaxBankChestsPerPlayer"].InnerXml);
+      Configuration.UpdateTileIdArrayByString(resultingConfig.ManuallyProtectableTiles, rootElement["ManuallyProtectableTiles"].InnerXml);
+      Configuration.UpdateTileIdArrayByString(resultingConfig.AutoProtectedTiles, rootElement["AutoProtectedTiles"].InnerXml);
+      Configuration.UpdateTileIdArrayByString(resultingConfig.NotDeprotectableTiles, rootElement["NotDeprotectableTiles"].InnerXml);
+      resultingConfig.MaxProtectionsPerPlayerPerWorld = int.Parse(rootElement["MaxProtectionsPerPlayerPerWorld"].InnerText);
+      resultingConfig.MaxBankChestsPerPlayer = int.Parse(rootElement["MaxBankChestsPerPlayer"].InnerXml);
 
       XmlElement subElement = rootElement["AllowRefillChestContentChanges"];
       if (subElement == null)
@@ -191,15 +69,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
       else
         resultingConfig.AllowRefillChestContentChanges = BoolEx.ParseEx(subElement.InnerXml);
 
-      resultingConfig.enableBedSpawnProtection = BoolEx.ParseEx(rootElement["EnableBedSpawnProtection"].InnerXml);
-      resultingConfig.loginRequiredForChestUsage = BoolEx.ParseEx(rootElement["LoginRequiredForChestUsage"].InnerXml);
-      resultingConfig.autoShareRefillChests = BoolEx.ParseEx(rootElement["AutoShareRefillChests"].InnerXml);
-      resultingConfig.allowChainedSharing = BoolEx.ParseEx(rootElement["AllowChainedSharing"].InnerXml);
-      resultingConfig.allowChainedShareAltering = BoolEx.ParseEx(rootElement["AllowChainedShareAltering"].InnerXml);
-      resultingConfig.allowWiringProtectedBlocks = BoolEx.ParseEx(rootElement["AllowWiringProtectedBlocks"].InnerXml);
-      resultingConfig.autoDeprotectEverythingOnDestruction = BoolEx.ParseEx(rootElement["AutoDeprotectEverythingOnDestruction"].InnerXml);
-      resultingConfig.notifyAutoProtections = BoolEx.ParseEx(rootElement["NotifyAutoProtection"].InnerXml);
-      resultingConfig.notifyAutoDeprotections = BoolEx.ParseEx(rootElement["NotifyAutoDeprotection"].InnerXml);
+      resultingConfig.EnableBedSpawnProtection = BoolEx.ParseEx(rootElement["EnableBedSpawnProtection"].InnerXml);
+      resultingConfig.LoginRequiredForChestUsage = BoolEx.ParseEx(rootElement["LoginRequiredForChestUsage"].InnerXml);
+      resultingConfig.AutoShareRefillChests = BoolEx.ParseEx(rootElement["AutoShareRefillChests"].InnerXml);
+      resultingConfig.AllowChainedSharing = BoolEx.ParseEx(rootElement["AllowChainedSharing"].InnerXml);
+      resultingConfig.AllowChainedShareAltering = BoolEx.ParseEx(rootElement["AllowChainedShareAltering"].InnerXml);
+      resultingConfig.AllowWiringProtectedBlocks = BoolEx.ParseEx(rootElement["AllowWiringProtectedBlocks"].InnerXml);
+      resultingConfig.AutoDeprotectEverythingOnDestruction = BoolEx.ParseEx(rootElement["AutoDeprotectEverythingOnDestruction"].InnerXml);
+      resultingConfig.NotifyAutoProtections = BoolEx.ParseEx(rootElement["NotifyAutoProtection"].InnerXml);
+      resultingConfig.NotifyAutoDeprotections = BoolEx.ParseEx(rootElement["NotifyAutoDeprotection"].InnerXml);
 
       return resultingConfig;
     }
@@ -211,14 +89,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       foreach (string tileId in tileIds.Split(','))
         idArray[int.Parse(tileId)] = true;
     }
-    #endregion
 
-    #region [Method: Constructor]
     public Configuration() {
-      this.manuallyProtectableTiles = new bool[TerrariaUtils.BlockType_Max];
-      this.autoProtectedTiles = new bool[TerrariaUtils.BlockType_Max];
-      this.notDeprotectableTiles = new bool[TerrariaUtils.BlockType_Max];
+      this.ManuallyProtectableTiles = new bool[TerrariaUtils.BlockType_Max];
+      this.AutoProtectedTiles = new bool[TerrariaUtils.BlockType_Max];
+      this.NotDeprotectableTiles = new bool[TerrariaUtils.BlockType_Max];
     }
-    #endregion
   }
 }

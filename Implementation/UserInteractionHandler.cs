@@ -16,64 +16,15 @@ using TShockAPI;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class UserInteractionHandler: UserInteractionHandlerBase, IDisposable {
-    #region [Property: PluginInfo]
-    private readonly PluginInfo pluginInfo;
-
-    protected PluginInfo PluginInfo {
-      get { return this.pluginInfo; }
-    }
-    #endregion
-
-    #region [Property: Config]
-    private Configuration config;
-
-    protected Configuration Config {
-      get { return this.config; }
-    }
-    #endregion
-
-    #region [Property: ServerMetadataHandler]
-    private readonly ServerMetadataHandler serverMetadataHandler;
-
-    protected ServerMetadataHandler ServerMetadataHandler {
-      get { return this.serverMetadataHandler; }
-    }
-    #endregion
-
-    #region [Property: WorldMetadata]
-    private readonly WorldMetadata worldMetadata;
-
-    protected WorldMetadata WorldMetadata {
-      get { return this.worldMetadata; }
-    }
-    #endregion
-
-    #region [Property: ProtectionManager]
-    private readonly ProtectionManager protectionManager;
-
-    protected ProtectionManager ProtectionManager {
-      get { return this.protectionManager; }
-    }
-    #endregion
-
-    #region [Property: PluginCooperationHandler]
-    private readonly PluginCooperationHandler pluginCooperationHandler;
-
-    public PluginCooperationHandler PluginCooperationHandler {
-      get { return this.pluginCooperationHandler; }
-    }
-    #endregion
-
-    #region [Property: ReloadConfigurationCallback]
-    private Func<Configuration> reloadConfigurationCallback;
-
-    protected Func<Configuration> ReloadConfigurationCallback {
-      get { return this.reloadConfigurationCallback; }
-    }
-    #endregion
+    protected PluginInfo PluginInfo { get; private set; }
+    protected Configuration Config { get; private set; }
+    protected ServerMetadataHandler ServerMetadataHandler { get; private set; }
+    protected WorldMetadata WorldMetadata { get; private set; }
+    protected ProtectionManager ProtectionManager { get; private set; }
+    public PluginCooperationHandler PluginCooperationHandler { get; private set; }
+    protected Func<Configuration> ReloadConfigurationCallback { get; private set; }
 
     
-    #region [Method: Constructor]
     public UserInteractionHandler(
       PluginTrace trace, PluginInfo pluginInfo, Configuration config, ServerMetadataHandler serverMetadataHandler, 
       WorldMetadata worldMetadata, ProtectionManager protectionManager, PluginCooperationHandler pluginCooperationHandler, 
@@ -88,13 +39,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentNullException>(pluginCooperationHandler != null);
       Contract.Requires<ArgumentNullException>(reloadConfigurationCallback != null);
 
-      this.pluginInfo = pluginInfo;
-      this.config = config;
-      this.serverMetadataHandler = serverMetadataHandler;
-      this.worldMetadata = worldMetadata;
-      this.protectionManager = protectionManager;
-      this.pluginCooperationHandler = pluginCooperationHandler;
-      this.reloadConfigurationCallback = reloadConfigurationCallback;
+      this.PluginInfo = pluginInfo;
+      this.Config = config;
+      this.ServerMetadataHandler = serverMetadataHandler;
+      this.WorldMetadata = worldMetadata;
+      this.ProtectionManager = protectionManager;
+      this.PluginCooperationHandler = pluginCooperationHandler;
+      this.ReloadConfigurationCallback = reloadConfigurationCallback;
 
       #region Command Setup
       base.RegisterCommand(
@@ -166,7 +117,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
       );
       #endregion
     }
-    #endregion
 
     #region [Command Handling /protector]
     private void RootCommand_Exec(CommandArgs args) {
@@ -1619,7 +1569,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           try {
             ProtectionEntry protection = this.ProtectionManager.CreateProtection(args.Player, chestLocation, false);
-            protection.IsSharedWithAll = this.Config.AutoShareRefillChests;
+            protection.IsSharedWithEveryone = this.Config.AutoShareRefillChests;
           } catch (AlreadyProtectedException) {
           } catch (Exception ex) {
             this.PluginTrace.WriteLineWarning("Failed to create protection at {0}: \n{1}", chestLocation, ex);
@@ -2320,7 +2270,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
-    #region [Methods: TryCreateProtection, TryAlterProtectionShare, TryRemoveProtection, TryGetProtectionInfo, CheckProtected]
     private bool TryCreateProtection(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {
       if (!player.IsLoggedIn) {
         if (sendFailureMessages) {
@@ -2658,7 +2607,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
       
       if (ProtectionManager.IsShareableBlockType(blockType)) {
-        if (protection.IsSharedWithAll) {
+        if (protection.IsSharedWithEveryone) {
           player.SendMessage("Protection is shared with everyone.", Color.LightGray);
           return true;
         }
@@ -2709,9 +2658,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       return true;
     }
-    #endregion
 
-    #region [Methods: TryLockChest, TrySetUpRefillChest, TrySetUpBankChest]
     public bool TryLockChest(TSPlayer player, DPoint anyChestTileLocation, bool sendMessages = true) {
       try {
         TerrariaUtils.Tiles.LockChest(anyChestTileLocation);
@@ -2777,7 +2724,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
         if (this.Config.AutoShareRefillChests) {
           foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(tileLocation)) {
-            protection.IsSharedWithAll = true;
+            protection.IsSharedWithEveryone = true;
             break;
           }
         }
@@ -2912,9 +2859,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
     }
-    #endregion
 
-    #region [Methods: EnsureProtectionData, DestroyBlockOrObject]
     public void EnsureProtectionData(TSPlayer player) {
       int invalidProtectionsCount;
       int invalidRefillChestCount;
@@ -2963,9 +2908,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       WorldGen.KillTile(tileLocation.X, tileLocation.Y, false, false, true);
       TSPlayer.All.SendTileSquare(tileLocation);
     }
-    #endregion
 
-    #region [Method: CheckRefillChestLootability]
     public bool CheckRefillChestLootability(RefillChestMetadata refillChest, TSPlayer player, bool sendReasonMessages = true) {
       if (!player.IsLoggedIn && (refillChest.OneLootPerPlayer || refillChest.RemainingLoots != -1)) {
         if (sendReasonMessages)
@@ -2999,7 +2942,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       return true;
     }
-    #endregion
 
     #region [IDisposable Implementation]
     protected override void Dispose(bool isDisposing) {

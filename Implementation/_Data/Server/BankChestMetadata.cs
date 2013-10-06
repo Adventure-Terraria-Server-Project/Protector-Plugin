@@ -4,20 +4,11 @@ using Terraria.Plugins.Common;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class BankChestMetadata {
-    #region [Property: Items]
-    private ItemData[] items;
-
-    public ItemData[] Items {
-      get { return this.items; }
-      set { this.items = value; }
-    }
-    #endregion
+    public ItemData[] Items { get; set; }
 
 
-    #region [Method: Constructor]
     public BankChestMetadata(): base() {
-      this.items = new ItemData[Chest.maxItems];
+      this.Items = new ItemData[Chest.maxItems];
     }
-    #endregion
   }
 }

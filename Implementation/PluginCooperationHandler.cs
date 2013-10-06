@@ -22,22 +22,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
-    #region [Property: PluginTrace]
-    private readonly PluginTrace pluginTrace;
-
-    public PluginTrace PluginTrace {
-      get { return this.pluginTrace; }
-    }
-    #endregion
+    public PluginTrace PluginTrace { get; private set; }
 
 
-    #region [Method: Constructor]
     public PluginCooperationHandler(PluginTrace pluginTrace) {
-      this.pluginTrace = pluginTrace;
+      this.PluginTrace = pluginTrace;
     }
-    #endregion
 
-    #region [Method: InfiniteChests_ChestDataImport, InfiniteSigns_SignDataImport]
     public void InfiniteChests_ChestDataImport(
       ProtectionManager protectionManager, 
       out int importedChests, out int overwrittenChests, out int protectFailures
@@ -137,7 +128,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             if (owner != TSPlayer.All) {
               try {
                 ProtectionEntry protection = protectionManager.CreateProtection(owner, chestLocation, true, false, false);
-                protection.IsSharedWithAll = (rawFlags & InfiniteChestsChestFlags.PUBLIC) != 0;
+                protection.IsSharedWithEveryone = (rawFlags & InfiniteChestsChestFlags.PUBLIC) != 0;
                 if ((rawFlags & InfiniteChestsChestFlags.REFILL) != 0)
                   protectionManager.SetUpRefillChest(owner, chestLocation, TimeSpan.Zero);
               } catch (Exception ex) {
@@ -273,6 +264,5 @@ namespace Terraria.Plugins.CoderCow.Protector {
           dbConnection.Close();
       }
     }
-    #endregion
   }
 }

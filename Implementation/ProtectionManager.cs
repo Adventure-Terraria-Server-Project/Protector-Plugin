@@ -13,16 +13,9 @@ using TShockAPI.DB;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class ProtectionManager {
-    #region [Property: PluginTrace]
-    private readonly PluginTrace pluginTrace;
-
-    public PluginTrace PluginTrace {
-      get { return this.pluginTrace; }
-    }
-    #endregion
-
-    #region [Property: Config]
     private Configuration config;
+
+    public PluginTrace PluginTrace { get; private set; }
 
     public Configuration Config {
       get { return this.config; }
@@ -31,42 +24,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.config = value;
       }
     }
-    #endregion
 
-    #region [Property: ServerMetadataHandler]
-    private readonly ServerMetadataHandler serverMetadataHandler;
-
-    public ServerMetadataHandler ServerMetadataHandler {
-      get { return this.serverMetadataHandler; }
-    }
-    #endregion
-
-    #region [Property: WorldMetadata]
-    private readonly WorldMetadata worldMetadata;
-
-    public WorldMetadata WorldMetadata {
-      get { return this.worldMetadata; }
-    }
-    #endregion
-
-    #region [Property: RefillTimers]
-    private readonly TimerManager refillTimers;
-
-    public TimerManager RefillTimers {
-      get { return this.refillTimers; }
-    }
-    #endregion
-
-    #region [Property: RefillTimerCallbackHandler]
-    private readonly Func<TimerBase, bool> refillTimerCallbackHandler;
-
-    public Func<TimerBase,bool> RefillTimerCallbackHandler {
-      get { return this.refillTimerCallbackHandler; }
-    }
-    #endregion
+    public ServerMetadataHandler ServerMetadataHandler { get; private set; }
+    public WorldMetadata WorldMetadata { get; private set; }
+    public TimerManager RefillTimers { get; private set; }
+    public Func<TimerBase,bool> RefillTimerCallbackHandler { get; private set; }
 
 
-    #region [Methods: Static IsShareableBlockType]
     public static bool IsShareableBlockType(BlockType blockType) {
       return (
         blockType == BlockType.Chest ||
@@ -78,23 +42,19 @@ namespace Terraria.Plugins.CoderCow.Protector {
         TerrariaUtils.Tiles.IsSwitchableBlockType(blockType)
       );
     }
-    #endregion
 
-    #region [Method: Constructor]
     public ProtectionManager(
       PluginTrace pluginTrace, Configuration config, ServerMetadataHandler serverMetadataHandler, WorldMetadata worldMetadata
     ) {
-      this.pluginTrace = pluginTrace;
+      this.PluginTrace = pluginTrace;
       this.config = config;
-      this.serverMetadataHandler = serverMetadataHandler;
-      this.worldMetadata = worldMetadata;
+      this.ServerMetadataHandler = serverMetadataHandler;
+      this.WorldMetadata = worldMetadata;
 
-      this.refillTimers = new TimerManager(pluginTrace);
-      this.refillTimerCallbackHandler = this.RefillChestTimer_Callback;
+      this.RefillTimers = new TimerManager(pluginTrace);
+      this.RefillTimerCallbackHandler = this.RefillChestTimer_Callback;
     }
-    #endregion
 
-    #region [Methods: EnumerateProtectionEntries, CheckProtectionAccess, CheckBlockAccess]
     public IEnumerable<ProtectionEntry> EnumerateProtectionEntries(DPoint tileLocation) {
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       if (!tile.active())
@@ -282,9 +242,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       ProtectionEntry dummy;
       return this.CheckBlockAccess(player, tileLocation, fullAccessRequired, out dummy);
     }
-    #endregion
 
-    #region [Methods: CreateProtection, RemoveProtection]
     public ProtectionEntry CreateProtection(
       TSPlayer player, DPoint tileLocation, bool checkIfBlockTypeProtectableByConfig = true, 
       bool checkTShockBuildAndRegionAccess = true, bool checkLimits = true
@@ -363,9 +321,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       lock (this.WorldMetadata.Protections)
         this.WorldMetadata.Protections.Remove(tileLocation);
     }
-    #endregion
 
-    #region [Methods: ProtectionShareAll, ProtectionShareUser, ProtectionShareGroup]
     public void ProtectionShareAll(TSPlayer player, DPoint tileLocation, bool shareOrUnshare, bool checkPermissions = false) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
@@ -379,14 +335,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw ex;
       }
 
-      if (protection.IsSharedWithAll == shareOrUnshare) {
+      if (protection.IsSharedWithEveryone == shareOrUnshare) {
         if (shareOrUnshare)
           throw new ProtectionAlreadySharedException();
         else
           throw new ProtectionNotSharedException();
       }
 
-      protection.IsSharedWithAll = shareOrUnshare;
+      protection.IsSharedWithEveryone = shareOrUnshare;
     }
 
     public void ProtectionShareUser(
@@ -526,9 +482,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
     }
-    #endregion
     
-    #region [Methods: SetUpRefillChest, SetUpBankChest]
     /// <returns>
     ///   A <c>bool</c> which is <c>false</c> if a refill chest already existed at the given location and thus just its refill 
     ///   time was set or <c>true</c> if a new refill chest was actually defined.
@@ -692,9 +646,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       protection.BankChestKey = bankChestKey;
     }
-    #endregion
 
-    #region [Method: TryRefillChest]
     public bool TryRefillChest(DPoint chestLocation, RefillChestMetadata refillChestData) {
       int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
       if (tChestIndex == -1)
@@ -716,9 +668,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       return true;
     }
-    #endregion
 
-    #region [Method: EnsureProtectionData]
     public void EnsureProtectionData(
       out int invalidProtectionsCount, out int invalidRefillChestCount, out int invalidBankChestCount
     ) {
@@ -747,7 +697,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             protection.RefillChestData.RefillTimer.Data = protection.RefillChestData;
-            protection.RefillChestData.RefillTimer.Callback = this.refillTimerCallbackHandler;
+            protection.RefillChestData.RefillTimer.Callback = this.RefillTimerCallbackHandler;
             this.RefillTimers.ContinueTimer(protection.RefillChestData.RefillTimer);
           }
           if (protection.BankChestKey != BankChestDataKey.Invalid) {
@@ -778,17 +728,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         invalidProtectionsCount = invalidProtectionLocations.Count;
       } 
     }
-    #endregion
 
-    #region [Method: HandleGameUpdate]
     public void HandleGameUpdate() {
       lock (this.RefillTimers) {
         this.RefillTimers.HandleGameUpdate();
       }
     }
-    #endregion
 
-    #region [Method: RefillChestTimer_Callback]
     private bool RefillChestTimer_Callback(TimerBase timer) {
       RefillChestMetadata refillChest = (RefillChestMetadata)timer.Data;
       lock (this.WorldMetadata.Protections) {
@@ -803,6 +749,5 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
     }
-    #endregion
   }
 }

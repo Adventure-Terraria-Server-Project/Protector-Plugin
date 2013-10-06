@@ -8,14 +8,11 @@ using Terraria.Plugins.Common;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class WorldMetadataHandler: WorldMetadataHandlerBase {
-    #region [Property: WorldMetadata]
     public new WorldMetadata Metadata {
       get { return (WorldMetadata)base.Metadata; }
     }
-    #endregion
 
 
-    #region [Methods: Constructor, InitMetadata, ReadMetadataFromFile]
     public WorldMetadataHandler(PluginTrace pluginTrace, string metadataDirectoryPath): 
       base(pluginTrace, metadataDirectoryPath) {}
 
@@ -46,6 +43,5 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       return result;
     }
-    #endregion
   }
 }
