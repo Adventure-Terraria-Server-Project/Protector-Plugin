@@ -189,9 +189,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
     
       if (isDisposing) {
-        if (this.workQueue != null) {
+        if (this.WorkQueue != null) {
           lock (this.workQueueLock) {
-            this.workQueue.Dispose();
+            this.WorkQueue.Dispose();
           }
         }
       }

@@ -614,7 +614,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           this.PluginTrace.WriteLineInfo("Reloading configuration file.");
           try {
-            this.config = this.ReloadConfigurationCallback();
+            this.Config = this.ReloadConfigurationCallback();
             this.PluginTrace.WriteLineInfo("Configuration file successfully reloaded.");
 
             if (args.Player != TSPlayer.Server)
@@ -2949,7 +2949,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
       
       if (isDisposing)
-        this.reloadConfigurationCallback = null;
+        this.ReloadConfigurationCallback = null;
 
       base.Dispose(isDisposing);
     }

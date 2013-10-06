@@ -134,7 +134,7 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
-Version 1.3 [10/06/2013]
+Version 1.3 Beta [10/06/2013]
   -Updated for Terraria 1.2 and TShock 4.2 pre.
   -Changed the permission model to "prot.<perm>" ("_" to ".").
 
