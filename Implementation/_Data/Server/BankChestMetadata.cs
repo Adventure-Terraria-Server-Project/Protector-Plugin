@@ -16,7 +16,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     #region [Method: Constructor]
     public BankChestMetadata(): base() {
-      this.items = new ItemData[20];
+      this.items = new ItemData[Chest.maxItems];
     }
     #endregion
   }

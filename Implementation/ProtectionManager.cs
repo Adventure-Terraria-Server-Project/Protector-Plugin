@@ -97,7 +97,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #region [Methods: EnumerateProtectionEntries, CheckProtectionAccess, CheckBlockAccess]
     public IEnumerable<ProtectionEntry> EnumerateProtectionEntries(DPoint tileLocation) {
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      if (!tile.active)
+      if (!tile.active())
         yield break;
 
       lock (this.WorldMetadata.Protections) {
@@ -110,7 +110,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           DPoint topTileLocation = new DPoint(tileLocation.X, tileLocation.Y - 1);
           Tile topTile = TerrariaUtils.Tiles[topTileLocation];
           if (
-            topTile.active && !TerrariaUtils.Tiles.IsSolidBlockType((BlockType)topTile.type, true, true)
+            topTile.active() && !TerrariaUtils.Tiles.IsSolidBlockType((BlockType)topTile.type, true, true)
           ) {
             if (
               topTile.type == (int)BlockType.CrystalShard || 
@@ -147,7 +147,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           DPoint leftTileLocation = new DPoint(tileLocation.X - 1, tileLocation.Y);
           Tile leftTile = TerrariaUtils.Tiles[leftTileLocation];
           if (
-            leftTile.active && (
+            leftTile.active() && (
               leftTile.type == (int)BlockType.CrystalShard || 
               leftTile.type == (int)BlockType.Torch ||
               leftTile.type == (int)BlockType.Sign ||
@@ -162,7 +162,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           DPoint rightTileLocation = new DPoint(tileLocation.X + 1, tileLocation.Y);
           Tile rightTile = TerrariaUtils.Tiles[rightTileLocation];
           if (
-            rightTile.active && (
+            rightTile.active() && (
               rightTile.type == (int)BlockType.CrystalShard || 
               rightTile.type == (int)BlockType.Torch ||
               rightTile.type == (int)BlockType.Sign ||
@@ -177,7 +177,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           DPoint bottomTileLocation = new DPoint(tileLocation.X, tileLocation.Y + 1);
           Tile bottomTile = TerrariaUtils.Tiles[bottomTileLocation];
           if (
-            bottomTile.active && (
+            bottomTile.active() && (
               bottomTile.type == (int)BlockType.Vine ||
               bottomTile.type == (int)BlockType.JungleVine ||
               bottomTile.type == (int)BlockType.HallowedVine ||
@@ -291,7 +291,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     ) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       BlockType blockType = (BlockType)tile.type;
@@ -335,7 +335,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       bool canDeprotectEverything = player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission);
       if (TerrariaUtils.Tiles.IsValidCoord(tileLocation)) {
         Tile tile = TerrariaUtils.Tiles[tileLocation];
-        if (tile.active) {
+        if (tile.active()) {
           if (!canDeprotectEverything && checkIfBlockTypeDeprotectableByConfig && this.Config.NotDeprotectableTiles[tile.type])
             throw new InvalidBlockTypeException((BlockType)tile.type);
         
@@ -369,7 +369,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public void ProtectionShareAll(TSPlayer player, DPoint tileLocation, bool shareOrUnshare, bool checkPermissions = false) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
 
       ProtectionEntry protection;
       try {
@@ -394,7 +394,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     ) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
 
       ProtectionEntry protection;
       try {
@@ -431,7 +431,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     ) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
       Contract.Requires<ArgumentNullException>(targetGroupName != null);
 
       ProtectionEntry protection;
@@ -539,7 +539,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     ) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
       Contract.Requires<ArgumentOutOfRangeException>(lootLimit == null || lootLimit >= -1);
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
@@ -615,7 +615,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         refillChestData.AutoLock = autoLock.Value;
 
       Chest tChest = Main.chest[tChestIndex];
-      for (int i = 0; i < 20; i++)
+      for (int i = 0; i < Chest.maxItems; i++)
         refillChestData.RefillItems[i] = ItemData.FromItem(tChest.item[i]);
 
       protection.RefillChestData = refillChestData;
@@ -626,7 +626,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public void SetUpBankChest(TSPlayer player, DPoint tileLocation, int bankChestIndex, bool checkPermissions = false) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active, "tileLocation");
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
       Contract.Requires<ArgumentOutOfRangeException>(bankChestIndex >= 1, "bankChestIndex");
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
@@ -676,7 +676,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       BankChestMetadata bankChest = this.ServerMetadataHandler.EnqueueGetBankChestMetadata(bankChestKey).Result;
       if (bankChest == null) {
         bankChest = new BankChestMetadata();
-        for (int i = 0; i < tChest.item.Length; i++)
+        for (int i = 0; i < Chest.maxItems; i++)
           bankChest.Items[i] = ItemData.FromItem(tChest.item[i]);
 
         this.ServerMetadataHandler.EnqueueAddOrUpdateBankChest(bankChestKey, bankChest);
@@ -686,7 +686,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             throw new ChestNotEmptyException(chestLocation);
         }
 
-        for (int i = 0; i < tChest.item.Length; i++)
+        for (int i = 0; i < Chest.maxItems; i++)
           tChest.item[i] = bankChest.Items[i].ToItem();
       }
 
@@ -704,7 +704,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (tChest == null)
         return false;
 
-      for (int i = 0; i < 20; i++)
+      for (int i = 0; i < Chest.maxItems; i++)
         tChest.item[i] = refillChestData.RefillItems[i].ToItem();
 
       if (
@@ -733,14 +733,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
           ProtectionEntry protection = protectionPair.Value;
           Tile tile = TerrariaUtils.Tiles[location];
 
-          if (!tile.active || (BlockType)tile.type != protection.BlockType) {
+          if (!tile.active() || (BlockType)tile.type != protection.BlockType) {
             invalidProtectionLocations.Add(location);
             continue;
           }
 
           if (protection.RefillChestData != null) {
             int tChestIndex = Chest.FindChest(location.X, location.Y);
-            if (!tile.active || tile.type != (int)BlockType.Chest || tChestIndex == -1) {
+            if (!tile.active() || tile.type != (int)BlockType.Chest || tChestIndex == -1) {
               protection.RefillChestData = null;
               invalidRefillChestCount++;
               continue;
@@ -759,14 +759,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             int tChestIndex = Chest.FindChest(location.X, location.Y);
-            if (!tile.active || tile.type != (int)BlockType.Chest || tChestIndex == -1) {
+            if (!tile.active() || tile.type != (int)BlockType.Chest || tChestIndex == -1) {
               protection.BankChestKey = BankChestDataKey.Invalid;
               invalidBankChestCount++;
               continue;
             }
 
             Chest tChest = Main.chest[tChestIndex];
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < Chest.maxItems; i++)
               tChest.item[i] = bankChest.Items[i].ToItem();
           }
         }

@@ -441,7 +441,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             bool isInvalidEntry = false;
             DPoint chestLocation = new DPoint(tChest.x, tChest.y);
-            if (TerrariaUtils.Tiles[chestLocation].active && TerrariaUtils.Tiles[chestLocation].type == (int)BlockType.Chest) {
+            if (TerrariaUtils.Tiles[chestLocation].active() && TerrariaUtils.Tiles[chestLocation].type == (int)BlockType.Chest) {
               chestLocation = TerrariaUtils.Tiles.MeasureObject(chestLocation).OriginTileLocation;
               lock (this.WorldMetadata.Protections) {
                 if (this.WorldMetadata.Protections.ContainsKey(chestLocation))
@@ -682,13 +682,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    private void RootCommand_HelpCallback(CommandArgs args) {
+    private bool RootCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -707,6 +707,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("For more information and support visit Protector's thread on the TShock forums.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -726,7 +728,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      PlayerCommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
@@ -768,13 +770,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       args.Player.SendInfoMessage("Hit or use an object or block to protect it.");
     }
 
-    private void ProtectCommand_HelpCallback(CommandArgs args) {
+    private bool ProtectCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -786,6 +788,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -805,7 +809,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      PlayerCommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
@@ -845,13 +849,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       args.Player.SendInfoMessage("Hit or use a protected object or block to deprotect it.");
     }
 
-    private void DeprotectCommand_HelpCallback(CommandArgs args) {
+    private bool DeprotectCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -868,6 +872,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("it might be instanced again.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -887,7 +893,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      PlayerCommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
@@ -927,13 +933,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       args.Player.SendInfoMessage("Hit or use a protected object or block to get some info about it.");
     }
 
-    private void ProtectionInfoCommand_HelpCallback(CommandArgs args) {
+    private bool ProtectionInfoCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -945,6 +951,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -976,13 +984,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.StartShareCommandInteraction(args.Player, persistentMode, true, false, false, tsUser.ID, tsUser.Name);
     }
 
-    private void ShareCommandHelpCallback(CommandArgs args) {
+    private bool ShareCommandHelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -998,6 +1006,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1029,13 +1039,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.StartShareCommandInteraction(args.Player, persistentMode, false, false, false, tsUser.ID, tsUser.Name);
     }
 
-    private void UnshareCommand_HelpCallback(CommandArgs args) {
+    private bool UnshareCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1051,6 +1061,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("name or part of the name of a player being currently online.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1073,13 +1085,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.StartShareCommandInteraction(args.Player, persistentMode, true, false, true);
     }
 
-    private void SharePublicCommandHelpCallback(CommandArgs args) {
+    private bool SharePublicCommandHelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1091,6 +1103,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1113,13 +1127,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.StartShareCommandInteraction(args.Player, persistentMode, false, false, true);
     }
 
-    private void UnsharePublicCommand_HelpCallback(CommandArgs args) {
+    private bool UnsharePublicCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1131,6 +1145,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1164,13 +1180,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.StartShareCommandInteraction(args.Player, persistentMode, true, true, false, groupName, groupName);
     }
 
-    private void ShareGroupCommand_HelpCallback(CommandArgs args) {
+    private bool ShareGroupCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1185,6 +1201,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1212,13 +1230,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.StartShareCommandInteraction(args.Player, persistentMode, false, true, false, groupName, groupName);
     }
 
-    private void UnshareGroup_HelpCallback(CommandArgs args) {
+    private bool UnshareGroup_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1233,6 +1251,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1241,7 +1261,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       TSPlayer player, bool isPersistent, bool isShareOrUnshare, bool isGroup, bool isShareAll, 
       object shareTarget = null, string shareTargetName = null
     ) {
-      PlayerCommandInteraction interaction = this.StartOrResetCommandInteraction(player);
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(player);
       interaction.DoesNeverComplete = isPersistent;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
@@ -1305,7 +1325,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      PlayerCommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
@@ -1335,13 +1355,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       args.Player.SendInfoMessage("Hit or open a chest to lock it.");
     }
 
-    private void LockChestCommand_HelpCallback(CommandArgs args) {
+    private bool LockChestCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1356,6 +1376,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("Note that only gold- and shadow chests can be locked.", Color.LightGray);
           break;
       }
+
+      return false;
     }
     #endregion
 
@@ -1370,46 +1392,44 @@ namespace Terraria.Plugins.CoderCow.Protector {
       bool? autoLock = null;
       TimeSpan? refillTime = null;
       bool invalidSyntax = false;
-      if (!invalidSyntax) {
-        int timeParameters = 0;
-        for (int i = 0; i < args.Parameters.Count; i++) {
-          string param = args.Parameters[i];
-          if (param.Equals("+p", StringComparison.InvariantCultureIgnoreCase))
-            persistentMode = true;
-          else if (param.Equals("+ot", StringComparison.InvariantCultureIgnoreCase))
-            oneLootPerPlayer = true;
-          else if (param.Equals("-ot", StringComparison.InvariantCultureIgnoreCase))
-            oneLootPerPlayer = false;
-          else if (param.Equals("-ll", StringComparison.InvariantCultureIgnoreCase))
-            lootLimit = -1;
-          else if (param.Equals("+ll", StringComparison.InvariantCultureIgnoreCase)) {
-            if (args.Parameters.Count - 1 == i) {
-              invalidSyntax = true;
-              break;
-            }
-
-            int lootTimeAmount;
-            if (!int.TryParse(args.Parameters[i + 1], out lootTimeAmount) || lootTimeAmount < 0) {
-              invalidSyntax = true;
-              break;
-            }
-
-            lootLimit = lootTimeAmount;
-            i++;
-          } else if (param.Equals("+al", StringComparison.InvariantCultureIgnoreCase))
-            autoLock = true;
-          else if (param.Equals("-al", StringComparison.InvariantCultureIgnoreCase))
-            autoLock = false;
-          else
-            timeParameters++;
-        }
-
-        if (!invalidSyntax && timeParameters > 0) {
-          if (!TimeSpanEx.TryParseShort(
-            args.ParamsToSingleString(0, args.Parameters.Count - timeParameters), out refillTime
-          )) {
+      int timeParameters = 0;
+      for (int i = 0; i < args.Parameters.Count; i++) {
+        string param = args.Parameters[i];
+        if (param.Equals("+p", StringComparison.InvariantCultureIgnoreCase))
+          persistentMode = true;
+        else if (param.Equals("+ot", StringComparison.InvariantCultureIgnoreCase))
+          oneLootPerPlayer = true;
+        else if (param.Equals("-ot", StringComparison.InvariantCultureIgnoreCase))
+          oneLootPerPlayer = false;
+        else if (param.Equals("-ll", StringComparison.InvariantCultureIgnoreCase))
+          lootLimit = -1;
+        else if (param.Equals("+ll", StringComparison.InvariantCultureIgnoreCase)) {
+          if (args.Parameters.Count - 1 == i) {
             invalidSyntax = true;
+            break;
           }
+
+          int lootTimeAmount;
+          if (!int.TryParse(args.Parameters[i + 1], out lootTimeAmount) || lootTimeAmount < 0) {
+            invalidSyntax = true;
+            break;
+          }
+
+          lootLimit = lootTimeAmount;
+          i++;
+        } else if (param.Equals("+al", StringComparison.InvariantCultureIgnoreCase))
+          autoLock = true;
+        else if (param.Equals("-al", StringComparison.InvariantCultureIgnoreCase))
+          autoLock = false;
+        else
+          timeParameters++;
+      }
+
+      if (!invalidSyntax && timeParameters > 0) {
+        if (!TimeSpanEx.TryParseShort(
+          args.ParamsToSingleString(0, args.Parameters.Count - timeParameters), out refillTime
+        )) {
+          invalidSyntax = true;
         }
       }
 
@@ -1419,7 +1439,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
       }
 
-      PlayerCommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
@@ -1450,13 +1470,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       args.Player.SendInfoMessage("Open a chest to convert it into a refill chest.");
     }
 
-    private void RefillChestCommand_HelpCallback(CommandArgs args) {
+    private bool RefillChestCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1494,6 +1514,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("  /refillchest +ot +ll 10", Color.White);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1589,7 +1611,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             continue;
 
           DPoint chestLocation = new DPoint(chest.x, chest.y);
-          if (!TerrariaUtils.Tiles[chestLocation].active || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest)
+          if (!TerrariaUtils.Tiles[chestLocation].active() || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest)
             continue;
 
           if (TerrariaUtils.Tiles.GuessChestKind(chestLocation) != chestKindToSelect)
@@ -1617,13 +1639,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
-    private void RefillChestManyCommand_HelpCallback(CommandArgs args) {
+    private bool RefillChestManyCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1651,6 +1673,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("For more information about refill chests and their parameters type /help rchest.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1682,7 +1706,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
       }
 
-      PlayerCommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
           editType == TileEditType.TileKill || 
@@ -1712,13 +1736,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       args.Player.SendInfoMessage("Open a chest to convert it into a bank chest.");
     }
 
-    private void BankChestCommand_HelpCallback(CommandArgs args) {
+    private bool BankChestCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1753,6 +1777,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("  /bankchest 1", Color.White);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1787,7 +1813,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         args.Player.SendErrorMessage("This chest is not protected by Protector at all.");
       };
 
-      PlayerCommandInteraction interaction = base.StartOrResetCommandInteraction(args.Player);
+      CommandInteraction interaction = base.StartOrResetCommandInteraction(args.Player);
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
@@ -1814,13 +1840,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       args.Player.SendInfoMessage("Open a bank chest to dump its content.");
     }
 
-    private void DumpBankChestCommand_HelpCallback(CommandArgs args) {
+    private bool DumpBankChestCommand_HelpCallback(CommandArgs args) {
       if (args == null || this.IsDisposed)
-        return;
+        return true;
 
       int pageNumber;
       if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
-        return;
+        return false;
 
       switch (pageNumber) {
         default:
@@ -1834,6 +1860,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
+
+      return true;
     }
     #endregion
 
@@ -1857,7 +1885,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           // Because Terraria is dumb-assed, TileKill which is usually only sent on a chest being removed, is also sent
           // when the chest is filled but was hit enought times to be removed, thus we have to work around this by checking
           // if there's content in the chest.
-          if (TerrariaUtils.Tiles[location].active && TerrariaUtils.Tiles[location].type == (int)BlockType.Chest) {
+          if (TerrariaUtils.Tiles[location].active() && TerrariaUtils.Tiles[location].type == (int)BlockType.Chest) {
             DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
             int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
             // Non existing chests are considered empty.
@@ -1888,7 +1916,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
 
             // If the protection is invalid, just remove it.
-            if (!protectedTile.active || protectedTile.type != (int)protection.BlockType) {
+            if (!protectedTile.active() || protectedTile.type != (int)protection.BlockType) {
               this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
               protectedTile = null;
               continue;
@@ -1942,7 +1970,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             for (int x = 0; x < 2; x++) {
               DPoint tileBeneathLocation = location.OffsetEx(x, 1);
               if (
-                TerrariaUtils.Tiles[tileBeneathLocation].active && (
+                TerrariaUtils.Tiles[tileBeneathLocation].active() && (
                   TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.ActiveStone ||
                   TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.IceBlock
                 )
@@ -1980,7 +2008,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         Thread.Sleep(150);
 
         Tile tile = TerrariaUtils.Tiles[location];
-        if (!tile.active)
+        if (!tile.active())
           return;
 
         try {
@@ -2025,7 +2053,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       chestLocation = new DPoint(tChest.x, tChest.y);
       Tile chestTile = TerrariaUtils.Tiles[chestLocation];
-      if (!chestTile.active || chestTile.type != (int)BlockType.Chest)
+      if (!chestTile.active() || chestTile.type != (int)BlockType.Chest)
         return false;
 
       bool isLocked;
@@ -2054,7 +2082,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       if (base.HandleChestGetContents(player, location))
         return true;
-      if (!TerrariaUtils.Tiles[location].active)
+      if (!TerrariaUtils.Tiles[location].active())
         return true;
       if (this.Config.LoginRequiredForChestUsage && !player.IsLoggedIn) {
         player.SendErrorMessage("You have to be logged in to make use of chests.");
@@ -2272,7 +2300,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         DPoint bedTileLocation = new DPoint(spawnTileLocation.X, spawnTileLocation.Y - 1);
         
         Tile spawnTile = TerrariaUtils.Tiles[bedTileLocation];
-        if (!spawnTile.active || spawnTile.type != (int)BlockType.Bed)
+        if (!spawnTile.active() || spawnTile.type != (int)BlockType.Bed)
           return false;
 
         if (this.CheckProtected(player, bedTileLocation, false)) {
@@ -2528,7 +2556,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     private bool TryGetProtectionInfo(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      if (!tile.active)
+      if (!tile.active())
         return false;
 
       ProtectionEntry protection = null;
@@ -2667,7 +2695,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     private bool CheckProtected(TSPlayer player, DPoint tileLocation, bool fullAccessRequired) {
-      if (!TerrariaUtils.Tiles[tileLocation].active)
+      if (!TerrariaUtils.Tiles[tileLocation].active())
         return false;
 
       ProtectionEntry protection;
@@ -2740,9 +2768,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
             if (autoLock != null) {
               if (autoLock.Value)
-                player.SendSuccessMessage(string.Format("This chest lock automatically if it gets looted.", lootLimit));
+                player.SendSuccessMessage("This chest locks itself automatically when it gets looted.");
               else
-                player.SendSuccessMessage("This chest will not lock automatically anymore.");
+                player.SendSuccessMessage("This chest will not lock itself automatically anymore.");
             }
           }
         }
@@ -2919,7 +2947,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     private void DestroyBlockOrObject(DPoint tileLocation) {
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      if (!tile.active)
+      if (!tile.active())
         return;
 
       if (tile.type == (int)BlockType.Chest) {

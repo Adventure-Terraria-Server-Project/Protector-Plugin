@@ -38,7 +38,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (protection.BlockType == BlockType.Invalid) {
             Tile tile = TerrariaUtils.Tiles[location];
-            if (tile.active)
+            if (tile.active())
               protection.BlockType = (BlockType)tile.type;
           }
         }

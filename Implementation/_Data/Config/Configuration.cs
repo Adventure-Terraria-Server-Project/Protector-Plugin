@@ -160,9 +160,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       configReaderSettings.Schemas.Add(null, configSchemaPath);
       
       XmlDocument document = new XmlDocument();
-      using (XmlReader configReader = XmlReader.Create(filePath, configReaderSettings)) {
+      using (XmlReader configReader = XmlReader.Create(filePath, configReaderSettings))
         document.Load(configReader);
-      }
 
       // Before validating using the schema, first check if the configuration file's version matches with the supported version.
       XmlElement rootElement = document.DocumentElement;
@@ -216,9 +215,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     #region [Method: Constructor]
     public Configuration() {
-      this.manuallyProtectableTiles = new bool[200];
-      this.autoProtectedTiles = new bool[200];
-      this.notDeprotectableTiles = new bool[200];
+      this.manuallyProtectableTiles = new bool[TerrariaUtils.BlockType_Max];
+      this.autoProtectedTiles = new bool[TerrariaUtils.BlockType_Max];
+      this.notDeprotectableTiles = new bool[TerrariaUtils.BlockType_Max];
     }
     #endregion
   }

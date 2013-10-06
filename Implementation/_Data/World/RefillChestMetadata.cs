@@ -46,7 +46,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public TimeSpan RefillTime {
       get { return this.RefillTimer.TimeSpan; }
-      set { this.RefillTimer.TimeSpan = value; }
     }
     #endregion
 
@@ -90,7 +89,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #region [Method: Constructor]
     public RefillChestMetadata(int owner): base() {
       this.owner = owner;
-      this.refillItems = new ItemData[20];
+      this.refillItems = new ItemData[Chest.maxItems];
       this.refillTimer = new Timer(TimeSpan.Zero, null, null);
       this.remainingLoots = -1;
     }

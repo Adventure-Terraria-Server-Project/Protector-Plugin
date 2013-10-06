@@ -8,35 +8,35 @@ using System.Threading;
 using System.Threading.Tasks;
 using DPoint = System.Drawing.Point;
 
+using TerrariaApi.Server;
+using TShockAPI;
+
 using Terraria.Plugins.Common;
 using Terraria.Plugins.Common.Hooks;
 
-using Hooks;
-using TShockAPI;
-
 namespace Terraria.Plugins.CoderCow.Protector {
-  [APIVersion(1, 12)]
+  [ApiVersion(1, 14)]
   public class ProtectorPlugin: TerrariaPlugin, IDisposable {
     #region [Constants]
     private const string TracePrefix = @"[Protector] ";
 
-    public const string ManualProtect_Permission        = "prot_manualprotect";
-    public const string ManualDeprotect_Permission      = "prot_manualdeprotect";
-    public const string ViewAllProtections_Permission   = "prot_viewall";
-    public const string NoProtectionLimits_Permission   = "prot_nolimits";
-    public const string ChestSharing_Permission         = "prot_chestshare";
-    public const string SwitchSharing_Permission        = "prot_switchshare";
-    public const string OtherSharing_Permission         = "prot_othershare";
-    public const string ShareWithGroups_Permission      = "prot_sharewithgroups";
-    public const string ProtectionMaster_Permission     = "prot_protectionmaster";
-    public const string UseEverything_Permision         = "prot_useeverything";
-    public const string SetRefillChests_Permission      = "prot_setrefillchest";
-    public const string SetBankChests_Permission        = "prot_setbankchest";
-    public const string DumpBankChests_Permission       = "prot_dumpbankchest";
-    public const string BankChestShare_Permission       = "prot_bankchestshare";
-    public const string NoBankChestLimits_Permision     = "prot_nobankchestlimits";
-    public const string Utility_Permission              = "prot_utility";
-    public const string Cfg_Permission                  = "prot_cfg";
+    public const string ManualProtect_Permission        = "prot.manualprotect";
+    public const string ManualDeprotect_Permission      = "prot.manualdeprotect";
+    public const string ViewAllProtections_Permission   = "prot.viewall";
+    public const string NoProtectionLimits_Permission   = "prot.nolimits";
+    public const string ChestSharing_Permission         = "prot.chestshare";
+    public const string SwitchSharing_Permission        = "prot.switchshare";
+    public const string OtherSharing_Permission         = "prot.othershare";
+    public const string ShareWithGroups_Permission      = "prot.sharewithgroups";
+    public const string ProtectionMaster_Permission     = "prot.protectionmaster";
+    public const string UseEverything_Permision         = "prot.useeverything";
+    public const string SetRefillChests_Permission      = "prot.setrefillchest";
+    public const string SetBankChests_Permission        = "prot.setbankchest";
+    public const string DumpBankChests_Permission       = "prot.dumpbankchest";
+    public const string BankChestShare_Permission       = "prot.bankchestshare";
+    public const string NoBankChestLimits_Permision     = "prot.nobankchestlimits";
+    public const string Utility_Permission              = "prot.utility";
+    public const string Cfg_Permission                  = "prot.cfg";
     #endregion
 
     #region [Properties: Static DataDirectory, Static ConfigFilePath, Static SqlLiteDatabaseFile, Static WorldMetadataDirectory]
@@ -165,7 +165,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.pluginInfo = new PluginInfo(
         "Protector",
         Assembly.GetAssembly(typeof(ProtectorPlugin)).GetName().Version,
-        "",
+        "Beta",
         "CoderCow",
         "Protects blocks and objects from being changed."
       );
@@ -183,13 +183,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     #region [Methods: Initialize, Game_PostInitialize]
     public override void Initialize() {
-      GameHooks.PostInitialize += this.Game_PostInitialize;
+      ServerApi.Hooks.GamePostInitialize.Register(this, this.Game_PostInitialize);
 
       this.AddHooks();
     }
 
-    private void Game_PostInitialize() {
-      GameHooks.PostInitialize -= this.Game_PostInitialize;
+    private void Game_PostInitialize(EventArgs e) {
+      ServerApi.Hooks.GamePostInitialize.Deregister(this, this.Game_PostInitialize);
 
       if (!Directory.Exists(ProtectorPlugin.DataDirectory))
         Directory.CreateDirectory(ProtectorPlugin.DataDirectory);
@@ -329,7 +329,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.getDataHookHandler != null)
         throw new InvalidOperationException("Hooks already registered.");
       
-      this.getDataHookHandler = new GetDataHookHandler(this.Trace, true);
+      this.getDataHookHandler = new GetDataHookHandler(this, true);
       this.GetDataHookHandler.TileEdit += this.Net_TileEdit;
       this.GetDataHookHandler.SignEdit += this.Net_SignEdit;
       this.GetDataHookHandler.SignRead += this.Net_SignRead;
@@ -341,15 +341,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.GetDataHookHandler.DoorUse += this.Net_DoorUse;
       this.GetDataHookHandler.PlayerSpawn += this.Net_PlayerSpawn;
 
-      GameHooks.Update += this.Game_Update;
-      WorldHooks.SaveWorld += this.World_SaveWorld;
+      ServerApi.Hooks.GameUpdate.Register(this, this.Game_Update);
+      ServerApi.Hooks.WorldSave.Register(this, this.World_SaveWorld);
     }
 
     private void AddPostHooks() {
       if (this.postGetDataHookHandler != null)
         throw new InvalidOperationException("Post hooks already registered.");
 
-      this.postGetDataHookHandler = new GetDataHookHandler(this.Trace, true);
+      this.postGetDataHookHandler = new GetDataHookHandler(this, true);
       this.PostGetDataHookHandler.TileEdit += this.Net_PostTileEdit;
     }
 
@@ -357,9 +357,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.getDataHookHandler != null) 
         this.getDataHookHandler.Dispose();
 
-      GameHooks.Update -= this.Game_Update;
-      WorldHooks.SaveWorld -= this.World_SaveWorld;
-      GameHooks.PostInitialize -= this.Game_PostInitialize;
+      ServerApi.Hooks.GameUpdate.Deregister(this, this.Game_Update);
+      ServerApi.Hooks.WorldSave.Deregister(this, this.World_SaveWorld);
+      ServerApi.Hooks.GamePostInitialize.Deregister(this, this.Game_PostInitialize);
     }
 
     private void RemovePostHooks() {
@@ -444,7 +444,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       e.Handled = this.UserInteractionHandler.HandlePlayerSpawn(e.Player, e.SpawnTileLocation);
     }
 
-    private void Game_Update() {
+    private void Game_Update(EventArgs e) {
       if (this.isDisposed || !this.hooksEnabled)
         return;
 
@@ -455,7 +455,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
-    private void World_SaveWorld(bool resettime, HandledEventArgs e) {
+    private void World_SaveWorld(WorldSaveEventArgs e) {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
 

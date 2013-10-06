@@ -88,7 +88,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
               continue;
 
             DPoint chestLocation = new DPoint(rawX, rawY);
-            if (!TerrariaUtils.Tiles[chestLocation].active || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest) {
+            if (!TerrariaUtils.Tiles[chestLocation].active() || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest) {
               this.PluginTrace.WriteLineWarning(string.Format(
                 "The chest data on the location {0} could not be imported because no corresponding chest does exist in the world.", 
                 chestLocation
@@ -123,10 +123,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
             Chest tChest = Main.chest[chestIndex];
             int[] itemArgs = new int[60];
             string[] itemData = rawItems.Split(',');
-            for (int i = 0; i < 60; i++)
+            for (int i = 0; i < 120; i++)
               itemArgs[i] = int.Parse(itemData[i]);
 
-            for (int i = 0; i < 20; i++) {
+            for (int i = 0; i < 40; i++) {
               tChest.item[i] = new Item();
               tChest.item[i].netDefaults(itemArgs[i * 3]);
               tChest.item[i].prefix = (byte)itemArgs[i * 3 + 2];
@@ -231,7 +231,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             if (signIndex == -1) {
               Tile signTile = TerrariaUtils.Tiles[signLocation];
-              if (!signTile.active || (signTile.type != (int)BlockType.Sign && signTile.type != (int)BlockType.Tombstone)) {
+              if (!signTile.active() || (signTile.type != (int)BlockType.Sign && signTile.type != (int)BlockType.Tombstone)) {
                 this.PluginTrace.WriteLineWarning(string.Format(
                   "The sign data on the location {0} could not be imported because no corresponding sign does exist in the world.", 
                   signLocation

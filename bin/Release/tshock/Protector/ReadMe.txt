@@ -1,5 +1,5 @@
 ﻿=================================================================================
- Protector Plugin for Terraria API
+ Protector Plugin for TerrariaServer-API
    (c) CoderCow 2013
 =================================================================================
  
@@ -76,46 +76,46 @@ ingame.
 
 Permissions
 ---------------------------------------------------------------------------------
-prot_manualprotect
+prot.manualprotect
   Can manually create protections (not required for auto protection).
-prot_manualdeprotect
+prot.manualdeprotect
   Can manually remove owned protections (not required for auto deprotection).
-prot_chestshare
+prot.chestshare
   Can share Chests.
-prot_switchshare
+prot.switchshare
   Can share Switches / Levers / Pressure Plates / Timers / Music Boxes.
-prot_othershare
+prot.othershare
   Can share Signs, Tombstones and Beds.
-prot_sharewithgroups
+prot.sharewithgroups
   Can share protections with TShock Groups.
-prot_setbankchest
+prot.setbankchest
   Can set up bank chests.
-prot_bankchestshare
+prot.bankchestshare
   Can share bank chests.
-prot_nobankchestlimits
+prot.nobankchestlimits
   Can set up unlimited bank chests.
-prot_dumpbankchest
+prot.dumpbankchest
   Can dump bank chest content (Warning: duplicates the bank chest's items).
 
-prot_nolimits
+prot.nolimits
   Can create an unlimited amount of protections.
-prot_viewall
+prot.viewall
   Can view all information of all protections. Usually only owners or shared
   players can view extended information of a protection.
-prot_useeverything
+prot.useeverything
   Can use and alter any Chest, Sign, Switch, Lever, Pressure Plate etc. (does 
   not include removing them though).
-prot_protectionmaster
+prot.protectionmaster
   Can modify or remove any protection, can also alter any refill chest if 
   "prot_setrefillchest" is also given.
-prot_setrefillchest
+prot.setrefillchest
   Can set up a chest to automatically refill its content.
-prot_utility
+prot.utility
   Can display a summary about all chests, signs and protections of a world, can 
   lock chests, can convert all dungeon chests, sky island chests, ocean chests, 
   hell shadow chests to refill chests (also requires "prot_setrefillchest"), can 
   remove all empty non protected chests of the world.
-prot_cfg
+prot.cfg
   Can import Infinite Chests' data or Infinite Signs' database files, can 
   reload Protector's configuration file.
 
@@ -134,6 +134,10 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3 [10/06/2013]
+  -Updated for Terraria 1.2 and TShock 4.2 pre.
+  -Changed the permission model to "prot.<perm>" ("_" to ".").
+
 Version 1.2.1 [08/01/2013]
   -Improved protection management.
   -Protector will no longer throw an exception when a user tried to create a bank

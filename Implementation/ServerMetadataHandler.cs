@@ -43,16 +43,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public Task<int> EnqueueGetBankChestCount() {
       Contract.Requires<ObjectDisposedException>(!base.IsDisposed);
 
-      return Task<int>.Factory.StartNew(() => {
-        Task<object> queueTask;
-        lock (this.workQueueLock) {
-          queueTask = this.WorkQueue.EnqueueTask((state) => {
-            return this.GetBankChestCount();
-          });
-        }
-
-        return (int)queueTask.Result;
-      });
+      lock (this.workQueueLock) {
+        return this.WorkQueue.EnqueueTask(() => {
+          return this.GetBankChestCount();
+        });
+      }
     }
 
     private int GetBankChestCount() {
@@ -70,15 +65,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
       Contract.Requires<ArgumentException>(key != BankChestDataKey.Invalid);
 
-      return Task<BankChestMetadata>.Factory.StartNew(() => {
-        Task<object> queueTask;
-        lock (this.workQueueLock) {
-          queueTask = this.WorkQueue.EnqueueTask((state) => {
-            return this.GetBankChestMetadata((BankChestDataKey)state);
-          }, key);
-        }
-        return (BankChestMetadata)queueTask.Result;
-      });
+      lock (this.workQueueLock) {
+        return this.WorkQueue.EnqueueTask((keyLocal) => {
+          return this.GetBankChestMetadata(keyLocal);
+        }, key);
+      }
     }
 
     private BankChestMetadata GetBankChestMetadata(BankChestDataKey key) {
@@ -89,9 +80,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (!reader.Read())
           return null;
 
-        return new BankChestMetadata {
-          Items = this.StringToItemMetadata(reader.Get<string>("Content"))
-        };
+        ItemData[] itemDataFromDB = this.StringToItemMetadata(reader.Get<string>("Content"));
+        ItemData[] itemData = itemDataFromDB;
+        // Backward compatibility in case chests can now hold more items than before.
+        if (itemDataFromDB.Length < Chest.maxItems) {
+          itemData = new ItemData[Chest.maxItems];
+          for (int i = 0; i < itemDataFromDB.Length; i++)
+            itemData[i] = itemDataFromDB[i];
+        }
+
+        return new BankChestMetadata { Items = itemData };
       };
     }
     #endregion
@@ -101,9 +99,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
 
       lock (this.workQueueLock) {
-        return this.WorkQueue.EnqueueTask((state) => {
+        return this.WorkQueue.EnqueueTask(() => {
           this.AddOrUpdateBankChest(key, bankChest);
-          return null;
         });
       }
     }
@@ -137,9 +134,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
 
       lock (this.workQueueLock) {
-        return this.WorkQueue.EnqueueTask((state) => {
+        return this.WorkQueue.EnqueueTask(() => {
           this.UpdateBankChestItem(key, slotIndex, newItem);
-          return null;
         });
       }
     }
@@ -157,10 +153,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
 
       lock (this.workQueueLock) {
-        return this.WorkQueue.EnqueueTask((state) => {
-          this.EnqueueDeleteBankChestsOfUser(userId);
-          return null;
-        });
+        return this.WorkQueue.EnqueueTask((userIdLocal) => {
+          this.EnqueueDeleteBankChestsOfUser(userIdLocal);
+        }, userId);
       }
     }
 

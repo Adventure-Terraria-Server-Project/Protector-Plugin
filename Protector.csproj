@@ -24,7 +24,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;Verbose</DefineConstants>
     <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <CodeAnalysisLogFile>bin\Debug\Protector.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
     <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
@@ -151,11 +151,6 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
-    <Reference Include="TerrariaServer, Version=0.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <ExecutableExtension>.exe</ExecutableExtension>
-      <HintPath>References\TerrariaServer.exe</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Implementation\PluginCooperationHandler.cs" />
@@ -202,6 +197,11 @@
     <ProjectReference Include="..\Plugin Common Library\Plugin Common Library.csproj">
       <Project>{1d38e0cf-bf13-4229-860f-3809f39f0892}</Project>
       <Name>Plugin Common Library</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TerrariaAPI-Server\TerrariaAPI-Server.csproj">
+      <Project>{549a7941-d9c9-4544-bac8-d9eeeab4d777}</Project>
+      <Name>TerrariaAPI-Server</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\TShock\TShockAPI\TShockAPI.csproj">
       <Project>{49606449-072b-4cf5-8088-aa49da586694}</Project>
