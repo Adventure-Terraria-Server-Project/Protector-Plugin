@@ -313,7 +313,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         int tChestIndex = Chest.FindChest(tileLocation.X, tileLocation.Y);
         if (tChestIndex != -1) {
           Chest tChest = Main.chest[tChestIndex];
-          for (int i = 0; i < 20; i++)
+          for (int i = 0; i < Chest.maxItems; i++)
             tChest.item[i] = ItemData.None.ToItem();
         }
       }
