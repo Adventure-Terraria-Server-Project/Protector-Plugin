@@ -173,9 +173,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (builder.Length > 0)
           builder.Append(';');
 
-        builder.Append((byte)item.Prefix);
+        builder.Append(item.Prefix);
         builder.Append(',');
-        builder.Append((short)item.Type);
+        builder.Append(item.Type);
         builder.Append(',');
         builder.Append(item.StackSize);
       }

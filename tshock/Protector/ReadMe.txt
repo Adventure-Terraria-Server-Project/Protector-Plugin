@@ -134,6 +134,20 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.2 Beta [11/17/2013]
+  -NOTE: Truncating the "Protector_BankChests" table in your database is recommended
+   before or right after applying this update.
+  -Updated for Terraria 1.2.1.2.
+  -Fixed a critical packet handler bug causing corrupted item data in refill- and
+   bank chests and eventually in player inventories.
+  -Fixed a bug causing bank chests to dupe items when they were removed.
+  -Updated to Common Lib 2.4.
+
+Version 1.3.1 Beta [10/14/2013]
+  -Updated for TShock 4.2 Pre 15.
+  -Fixed a bug where refill- and bank chests were working incorrectly due to the
+   1.2 double sized chests.
+
 Version 1.3 Beta [10/06/2013]
   -Updated for Terraria 1.2 and TShock 4.2 pre.
   -Changed the permission model to "prot.<perm>" ("_" to ".").
