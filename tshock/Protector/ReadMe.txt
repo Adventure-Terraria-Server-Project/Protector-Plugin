@@ -135,6 +135,12 @@ as this will cause mixed item data in the world file and the chest database.
 Changelog
 ---------------------------------------------------------------------------------
 Version 1.3.3 Beta [12/27/2013]
+  -Updated to Terraria 1.2.2.
+  -NOTE: Truncating / deleting the "Protector_BankChests" table in your database 
+   or removing Protector's entire database is REQUIRED after applying this update. 
+   This will remove all player bank chests.
+  -Fixed a critical bug causing deadlocks when database operations failed.
+  -Fixed a deadlock occuring on setting up bank chests.
   -Fixed some textual errors.
 
 Version 1.3.2 Beta [11/17/2013]
