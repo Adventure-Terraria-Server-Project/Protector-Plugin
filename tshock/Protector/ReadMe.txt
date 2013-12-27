@@ -134,6 +134,9 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.3 Beta [12/27/2013]
+  -Fixed some textual errors.
+
 Version 1.3.2 Beta [11/17/2013]
   -NOTE: Truncating the "Protector_BankChests" table in your database is recommended
    before or right after applying this update.

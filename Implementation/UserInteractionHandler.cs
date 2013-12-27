@@ -1443,7 +1443,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("If +ot or +ll is applied, a player must be registered with the server to loot it.", Color.LightGray);
+          args.Player.SendMessage("If +ot or +ll is applied, a player must be logged in in order to loot it.", Color.LightGray);
           break;
         case 3:
           args.Player.SendMessage("To remove a feature from an existing refill chest, put a '-' before it:", Color.LightGray);
@@ -2272,10 +2272,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     private bool TryCreateProtection(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {
       if (!player.IsLoggedIn) {
-        if (sendFailureMessages) {
-          player.SendErrorMessage("Your character has to be registered with the server in order to create");
-          player.SendErrorMessage("protections.");
-        }
+        if (sendFailureMessages)
+          player.SendErrorMessage("You have to be logged in in order protect blocks or objects.");
 
         return false;
       }
@@ -2344,10 +2342,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       object shareTarget, string shareTargetName, bool sendFailureMessages = true
     ) {
       if (!player.IsLoggedIn) {
-        if (sendFailureMessages) {
-          player.SendErrorMessage("Your character has to be registered with the server in order to alter");
-          player.SendErrorMessage("protections.");
-        }
+        if (sendFailureMessages)
+          player.SendErrorMessage("You have to be logged in to alter protections.");
 
         return false;
       }
@@ -2455,10 +2451,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     private bool TryRemoveProtection(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {
       if (!player.IsLoggedIn) {
-        if (sendFailureMessages) {
-          player.SendErrorMessage("Your character has to be registered with the server in order to alter");
-          player.SendErrorMessage("protections.");
-        }
+        if (sendFailureMessages)
+          player.SendErrorMessage("You have to be logged in to alter protections.");
 
         return false;
       }
@@ -2677,10 +2671,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       bool sendMessages = true
     ) {
       if (!player.IsLoggedIn) {
-        if (sendMessages) {
-          player.SendErrorMessage("Your character has to be registered with the server in order to set up");
-          player.SendErrorMessage("refill chests.");
-        }
+        if (sendMessages)
+          player.SendErrorMessage("You have to be logged in in order to set up refill chests.");
 
         return false;
       }
@@ -2691,7 +2683,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         )) {
           if (sendMessages) {
             player.SendSuccessMessage("Refill chest successfully set up.");
-            player.SendSuccessMessage("As you are the owner of it, you may still freely modify its contents.");
+
+            if (this.Config.AllowRefillChestContentChanges)
+              player.SendSuccessMessage("As you are the owner of it, you may still freely modify its contents.");
           }
         } else {
           if (sendMessages) {
@@ -2771,10 +2765,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     
     public bool TrySetUpBankChest(TSPlayer player, DPoint tileLocation, int bankChestIndex, bool sendMessages = true) {
       if (!player.IsLoggedIn) {
-        if (sendMessages) {
-          player.SendErrorMessage("Your character has to be registered with the server in order to set up");
-          player.SendErrorMessage("bank chests.");
-        }
+        if (sendMessages)
+          player.SendErrorMessage("You have to be logged in in order to set up bank chests.");
         
         return false;
       }
@@ -2912,7 +2904,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public bool CheckRefillChestLootability(RefillChestMetadata refillChest, TSPlayer player, bool sendReasonMessages = true) {
       if (!player.IsLoggedIn && (refillChest.OneLootPerPlayer || refillChest.RemainingLoots != -1)) {
         if (sendReasonMessages)
-          player.SendErrorMessage("You have to be registered in order to use this chest.");
+          player.SendErrorMessage("You have to be logged in in order to use this chest.");
 
         return false;
       }
@@ -2933,7 +2925,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (refillChest.Looters.Contains(player.UserID)) {
             if (sendReasonMessages)
-              player.SendErrorMessage("This chest can only be looted a single time per player and you have looted it already.");
+              player.SendErrorMessage("This chest can only be looted a single time per player, and you have already looted it once.");
 
             return false;
           }
