@@ -2257,11 +2257,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
           player.SendErrorMessage("The bed you have set spawn at is protected, you can not spawn there.");
           player.SendErrorMessage("You were transported to your last valid spawn location instead.");
 
-          player.Spawn();
-          /*if (player.TPlayer.SpawnX == -1 && player.TPlayer.SpawnY == -1)
-            player.Teleport(Main.spawnTileX, Main.spawnTileY);
+          if (player.TPlayer.SpawnX == -1 && player.TPlayer.SpawnY == -1)
+            player.Teleport(Main.spawnTileX * TerrariaUtils.TileSize, Main.spawnTileY * TerrariaUtils.TileSize);
           else
-            player.Teleport(player.TPlayer.SpawnX, player.TPlayer.SpawnY);*/
+            player.Teleport(player.TPlayer.SpawnX * TerrariaUtils.TileSize, player.TPlayer.SpawnY * TerrariaUtils.TileSize);
 
           return true;
         }
