@@ -682,10 +682,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           this.TryCreateProtection(playerLocal, location);
 
@@ -763,10 +763,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           this.TryRemoveProtection(playerLocal, location);
 
@@ -847,10 +847,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           this.TryGetProtectionInfo(playerLocal, location);
 
@@ -1215,10 +1215,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       interaction.DoesNeverComplete = isPersistent;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           this.TryAlterProtectionShare(playerLocal, location, isShareOrUnshare, isGroup, isShareAll, shareTarget, shareTargetName);
 
@@ -1279,10 +1279,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           this.TryLockChest(playerLocal, location);
 
@@ -1393,10 +1393,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           this.TrySetUpRefillChest(playerLocal, location, refillTime, oneLootPerPlayer, lootLimit, autoLock);
 
@@ -1659,10 +1659,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           this.TrySetUpBankChest(playerLocal, location, chestIndex);
 
@@ -1767,10 +1767,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       interaction.DoesNeverComplete = persistentMode;
       interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
         if (
-          editType == TileEditType.TileKill || 
-          editType == TileEditType.TileKillNoItem || 
-          editType == TileEditType.PlaceWire || 
-          editType == TileEditType.DestroyWire
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
         ) {
           dumpBankChest(playerLocal, location);
           playerLocal.SendTileSquare(location);
