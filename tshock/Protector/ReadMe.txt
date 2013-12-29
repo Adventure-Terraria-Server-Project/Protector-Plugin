@@ -137,6 +137,8 @@ Changelog
 Version 1.3.4 Beta [12/28/2013]
   -Fixed bed spawn protection moving players to the upper left corner of the 
    world.
+  -Fixed a bug causing chests to be unplaceable on ice blocks but on ice rod
+   blocks instead.
 
 Version 1.3.3 Beta [12/27/2013]
   -Updated to Terraria 1.2.2.

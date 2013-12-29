@@ -1922,7 +1922,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
               if (
                 TerrariaUtils.Tiles[tileBeneathLocation].active() && (
                   TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.ActiveStone ||
-                  TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.IceBlock
+                  TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.IceRodBlock
                 )
               ) {
                 TSPlayer.All.SendData(PacketTypes.Tile, string.Empty, 0, location.X, location.Y);
