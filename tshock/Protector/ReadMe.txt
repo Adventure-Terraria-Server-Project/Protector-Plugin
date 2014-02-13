@@ -135,6 +135,8 @@ as this will cause mixed item data in the world file and the chest database.
 Changelog
 ---------------------------------------------------------------------------------
 Version 1.3.5 [02/13/2014]
+  -Fixed a rare bug with one time lootable refill chests making them completely
+   unlootable.
   -Added some previously unknown tiles causing many exceptions.
   -Fixed more exception spam caused by incompatibilites.
   -Updated to Plugin Common Lib 2.6.

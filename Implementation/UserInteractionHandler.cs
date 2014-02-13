@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Globalization;
@@ -2921,7 +2922,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         if (refillChest.OneLootPerPlayer) {
-          Contract.Assert(refillChest.Looters != null);
+          //Contract.Assert(refillChest.Looters != null);
+          if (refillChest.Looters == null)
+            refillChest.Looters = new Collection<int>();
 
           if (refillChest.Looters.Contains(player.UserID)) {
             if (sendReasonMessages)
