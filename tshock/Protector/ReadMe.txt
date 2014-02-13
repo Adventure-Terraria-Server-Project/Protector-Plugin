@@ -136,6 +136,7 @@ Changelog
 ---------------------------------------------------------------------------------
 Version 1.3.5 [02/13/2014]
   -Added some previously unknown tiles causing many exceptions.
+  -Fixed more exception spam caused by incompatibilites.
   -Updated to Plugin Common Lib 2.6.
 
 Version 1.3.4 Beta [12/28/2013]
