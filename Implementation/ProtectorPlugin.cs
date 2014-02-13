@@ -333,7 +333,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.GetDataHookHandler.TileEdit += this.Net_TileEdit;
       this.GetDataHookHandler.SignEdit += this.Net_SignEdit;
       this.GetDataHookHandler.SignRead += this.Net_SignRead;
-      this.GetDataHookHandler.ChestOpen += Net_ChestOpen;
+      this.GetDataHookHandler.ChestOpen += this.Net_ChestOpen;
       this.GetDataHookHandler.ChestGetContents += this.Net_ChestGetContents;
       this.GetDataHookHandler.ChestModifySlot += this.Net_ChestModifySlot;
       this.GetDataHookHandler.ChestUnlock += this.Net_ChestUnlock;

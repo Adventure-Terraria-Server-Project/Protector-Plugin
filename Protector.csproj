@@ -214,6 +214,7 @@
     <ProjectReference Include="..\TShock\TerrariaServerAPI\TerrariaAPI-Server.csproj">
       <Project>{549a7941-d9c9-4544-bac8-d9eeeab4d777}</Project>
       <Name>TerrariaAPI-Server</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\TShock\TShockAPI\TShockAPI.csproj">
       <Project>{49606449-072b-4cf5-8088-aa49da586694}</Project>

@@ -134,6 +134,10 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.5 [02/13/2014]
+  -Added some previously unknown tiles causing many exceptions.
+  -Updated to Plugin Common Lib 2.6.
+
 Version 1.3.4 Beta [12/28/2013]
   -Fixed bed spawn protection moving players to the upper left corner of the 
    world.
