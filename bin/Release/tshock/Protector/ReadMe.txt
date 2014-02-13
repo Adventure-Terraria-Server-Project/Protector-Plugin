@@ -1,6 +1,6 @@
 ﻿=================================================================================
  Protector Plugin for TerrariaServer-API
-   (c) CoderCow 2013
+   (c) CoderCow 2013-2014
 =================================================================================
  
 Protects Objects and Blocks
@@ -134,9 +134,18 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.5 [02/13/2014]
+  -Fixed a rare bug with one time lootable refill chests making them completely
+   unlootable.
+  -Added some previously unknown tiles causing many exceptions.
+  -Fixed more exception spam caused by incompatibilites.
+  -Updated to Plugin Common Lib 2.6.
+
 Version 1.3.4 Beta [12/28/2013]
   -Fixed bed spawn protection moving players to the upper left corner of the 
    world.
+  -Fixed a bug causing chests to be unplaceable on ice blocks but on ice rod
+   blocks instead.
 
 Version 1.3.3 Beta [12/27/2013]
   -Updated to Terraria 1.2.2.
