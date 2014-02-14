@@ -31,21 +31,23 @@
     
     The default setting covers:
     Most crafting stations, doors, chests, signs, pressure plates, levers, switches, timers, music boxes, pumps, piggy banks, 
-    clay pots, safes, beds, statues, dart traps.
+    clay pots, safes, beds, statues, dart traps, water fountains, cannon, turret, teleporter, bubble machine, pumpkin.
     
     NOTE: Players can not protect something inside of TShock regions they're not allowed to or if they have no build permission.
           
-          You can lookup tile ids here: http://wiki.terrariaonline.com/Data_ids#Tile_IDs
+          You can lookup tile ids here: http://terraria.gamepedia.com/Data_ids
   -->
   <ManuallyProtectableTiles>
-    10, 11, 16, 21, 29, 55, 77, 78, 79, 85, 86, 94, 96, 97, 105, 106, 114, 132, 133, 134, 135, 136, 137, 139, 142, 143, 144
+    10, 11, 16, 21, 29, 55, 77, 78, 79, 85, 86, 94, 96, 97, 105, 106, 114, 132, 133, 134, 135, 136, 137, 139, 142, 143, 144, 207, 209, 
+    212, 218, 235, 244, 247, 254, 283, 303, 305, 306, 307
   </ManuallyProtectableTiles>
   
   <!-- 
     Tile types which are automatically protected on placement.
     
     The default setting covers: 
-    Most crafting stations, chests, signs, levers, switches, timers, music boxes, beds, statues, pumps.
+    Most crafting stations, chests, signs, levers, switches, timers, music boxes, beds, statues, pumps, water fountains, cannon, 
+    turret, teleporter, bubble machine, pumpkin.
     
     NOTE: If you define a tile type in here but not in "ProtectableTiles", players will not be able to manually protect 
           this type of tile, i.e. they can not protect blocks placed by other players but are forced to place the blocks
@@ -59,7 +61,8 @@
           You can lookup tile ids here: http://wiki.terrariaonline.com/Data_ids#Tile_IDs
   -->
   <AutoProtectedTiles>
-    16, 21, 29, 55, 77, 79, 86, 96, 97, 105, 106, 114, 132, 133, 134, 136, 139, 142, 143, 144
+    16, 21, 29, 55, 77, 79, 86, 96, 97, 105, 106, 114, 132, 133, 134, 136, 139, 142, 143, 144, 207, 209, 212, 218, 235, 244, 247, 254, 
+    283, 303, 305, 306, 307
   </AutoProtectedTiles>
   
   <!-- 

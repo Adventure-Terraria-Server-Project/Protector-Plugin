@@ -15,7 +15,7 @@ using Terraria.Plugins.Common;
 using Terraria.Plugins.Common.Hooks;
 
 namespace Terraria.Plugins.CoderCow.Protector {
-  [ApiVersion(1, 14)]
+  [ApiVersion(1, 15)]
   public class ProtectorPlugin: TerrariaPlugin, IDisposable {
     #region [Constants]
     private const string TracePrefix = @"[Protector] ";
@@ -329,11 +329,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.getDataHookHandler != null)
         throw new InvalidOperationException("Hooks already registered.");
       
-      this.getDataHookHandler = new GetDataHookHandler(this, true);
+      this.getDataHookHandler = new GetDataHookHandler(this, true, 0);
       this.GetDataHookHandler.TileEdit += this.Net_TileEdit;
       this.GetDataHookHandler.SignEdit += this.Net_SignEdit;
       this.GetDataHookHandler.SignRead += this.Net_SignRead;
+      this.GetDataHookHandler.ChestPlace += this.Net_ChestPlace;
       this.GetDataHookHandler.ChestOpen += this.Net_ChestOpen;
+      this.GetDataHookHandler.ChestRename += this.Net_ChestRename;
       this.GetDataHookHandler.ChestGetContents += this.Net_ChestGetContents;
       this.GetDataHookHandler.ChestModifySlot += this.Net_ChestModifySlot;
       this.GetDataHookHandler.ChestUnlock += this.Net_ChestUnlock;
@@ -395,11 +397,25 @@ namespace Terraria.Plugins.CoderCow.Protector {
       e.Handled = this.UserInteractionHandler.HandleSignRead(e.Player, e.Location);
     }
 
+    private void Net_ChestPlace(object sender, ChestPlaceEventArgs e) {
+      if (this.isDisposed || !this.hooksEnabled || e.Handled)
+        return;
+
+      e.Handled = this.UserInteractionHandler.HandleChestPlace(e.Player, e.Location, e.ChestStyle);
+    }
+
     private void Net_ChestOpen(object sender, ChestOpenEventArgs e) {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
 
       e.Handled = this.UserInteractionHandler.HandleChestOpen(e.Player, e.ChestIndex, e.Location);
+    }
+
+    private void Net_ChestRename(object sender, ChestRenameEventArgs e) {
+      if (this.isDisposed || !this.hooksEnabled || e.Handled)
+        return;
+
+      e.Handled = this.UserInteractionHandler.HandleChestRename(e.Player, e.ChestIndex, e.NewName);
     }
 
     private void Net_ChestGetContents(object sender, TileLocationEventArgs e) {

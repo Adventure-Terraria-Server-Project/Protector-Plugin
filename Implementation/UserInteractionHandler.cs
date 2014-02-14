@@ -1914,10 +1914,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
           }
 
           break;
-        case TileEditType.PlaceTile:
+        case TileEditType.PlaceTile: // As of Terraria 1.2.3, this packet should never be sent for chests.
           // Fix: We do not allow chests to be placed on active stone to prevent players from using the chest duplication bugs.
           // Fix2: Don't allow on ice blocks either, you never know.
-          if (blockType == BlockType.Chest) {
+          /*if (blockType == BlockType.Chest) {
             for (int x = 0; x < 2; x++) {
               DPoint tileBeneathLocation = location.OffsetEx(x, 1);
               if (
@@ -1938,7 +1938,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
                 return true;
               }
             }
-          }
+          }*/
 
           break;
       }
@@ -1987,11 +1987,68 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
+    public virtual bool HandleChestPlace(TSPlayer player, DPoint location, ChestStyle chestStyle) {
+      if (this.IsDisposed)
+        return false;
+      //if (chestIndex != -1 || !player.IsLoggedIn)
+      //  return false;
+
+      for (int x = 0; x < 2; x++) {
+        DPoint tileBeneathLocation = location.OffsetEx(x, 1);
+        if (
+          TerrariaUtils.Tiles[tileBeneathLocation].active() && (
+            TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.ActiveStone ||
+            TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.IceRodBlock
+          )
+        ) {
+          TSPlayer.All.SendData(PacketTypes.Tile, string.Empty, 0, location.X, location.Y);
+
+          int itemType = (int)TerrariaUtils.Tiles.GetItemTypeFromChestType(chestStyle);
+          Item.NewItem(location.X * TerrariaUtils.TileSize, location.Y * TerrariaUtils.TileSize, 32, 32, itemType);
+
+          player.SendErrorMessage("Chests can not be placed on active stone or ice blocks.");
+          return true;
+        }
+      }
+
+      return this.HandlePostTileEdit(player, TileEditType.PlaceTile, BlockType.Chest, location, (int)chestStyle);
+    }
+
+    public virtual bool HandleChestRename(TSPlayer player, int chestIndex, string newName) {
+      if (this.IsDisposed)
+        return false;
+
+      if (this.Config.LoginRequiredForChestUsage && !player.IsLoggedIn) {
+        player.SendErrorMessage("You have to be logged in in order to rename chests.");
+        return true;
+      }
+
+      int closedChestIndex = player.TPlayer.chest;
+      if (closedChestIndex < 0)
+        return false;
+
+      Chest tChest = Main.chest[closedChestIndex];
+      if (tChest == null)
+        return false;
+
+      DPoint chestLocation = new DPoint(tChest.x, tChest.y);
+      Tile chestTile = TerrariaUtils.Tiles[chestLocation];
+      if (!chestTile.active() || chestTile.type != (int)BlockType.Chest)
+        return false;
+
+      if (this.CheckProtected(player, chestLocation, true)) {
+        player.SendErrorMessage("You have to be the owner of the chest in order to rename it.");
+        return true;
+      }
+
+      return false;
+    }
+
     // Note: chestLocation is always {0, 0}. chestIndex == -2 if piggy bank is opened.
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
-      if (chestIndex != -1 || !player.IsLoggedIn)
+      if (chestIndex != -1)
         return false;
 
       int closedChestIndex = player.TPlayer.chest;
@@ -2095,7 +2152,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    public virtual bool HandleChestModifySlot(TSPlayer player, short chestIndex, byte slotIndex, ItemData newItem) {
+    public virtual bool HandleChestModifySlot(TSPlayer player, int chestIndex, int slotIndex, ItemData newItem) {
       if (this.IsDisposed)
         return false;
 
@@ -2210,7 +2267,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    public override bool HandleSignEdit(TSPlayer player, short signIndex, DPoint location, string newText) {
+    public override bool HandleSignEdit(TSPlayer player, int signIndex, DPoint location, string newText) {
       if (this.IsDisposed)
         return false;
       if (base.HandleSignEdit(player, signIndex, location, newText))

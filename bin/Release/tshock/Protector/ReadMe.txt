@@ -134,6 +134,10 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.6 [02/14/2014]
+  -Updated to Terraria 1.2.3.
+  -Updated to Plugin Common Lib 2.7.
+
 Version 1.3.5 [02/13/2014]
   -Fixed a rare bug with one time lootable refill chests making them completely
    unlootable.
