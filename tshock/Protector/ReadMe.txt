@@ -134,6 +134,10 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.7 [02/19/2014]
+  -Fixed some bugs regarding the three new chest styles.
+  -Updated to Plugin Common Lib 2.8.
+
 Version 1.3.6 [02/14/2014]
   -Updated to Terraria 1.2.3.
   -Updated to Plugin Common Lib 2.7.
