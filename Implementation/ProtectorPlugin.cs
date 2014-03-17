@@ -290,7 +290,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
 
-      if (this.WorldMetadataHandler.IsWorldOlderThanLastWrittenMetadata()) {
+      /*if (this.WorldMetadataHandler.IsWorldOlderThanLastWrittenMetadata()) {
         try {
           this.WorldMetadataHandler.CreateMetadataSnapshot();
         } catch (InvalidOperationException ex) {
@@ -301,7 +301,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           "You might have loaded an outdated version of the current world, so a snapshot of the current metadata was created. Simply ignore this message if you've intentionally loaded the outdated world file, however, if not then you should restore the most recent version of the world and restore the metadata snapshot found at \"{0}\" otherwise some protections might become invalid",
           ProtectorPlugin.WorldMetadataDirectory
         ));
-      }
+      }*/
 
       return true;
     }

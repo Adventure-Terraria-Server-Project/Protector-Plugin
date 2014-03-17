@@ -136,6 +136,8 @@ Changelog
 ---------------------------------------------------------------------------------
 Version 1.3.8 [03/17/2014]
   -Bank chests amount might now be limited per players of certain player groups.
+  -Removed the outdated world metadata detection feature as it tends to fail a 
+   lot in detecting this.
   -Configuration format has changed, you'll have to update your old config.
   -Updated to Plugin Common Lib 2.9.
 
