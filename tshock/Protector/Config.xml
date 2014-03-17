@@ -163,4 +163,12 @@
     Whether players are notified if a tile they just destroyed got automatically deprotected or not.
   -->
   <NotifyAutoDeprotection>true</NotifyAutoDeprotection>
+
+  <!--
+    Note: The MaxBankChestsPerPlayer setting is the global limit per player, defining a per player limit higher than 
+    the global limit is pointless here.
+  -->
+  <MaxBankChests>
+    <PerPlayerOfGroup Group="default">5</PerPlayerOfGroup>
+  </MaxBankChests>
 </ProtectorConfiguration>

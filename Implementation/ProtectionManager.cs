@@ -592,10 +592,18 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw new MissingPermissionException(ProtectorPlugin.SetBankChests_Permission);
 
       if (
-        checkPermissions && !player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permision) && 
-        (bankChestIndex < 1 || bankChestIndex > this.Config.MaxBankChestsPerPlayer)
+        checkPermissions && !player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permision)
       ) {
-        throw new ArgumentOutOfRangeException("bankChestIndex");
+        if (bankChestIndex > this.Config.MaxBankChestsPerPlayer)
+          throw new ArgumentOutOfRangeException("bankChestIndex", this.Config.MaxBankChestsPerPlayer, "Global bank chest limit reached.");
+
+        int byGroupLimit;
+        if (
+          this.Config.MaxBankChests.TryGetValue(player.Group.Name, out byGroupLimit) &&
+          bankChestIndex > byGroupLimit
+        ) {
+          throw new ArgumentOutOfRangeException("bankChestIndex", byGroupLimit, "Group bank chest limit reached.");
+        }
       }
 
       DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;

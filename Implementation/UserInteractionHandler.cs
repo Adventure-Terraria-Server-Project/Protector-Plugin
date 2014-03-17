@@ -2844,14 +2844,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           return false;
         } else if (ex.ParamName == "bankChestIndex") {
+          ArgumentOutOfRangeException actualEx = (ArgumentOutOfRangeException)ex;
           if (sendMessages) {
             string messageFormat;
             if (!player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permision))
-              messageFormat = "The bank chest number must be between 1 to {0}.";
+              messageFormat = "The bank chest number must be between 1 and {0}.";
             else
               messageFormat = "The bank chest number must be greater than 1.";
 
-            player.SendErrorMessage(string.Format(messageFormat, this.Config.MaxBankChestsPerPlayer));
+            player.SendErrorMessage(string.Format(messageFormat, actualEx.ActualValue));
           }
 
           return false;

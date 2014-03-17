@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -26,6 +27,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public bool AllowWiringProtectedBlocks { get; set; }
     public bool NotifyAutoProtections { get; set; }
     public bool NotifyAutoDeprotections { get; set; }
+    public Dictionary<string, int> MaxBankChests { get; set; }
 
 
     public static Configuration Read(string filePath) {
@@ -79,6 +81,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       resultingConfig.NotifyAutoProtections = BoolEx.ParseEx(rootElement["NotifyAutoProtection"].InnerXml);
       resultingConfig.NotifyAutoDeprotections = BoolEx.ParseEx(rootElement["NotifyAutoDeprotection"].InnerXml);
 
+      XmlElement maxBankChestsElement = rootElement["MaxBankChests"];
+      resultingConfig.MaxBankChests = new Dictionary<string,int>();
+      foreach (XmlElement limitElement in maxBankChestsElement)
+        resultingConfig.MaxBankChests.Add(limitElement.GetAttribute("Group"), int.Parse(limitElement.InnerXml));
+
       return resultingConfig;
     }
 
@@ -94,6 +101,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.ManuallyProtectableTiles = new bool[TerrariaUtils.BlockType_Max + 50];
       this.AutoProtectedTiles = new bool[TerrariaUtils.BlockType_Max + 50];
       this.NotDeprotectableTiles = new bool[TerrariaUtils.BlockType_Max + 50];
+      this.MaxBankChests = new Dictionary<string,int>();
     }
   }
 }

@@ -55,6 +55,22 @@
         <xs:element name="AutoShareRefillChests" type="FlexBool" />
         <xs:element name="NotifyAutoProtection" type="FlexBool" />
         <xs:element name="NotifyAutoDeprotection" type="FlexBool" />
+        
+        <xs:element name="MaxBankChests">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="PerPlayerOfGroup" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base="xs:positiveInteger">
+                      <xs:attribute name="Group" type="xs:string" />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
       </xs:all>
 
       <xs:attribute name="Version" type="NetVersion" use="required" />
