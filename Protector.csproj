@@ -214,8 +214,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)packages\Mono.pdb2mdb.0.1.0.20130128\tools\pdb2mdb.exe" "$(TargetPath)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Label="SlowCheetah">
     <SlowCheetahToolsPath>$([System.IO.Path]::GetFullPath( $(MSBuildProjectDirectory)\..\packages\SlowCheetah.2.5.10.3\tools\))</SlowCheetahToolsPath>

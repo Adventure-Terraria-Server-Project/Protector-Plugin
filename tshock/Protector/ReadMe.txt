@@ -134,6 +134,9 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.8 [03/17/2014]
+  -Updated to Plugin Common Lib 2.9.
+
 Version 1.3.7 [02/19/2014]
   -Fixed some bugs regarding the three new chest styles.
   -Updated to Plugin Common Lib 2.8.
