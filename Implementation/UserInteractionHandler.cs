@@ -2069,7 +2069,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool isLocked;
       ChestStyle chestStyle = TerrariaUtils.Tiles.GetChestStyle(chestTile, out isLocked);
-      Console.WriteLine(chestStyle);
       if (isLocked || (chestStyle != ChestStyle.GoldChest && chestStyle != ChestStyle.ShadowChest 
           && chestStyle != ChestStyle.JungleChest && chestStyle != ChestStyle.CorruptionChest 
           && chestStyle != ChestStyle.CrimsonChest && chestStyle != ChestStyle.HallowedChest 
