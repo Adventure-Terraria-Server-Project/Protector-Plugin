@@ -134,6 +134,9 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+Version 1.3.9 [05/18/2014]
+  -Updated to Terraria 1.2.4.1
+
 Version 1.3.8 [03/17/2014]
   -Bank chests amount might now be limited per players of certain player groups.
   -Removed the outdated world metadata detection feature as it tends to fail a 

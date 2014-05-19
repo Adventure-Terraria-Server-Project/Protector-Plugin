@@ -1543,6 +1543,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case "shadow":
           chestKindToSelect = ChestKind.HellShadowChest;
           break;
+        case "hardmodedungeon":
+          chestKindToSelect = ChestKind.HardmodeDungeonChest;
+          break;
         default:
           invalidSyntax = true;
           break;
@@ -2066,7 +2069,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool isLocked;
       ChestStyle chestStyle = TerrariaUtils.Tiles.GetChestStyle(chestTile, out isLocked);
-      if (isLocked || (chestStyle != ChestStyle.GoldChest && chestStyle != ChestStyle.ShadowChest))
+      if (isLocked || (chestStyle != ChestStyle.GoldChest && chestStyle != ChestStyle.ShadowChest 
+          && chestStyle != ChestStyle.JungleChest && chestStyle != ChestStyle.CorruptionChest 
+          && chestStyle != ChestStyle.CrimsonChest && chestStyle != ChestStyle.HallowedChest 
+          && chestStyle != ChestStyle.FrozenChest && chestStyle != ChestStyle.GreenDungeonChest
+          && chestStyle != ChestStyle.BlueDungeonChest && chestStyle != ChestStyle.PinkDungeonChest) 
+         )
         return false;
 
       ProtectionEntry protection = null;
@@ -2719,7 +2727,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         player.SendErrorMessage("There is no chest here.");
         return false;
       } catch (InvalidChestStyleException) {
-        player.SendErrorMessage("The chest must be an unlocked gold- or shadow chest.");
+        player.SendErrorMessage("The chest must be an unlocked lockable chest.");
         return false;
       }
     }
