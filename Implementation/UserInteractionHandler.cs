@@ -1546,6 +1546,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case "hardmodedungeon":
           chestKindToSelect = ChestKind.HardmodeDungeonChest;
           break;
+        case "pyramid":
+          chestKindToSelect = ChestKind.PyramidChest;
+          break;
         default:
           invalidSyntax = true;
           break;
