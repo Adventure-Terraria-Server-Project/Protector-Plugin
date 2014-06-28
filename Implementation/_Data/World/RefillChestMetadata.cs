@@ -31,6 +31,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public TimeSpan RefillTime {
       get { return this.RefillTimer.TimeSpan; }
+      set { this.RefillTimer.TimeSpan = value; }
     }
     #endregion
 
