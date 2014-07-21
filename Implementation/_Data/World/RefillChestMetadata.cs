@@ -39,7 +39,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public int RemainingLoots { get; set; }
     public Collection<int> Looters { get; set; }
     public bool AutoLock { get; set; }
-
+    public bool AutoEmpty { get; set; }
 
     public RefillChestMetadata(int owner): base() {
       this.Owner = owner;
