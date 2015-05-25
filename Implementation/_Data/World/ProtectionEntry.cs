@@ -66,7 +66,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return (
         player.IsLoggedIn && (
           this.IsSharedWithEveryone ||
-          (this.SharedUsers != null && this.SharedUsers.Contains(player.UserID)) || 
+          (this.SharedUsers != null && this.SharedUsers.Contains(player.User.ID)) || 
           (this.SharedGroups != null && this.SharedGroups.Contains(player.Group.Name))
         )
       );

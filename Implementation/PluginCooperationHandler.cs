@@ -92,11 +92,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
             if (!string.IsNullOrEmpty(rawAccount)) {
               User tUser = TShock.Users.GetUserByName(rawAccount);
               if (tUser != null) {
-                owner = new TSPlayer(0) {
-                  UserID = tUser.ID,
-                  UserAccountName = tUser.Name,
-                  Group = TShock.Groups.GetGroupByName(tUser.Group),
-                };
+                owner = new TSPlayer(0);
+                owner.User.ID = tUser.ID;
+                owner.User.Name = tUser.Name;
+                owner.Group = TShock.Groups.GetGroupByName(tUser.Group);
               } else {
                 // The original owner of the chest does not exist anymore, so we just protect it for the server player.
                 owner = TSPlayer.Server;
@@ -198,11 +197,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
             if (!string.IsNullOrEmpty(rawAccount)) {
               User tUser = TShock.Users.GetUserByName(rawAccount);
               if (tUser != null) {
-                owner = new TSPlayer(0) {
-                  UserID = tUser.ID,
-                  UserAccountName = tUser.Name,
-                  Group = TShock.Groups.GetGroupByName(tUser.Group),
-                };
+                owner = new TSPlayer(0);
+                owner.User.ID = tUser.ID;
+                owner.User.Name = tUser.Name;
+                owner.Group = TShock.Groups.GetGroupByName(tUser.Group);
               } else {
                 // The original owner of the sign does not exist anymore, so we just protect it for the server player.
                 owner = TSPlayer.Server;

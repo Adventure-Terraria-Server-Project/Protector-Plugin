@@ -210,7 +210,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public bool CheckProtectionAccess(ProtectionEntry protection, TSPlayer player, bool fullAccessRequired = false) {
-      bool hasAccess = (protection.Owner == player.UserID);
+      bool hasAccess = (protection.Owner == player.User.ID);
       if (!hasAccess && !fullAccessRequired) {
         hasAccess = player.Group.HasPermission(ProtectorPlugin.UseEverything_Permision);
         if (!hasAccess)
@@ -264,7 +264,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (
         checkLimits &&
         !player.Group.HasPermission(ProtectorPlugin.NoProtectionLimits_Permission) &&
-        this.WorldMetadata.CountUserProtections(player.UserID) >= this.Config.MaxProtectionsPerPlayerPerWorld
+        this.WorldMetadata.CountUserProtections(player.User.ID) >= this.Config.MaxProtectionsPerPlayerPerWorld
       ) {
         throw new LimitEnforcementException();
       }
@@ -272,14 +272,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
       ProtectionEntry protection;
       lock (this.WorldMetadata.Protections) {
         if (this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection)) {
-          if (protection.Owner == player.UserID)
+          if (protection.Owner == player.User.ID)
             throw new AlreadyProtectedException();
 
           throw new TileProtectedException(tileLocation);
         }
       }
 
-      protection = new ProtectionEntry(player.UserID, tileLocation, (BlockType)tile.type);
+      protection = new ProtectionEntry(player.User.ID, tileLocation, (BlockType)tile.type);
       
       lock (this.WorldMetadata.Protections)
         this.WorldMetadata.Protections.Add(tileLocation, protection);
@@ -306,7 +306,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (!this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection))
           throw new NoProtectionException(tileLocation);
 
-      if (!canDeprotectEverything && protection.Owner != player.UserID)
+      if (!canDeprotectEverything && protection.Owner != player.User.ID)
         throw new TileProtectedException(tileLocation);
 
       if (protection.BankChestKey != BankChestDataKey.Invalid) {
@@ -470,7 +470,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      if (protection.Owner != player.UserID && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+      if (protection.Owner != player.User.ID && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
         if (!protection.IsSharedWithPlayer(player))
           throw new TileProtectedException(tileLocation);
 
@@ -555,7 +555,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (refillTime != null)
         actualRefillTime = refillTime.Value;
 
-      refillChestData = new RefillChestMetadata(player.UserID);
+      refillChestData = new RefillChestMetadata(player.User.ID);
       refillChestData.RefillTimer = new Timer(actualRefillTime, refillChestData, this.RefillTimerCallbackHandler);
       if (oneLootPerPlayer != null)
         refillChestData.OneLootPerPlayer = oneLootPerPlayer.Value;
@@ -630,7 +630,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (protection.BankChestKey != BankChestDataKey.Invalid)
         throw new ChestTypeAlreadyDefinedException();
 
-      BankChestDataKey bankChestKey = new BankChestDataKey(player.UserID, bankChestIndex);
+      BankChestDataKey bankChestKey = new BankChestDataKey(player.User.ID, bankChestIndex);
       lock (this.WorldMetadata.Protections) {
         if (this.WorldMetadata.Protections.Values.Count(p => p.BankChestKey == bankChestKey) > 0)
           throw new BankChestAlreadyInstancedException();

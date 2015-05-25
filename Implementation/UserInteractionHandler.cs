@@ -140,7 +140,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       int playerProtectionCount = 0;
       lock (this.WorldMetadata.Protections) {
         foreach (KeyValuePair<DPoint,ProtectionEntry> protection in this.WorldMetadata.Protections) {
-          if (protection.Value.Owner == args.Player.UserID)
+          if (protection.Value.Owner == args.Player.User.ID)
             playerProtectionCount++;
         }
       }
@@ -1890,7 +1890,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             if (
-              protection.Owner == player.UserID || (
+              protection.Owner == player.User.ID || (
                 this.Config.AutoDeprotectEverythingOnDestruction &&
                 player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)
               )
@@ -2206,7 +2206,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         // The player who set up the refill chest or masters shall modify its contents.
         if (
           this.Config.AllowRefillChestContentChanges &&
-          (refillChest.Owner == player.UserID || player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
+          (refillChest.Owner == player.User.ID || player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
         ) {
           refillChest.RefillItems[slotIndex] = newItem;
 
@@ -2229,8 +2229,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
         if (refillChest.OneLootPerPlayer || refillChest.RemainingLoots > 0) {
           Contract.Assert(refillChest.Looters != null);
-          if (!refillChest.Looters.Contains(player.UserID)) {
-            refillChest.Looters.Add(player.UserID);
+          if (!refillChest.Looters.Contains(player.User.ID)) {
+            refillChest.Looters.Add(player.User.ID);
 
             if (refillChest.RemainingLoots > 0)
               refillChest.RemainingLoots--;
@@ -2605,7 +2605,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool canViewExtendedInfo = (
         player.Group.HasPermission(ProtectorPlugin.ViewAllProtections_Permission) ||
-        protection.Owner == player.UserID ||
+        protection.Owner == player.User.ID ||
         protection.IsSharedWithPlayer(player)
       );
       
@@ -3001,7 +3001,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       if (
         !this.Config.AllowRefillChestContentChanges || 
-        (player.UserID != refillChest.Owner && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
+        (player.User.ID != refillChest.Owner && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
       ) {
         if (refillChest.RemainingLoots == 0) {
           if (sendReasonMessages)
@@ -3015,7 +3015,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           if (refillChest.Looters == null)
             refillChest.Looters = new Collection<int>();
 
-          if (refillChest.Looters.Contains(player.UserID)) {
+          if (refillChest.Looters.Contains(player.User.ID)) {
             if (sendReasonMessages)
               player.SendErrorMessage("This chest can only be looted a single time per player, and you have already looted it once.");
 
