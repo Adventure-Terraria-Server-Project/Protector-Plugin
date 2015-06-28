@@ -1491,6 +1491,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       TimeSpan? refillTime = null;
       bool? autoEmpty = null;
       string selector = null;
+      bool fairLoot = false;
       bool invalidSyntax = (args.Parameters.Count == 0);
       if (!invalidSyntax) {
         selector = args.Parameters[0].ToLowerInvariant();
@@ -1520,6 +1521,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
             i++;
           } else if (param.Equals("+al", StringComparison.InvariantCultureIgnoreCase))
             autoLock = true;
+          else if (param.Equals("+fl", StringComparison.InvariantCultureIgnoreCase))
+            fairLoot = true;
           else if (param.Equals("-al", StringComparison.InvariantCultureIgnoreCase))
             autoLock = false;
           else if (param.Equals("+ae", StringComparison.InvariantCultureIgnoreCase))
@@ -1565,7 +1568,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       if (invalidSyntax) {
-        args.Player.SendErrorMessage("Proper syntax: /refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al]  [+ae|-ae]");
+        args.Player.SendErrorMessage("Proper syntax: /refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+ae|-ae] [+fl]");
         args.Player.SendErrorMessage("Type /refillchestmany help to get more help to this command.");
         return;
       }
@@ -1594,7 +1597,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           try {
             this.ProtectionManager.SetUpRefillChest(
-              args.Player, chestLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock, autoEmpty
+              args.Player, chestLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock, autoEmpty, fairLoot
             );
             createdChestsCounter++;
           } catch (Exception ex) {
@@ -1617,7 +1620,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /refillchestmany (Page 1 of 3)", Color.Lime);
-          args.Player.SendMessage("/refillchestmany|/rchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al]  [+ae|-ae]", Color.White);
+          args.Player.SendMessage("/refillchestmany|/rchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+ae|-ae] [+fl]", Color.White);
           args.Player.SendMessage("Converts all selected chests to refill chests or alters them.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("selector = dungeon, sky, ocean or shadow", Color.LightGray);
@@ -1628,6 +1631,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("+ll = The chest can only be looted the given amount of times in total.", Color.LightGray);
           args.Player.SendMessage("+al = After being looted, the chest is automatically locked.", Color.LightGray);
           args.Player.SendMessage("+ae = After being looted, the chest is automatically emptied, regardless of contents.", Color.LightGray);
+          args.Player.SendMessage("+fl = An item of the chest's own type will be placed inside the chest yielding in a fair loot.", Color.LightGray);
           args.Player.SendMessage("This command is expected to be used on a fresh world, the specified selector might", Color.LightGray);
           args.Player.SendMessage("also select player chests. This is how chest kinds are distinguished:", Color.LightGray);
           break;

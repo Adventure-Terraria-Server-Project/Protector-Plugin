@@ -489,7 +489,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     /// </returns>
     public bool SetUpRefillChest(
       TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer = null, int? lootLimit = null, 
-      bool? autoLock = null, bool? autoEmpty = null ,bool checkPermissions = false
+      bool? autoLock = null, bool? autoEmpty = null, bool fairLoot = false, bool checkPermissions = false
     ) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
@@ -573,9 +573,24 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (autoEmpty != null)
         refillChestData.AutoEmpty = autoEmpty.Value;
 
+      bool fairLootPutItem = fairLoot;
       Chest tChest = Main.chest[tChestIndex];
-      for (int i = 0; i < Chest.maxItems; i++)
-        refillChestData.RefillItems[i] = ItemData.FromItem(tChest.item[i]);
+      for (int i = 0; i < Chest.maxItems; i++) {
+        ItemData item = ItemData.FromItem(tChest.item[i]);
+        if (item.StackSize == 0 && fairLootPutItem) {
+          try {
+            bool isLocked;
+            item.Type = TerrariaUtils.Tiles.GetItemTypeFromChestType(TerrariaUtils.Tiles.GetChestStyle(tile, out isLocked));
+
+            item.StackSize = 1;
+            tChest.item[i] = item.ToItem();
+          } catch (ArgumentException) {}
+
+          fairLootPutItem = false;
+        }
+
+        refillChestData.RefillItems[i] = item;
+      }
 
       protection.RefillChestData = refillChestData;
 
