@@ -2355,6 +2355,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       return false;
     }
+
+    public virtual bool HandleQuickStackNearby(TSPlayer player, int playerSlotIndex) {
+      if (this.IsDisposed)
+        return false;
+
+      // Temporarily block any quick stacking until Protector can handle them properly.
+      return true;
+    }
     #endregion
 
     private bool TryCreateProtection(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {

@@ -15,7 +15,7 @@ using Terraria.Plugins.Common;
 using Terraria.Plugins.Common.Hooks;
 
 namespace Terraria.Plugins.CoderCow.Protector {
-  [ApiVersion(1, 17)]
+  [ApiVersion(1, 18)]
   public class ProtectorPlugin: TerrariaPlugin, IDisposable {
     #region [Constants]
     private const string TracePrefix = @"[Protector] ";
@@ -342,6 +342,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.GetDataHookHandler.HitSwitch += this.Net_HitSwitch;
       this.GetDataHookHandler.DoorUse += this.Net_DoorUse;
       this.GetDataHookHandler.PlayerSpawn += this.Net_PlayerSpawn;
+      this.GetDataHookHandler.QuickStackNearby += this.Net_QuickStackNearby;
 
       ServerApi.Hooks.GameUpdate.Register(this, this.Game_Update);
       ServerApi.Hooks.WorldSave.Register(this, this.World_SaveWorld);
@@ -352,6 +353,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw new InvalidOperationException("Post hooks already registered.");
 
       this.postGetDataHookHandler = new GetDataHookHandler(this, true);
+      this.PostGetDataHookHandler.InvokeTileOnObjectPlacement = true;
       this.PostGetDataHookHandler.TileEdit += this.Net_PostTileEdit;
     }
 
@@ -458,6 +460,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       e.Handled = this.UserInteractionHandler.HandlePlayerSpawn(e.Player, e.SpawnTileLocation);
+    }
+
+    private void Net_QuickStackNearby(object sender, PlayerSlotEventArgs e) {
+      if (this.isDisposed || !this.hooksEnabled || e.Handled)
+        return;
+
+      e.Handled = this.UserInteractionHandler.HandleQuickStackNearby(e.Player, e.SlotIndex);
     }
 
     private void Game_Update(EventArgs e) {
