@@ -1,6 +1,6 @@
 ﻿=================================================================================
  Protector Plugin for TerrariaServer-API
-   (c) CoderCow 2013-2014
+   (c) CoderCow 2013-2015
 =================================================================================
  
 Protects Objects and Blocks
@@ -37,7 +37,7 @@ However when using Protector, worlds will be limited by Terraria's maximum of
 Infinite Chests. You can try to operate this plugin with other protection 
 plugins, read the "About Data Import and Compatibility" for more information.
 
-Note: This plugin requires Terraria Server API 1.14 and TShock 4.2 in order to work.
+Note: This plugin requires Terraria Server API 1.18 and TShock 4.3 in order to work.
 
 Suggestions? Bugs? File issues here:
 https://github.com/CoderCow/Protector-Plugin/issues
