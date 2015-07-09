@@ -55,7 +55,8 @@
         <xs:element name="AutoShareRefillChests" type="FlexBool" />
         <xs:element name="NotifyAutoProtection" type="FlexBool" />
         <xs:element name="NotifyAutoDeprotection" type="FlexBool" />
-        
+        <xs:element name="QuickStackNearbyRange" type="xs:float" />
+
         <xs:element name="MaxBankChests">
           <xs:complexType>
             <xs:sequence>

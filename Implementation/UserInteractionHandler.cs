@@ -6,6 +6,7 @@ using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -2345,9 +2346,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
           player.SendErrorMessage("You were transported to your last valid spawn location instead.");
 
           if (player.TPlayer.SpawnX == -1 && player.TPlayer.SpawnY == -1)
-            player.Teleport(Main.spawnTileX * TerrariaUtils.TileSize, Main.spawnTileY * TerrariaUtils.TileSize);
+            player.Teleport(Main.spawnTileX * TerrariaUtils.TileSize, (Main.spawnTileY - 3) * TerrariaUtils.TileSize);
           else
-            player.Teleport(player.TPlayer.SpawnX * TerrariaUtils.TileSize, player.TPlayer.SpawnY * TerrariaUtils.TileSize);
+            player.Teleport(player.TPlayer.SpawnX * TerrariaUtils.TileSize, (player.TPlayer.SpawnY - 3) * TerrariaUtils.TileSize);
 
           return true;
         }
@@ -2360,8 +2361,85 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.IsDisposed)
         return false;
 
-      // Temporarily block any quick stacking until Protector can handle them properly.
+      Item item = player.TPlayer.inventory[playerSlotIndex];
+      this.PutItemInNearbyChest(player, item, player.TPlayer.Center);
+
+      player.SendData(PacketTypes.PlayerSlot, string.Empty, player.Index, playerSlotIndex, item.prefix);
       return true;
+    }
+
+    // Modded version of Terraria's Original
+    private Item PutItemInNearbyChest(TSPlayer player, Item item, Vector2 position) {
+      float quickStackRange = this.Config.QuickStackNearbyRange * 16;
+
+      for (int i = 0; i < Main.chest.Length; i++) {
+        Chest chest = Main.chest[i];
+        if (chest == null || !Main.tile[chest.x, chest.y].active())
+          continue;
+
+        bool containsSameItem = false;
+        bool hasEmptySlot = false;
+
+        bool isPlayerInChest = false;
+        for (int j = 0; j < 255; j++) {
+          if (Main.player[j].chest == i) {
+            isPlayerInChest = true;
+            break;
+          }
+        }
+
+        if (!isPlayerInChest && !Chest.isLocked(chest.x, chest.y)) {
+          Vector2 vector2 = new Vector2((chest.x * 16 + 16), (chest.y * 16 + 16));
+          if ((vector2 - position).Length() < quickStackRange) {
+            ProtectionEntry protection;
+            if (this.ProtectionManager.CheckBlockAccess(player, new DPoint(chest.x, chest.y), false, out protection)) {
+              bool isRefillChest = (protection != null && protection.RefillChestData != null);
+              if (!isRefillChest) { 
+                bool isBankChest = (protection != null && protection.BankChestKey != BankChestDataKey.Invalid);
+
+                for (int j = 0; j < chest.item.Length; j++) {
+                  Item chestItem = chest.item[j];
+                  if (chestItem.type <= 0 || chestItem.stack <= 0)
+                    hasEmptySlot = true;
+                  else if (item.IsTheSameAs(chestItem)) {
+                    containsSameItem = true;
+                    int stackLeft = chestItem.maxStack - chestItem.stack;
+                    if (stackLeft > 0) {
+                      if (stackLeft > item.stack)
+                        stackLeft = item.stack;
+
+                      item.stack = item.stack - stackLeft;
+                      chestItem.stack = chestItem.stack + stackLeft;
+                      if (isBankChest)
+                        this.ServerMetadataHandler.EnqueueUpdateBankChestItem(protection.BankChestKey, j, ItemData.FromItem(chestItem));
+
+                      if (item.stack <= 0) {
+                        item.SetDefaults();
+                        return item;
+                      }
+                    }
+                  }
+                }
+                if (containsSameItem && hasEmptySlot && item.stack > 0) {
+                  for (int k = 0; k < chest.item.Length; k++) {
+                    Item chestItem = chest.item[k];
+                    if (chestItem.type == 0 || chestItem.stack == 0) {
+                      chest.item[k] = item.Clone();
+
+                      if (isBankChest)
+                        this.ServerMetadataHandler.EnqueueUpdateBankChestItem(protection.BankChestKey, k, ItemData.FromItem(item));
+
+                      item.SetDefaults();
+                      return item;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      return item;
     }
     #endregion
 

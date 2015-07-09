@@ -27,7 +27,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public bool AllowWiringProtectedBlocks { get; set; }
     public bool NotifyAutoProtections { get; set; }
     public bool NotifyAutoDeprotections { get; set; }
-    public Dictionary<string, int> MaxBankChests { get; set; }
+    public float QuickStackNearbyRange { get; set; }
+    public Dictionary<string,int> MaxBankChests { get; set; }
 
 
     public static Configuration Read(string filePath) {
@@ -80,6 +81,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       resultingConfig.AutoDeprotectEverythingOnDestruction = BoolEx.ParseEx(rootElement["AutoDeprotectEverythingOnDestruction"].InnerXml);
       resultingConfig.NotifyAutoProtections = BoolEx.ParseEx(rootElement["NotifyAutoProtection"].InnerXml);
       resultingConfig.NotifyAutoDeprotections = BoolEx.ParseEx(rootElement["NotifyAutoDeprotection"].InnerXml);
+      resultingConfig.QuickStackNearbyRange = float.Parse(rootElement["QuickStackNearbyRange"].InnerXml);
 
       XmlElement maxBankChestsElement = rootElement["MaxBankChests"];
       resultingConfig.MaxBankChests = new Dictionary<string,int>();
