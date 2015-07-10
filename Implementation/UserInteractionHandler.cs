@@ -2852,7 +2852,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       try {
         if (this.ProtectionManager.SetUpRefillChest(
-          player, tileLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock, autoEmpty, true
+          player, tileLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock, autoEmpty, false, true
         )) {
           if (sendMessages) {
             player.SendSuccessMessage("Refill chest successfully set up.");
@@ -2887,10 +2887,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
                 player.SendSuccessMessage("This chest will not lock itself automatically anymore.");
             }
             if (autoEmpty != null) {
-                if (autoEmpty.Value)
-                    player.SendSuccessMessage("This chest empties itself automatically when it gets looted.");
-                else
-                    player.SendSuccessMessage("This chest will not empty itself automatically anymore.");
+              if (autoEmpty.Value)
+                player.SendSuccessMessage("This chest empties itself automatically when it gets looted.");
+              else
+                player.SendSuccessMessage("This chest will not empty itself automatically anymore.");
             }
           }
         }
