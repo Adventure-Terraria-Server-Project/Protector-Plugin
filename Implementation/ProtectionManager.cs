@@ -34,6 +34,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public static bool IsShareableBlockType(BlockType blockType) {
       return (
         blockType == BlockType.Chest ||
+        blockType == BlockType.Dresser ||
         blockType == BlockType.Sign ||
         blockType == BlockType.Tombstone ||
         blockType == BlockType.Bed ||
@@ -429,7 +430,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       if (checkPermissions) {
         if (
-          tile.type == (int)BlockType.Chest &&
+          (tile.type == (int)BlockType.Chest || tile.type == (int)BlockType.Dresser) &&
           !player.Group.HasPermission(ProtectorPlugin.ChestSharing_Permission)
         ) {
           throw new MissingPermissionException(ProtectorPlugin.ChestSharing_Permission);
@@ -498,7 +499,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       BlockType blockType = (BlockType)tile.type;
-      if (blockType != BlockType.Chest)
+      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
         throw new InvalidBlockTypeException(blockType);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetRefillChests_Permission))
@@ -605,7 +606,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       BlockType blockType = (BlockType)tile.type;
-      if (blockType != BlockType.Chest)
+      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
         throw new InvalidBlockTypeException(blockType);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetBankChests_Permission))
@@ -718,7 +719,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (protection.RefillChestData != null) {
             int tChestIndex = Chest.FindChest(location.X, location.Y);
-            if (!tile.active() || tile.type != (int)BlockType.Chest || tChestIndex == -1) {
+            if (!tile.active() || (tile.type != (int)BlockType.Chest && tile.type != (int)BlockType.Dresser) || tChestIndex == -1) {
               protection.RefillChestData = null;
               invalidRefillChestCount++;
               continue;
@@ -737,7 +738,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             int tChestIndex = Chest.FindChest(location.X, location.Y);
-            if (!tile.active() || tile.type != (int)BlockType.Chest || tChestIndex == -1) {
+            if (!tile.active() || (tile.type != (int)BlockType.Chest && tile.type != (int)BlockType.Dresser) || tChestIndex == -1) {
               protection.BankChestKey = BankChestDataKey.Invalid;
               invalidBankChestCount++;
               continue;

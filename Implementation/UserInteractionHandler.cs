@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Terraria.ID;
 using DPoint = System.Drawing.Point;
 
 using Terraria.Plugins.Common;
@@ -393,7 +394,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             bool isInvalidEntry = false;
             DPoint chestLocation = new DPoint(tChest.x, tChest.y);
-            if (TerrariaUtils.Tiles[chestLocation].active() && TerrariaUtils.Tiles[chestLocation].type == (int)BlockType.Chest) {
+            if (TerrariaUtils.Tiles[chestLocation].active() && (TerrariaUtils.Tiles[chestLocation].type == (int)BlockType.Chest || TerrariaUtils.Tiles[chestLocation].type == (int)BlockType.Dresser)) {
               chestLocation = TerrariaUtils.Tiles.MeasureObject(chestLocation).OriginTileLocation;
               lock (this.WorldMetadata.Protections) {
                 if (this.WorldMetadata.Protections.ContainsKey(chestLocation))
@@ -1857,7 +1858,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           // Because Terraria is dumb-assed, TileKill which is usually only sent on a chest being removed, is also sent
           // when the chest is filled but was hit enought times to be removed, thus we have to work around this by checking
           // if there's content in the chest.
-          if (TerrariaUtils.Tiles[location].active() && TerrariaUtils.Tiles[location].type == (int)BlockType.Chest) {
+          Tile tile = TerrariaUtils.Tiles[location];
+          if (tile.active() && (tile.type == TileID.Containers || tile.type == TileID.Dressers)) {
             DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
             int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
             // Non existing chests are considered empty.
@@ -2054,7 +2056,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       DPoint chestLocation = new DPoint(tChest.x, tChest.y);
       Tile chestTile = TerrariaUtils.Tiles[chestLocation];
-      if (!chestTile.active() || chestTile.type != (int)BlockType.Chest)
+      if (!chestTile.active() || (chestTile.type != (int)BlockType.Chest && chestTile.type != (int)BlockType.Dresser))
         return false;
 
       if (this.CheckProtected(player, chestLocation, true)) {
@@ -2065,11 +2067,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    // Note: chestLocation is always {0, 0}. chestIndex == -2 if piggy bank is opened.
+    // Note: chestLocation is always {0, 0}. chestIndex == -1 chest, piggy, safe closed. chestIndex == -2 if piggy bank, chestIndex == -3 safe is is opened.
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
-      if (chestIndex != -1)
+      if (chestIndex != -1 || chestIndex == -2 || chestIndex == -3)
         return false;
 
       int closedChestIndex = player.TPlayer.chest;
@@ -2082,17 +2084,19 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       chestLocation = new DPoint(tChest.x, tChest.y);
       Tile chestTile = TerrariaUtils.Tiles[chestLocation];
-      if (!chestTile.active() || chestTile.type != (int)BlockType.Chest)
+      if (!chestTile.active() || (chestTile.type != (int)BlockType.Chest && chestTile.type != (int)BlockType.Dresser))
         return false;
 
       bool isLocked;
       ChestStyle chestStyle = TerrariaUtils.Tiles.GetChestStyle(chestTile, out isLocked);
-      if (isLocked || (chestStyle != ChestStyle.GoldChest && chestStyle != ChestStyle.ShadowChest 
-          && chestStyle != ChestStyle.JungleChest && chestStyle != ChestStyle.CorruptionChest 
-          && chestStyle != ChestStyle.CrimsonChest && chestStyle != ChestStyle.HallowedChest 
-          && chestStyle != ChestStyle.FrozenChest && chestStyle != ChestStyle.GreenDungeonChest
-          && chestStyle != ChestStyle.BlueDungeonChest && chestStyle != ChestStyle.PinkDungeonChest) 
-         )
+      if (isLocked || (
+          chestStyle != ChestStyle.GoldChest && chestStyle != ChestStyle.ShadowChest &&
+          chestStyle != ChestStyle.JungleChest && chestStyle != ChestStyle.CorruptionChest &&
+          chestStyle != ChestStyle.CrimsonChest && chestStyle != ChestStyle.HallowedChest &&
+          chestStyle != ChestStyle.FrozenChest && chestStyle != ChestStyle.GreenDungeonChest &&
+          chestStyle != ChestStyle.BlueDungeonChest && chestStyle != ChestStyle.PinkDungeonChest
+        ) 
+      )
         return false;
 
       ProtectionEntry protection = null;
@@ -2735,7 +2739,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         Color.LightGray
       );
       
-      if (blockType == BlockType.Chest) {
+      if (blockType == BlockType.Chest || blockType == BlockType.Dresser) {
         if (protection.RefillChestData != null) {
           RefillChestMetadata refillChest = protection.RefillChestData;
           if (refillChest.RefillTime != TimeSpan.Zero)
@@ -3067,7 +3071,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (!tile.active())
         return;
 
-      if (tile.type == (int)BlockType.Chest) {
+      if (tile.type == (int)BlockType.Chest || tile.type == (int)BlockType.Dresser) {
         DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
         int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
         if (chestIndex != -1) {

@@ -171,4 +171,12 @@
   <MaxBankChests>
     <PerPlayerOfGroup Group="default">5</PerPlayerOfGroup>
   </MaxBankChests>
+
+  <!--
+    The range (in tiles) to use for quick stacking items into nearby chests.
+    Note: Terraria's Default is 12.5 tiles.
+  -->
+  <QuickStackNearbyRange>
+    12.5
+  </QuickStackNearbyRange>
 </ProtectorConfiguration>
