@@ -451,8 +451,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private void Net_DoorUse(object sender, DoorUseEventArgs e) {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
+      bool isOpening = false;
+      if (e.action == DoorAction.OpenDoor || e.action == DoorAction.OpenTallGate || e.action == DoorAction.OpenTrapdoor)
+        isOpening = true;
 
-      e.Handled = this.UserInteractionHandler.HandleDoorUse(e.Player, e.Location, e.IsOpening, e.Direction);
+      e.Handled = this.UserInteractionHandler.HandleDoorUse(e.Player, e.Location, isOpening, e.Direction);
     }
 
     private void Net_PlayerSpawn(object sender, PlayerSpawnEventArgs e) {
