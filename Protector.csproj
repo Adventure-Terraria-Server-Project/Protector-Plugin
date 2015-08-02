@@ -139,10 +139,6 @@
       <HintPath>References\MySql.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MySql.Web">
-      <HintPath>References\MySql.Web.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>References\Newtonsoft.Json.dll</HintPath>
       <Private>False</Private>
