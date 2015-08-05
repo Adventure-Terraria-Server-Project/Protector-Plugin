@@ -1852,14 +1852,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case TileEditType.TileKill:
         case TileEditType.TileKillNoItem: {
           // Is the tile really going to be destroyed or just being hit?
-          if (blockType != 0)
-            break;
+          //if (blockType != 0)
+          //  break;
 
           // Because Terraria is dumb-assed, TileKill which is usually only sent on a chest being removed, is also sent
           // when the chest is filled but was hit enought times to be removed, thus we have to work around this by checking
           // if there's content in the chest.
           Tile tile = TerrariaUtils.Tiles[location];
-          if (tile.active() && (tile.type == TileID.Containers || tile.type == TileID.Dressers)) {
+          bool isChest = (tile.type == TileID.Containers || tile.type == TileID.Dressers);
+          if (tile.active() && isChest) {
             DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
             int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
             // Non existing chests are considered empty.
@@ -1869,6 +1870,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
               if (isFilled) {
                 lock (this.WorldMetadata.Protections) {
                   ProtectionEntry protection;
+
+                  // Bank chests should be removable even if they contain content.
+                  // If this is not a bank chest.
                   if (
                     !this.WorldMetadata.Protections.TryGetValue(chestLocation, out protection) ||
                     protection.BankChestKey == BankChestDataKey.Invalid
@@ -1882,13 +1886,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           Tile protectedTile = null;
           foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(location)) {
+            // If the protection is invalid, just remove it.
             if (!TerrariaUtils.Tiles.IsValidCoord(protection.TileLocation)) {
               this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
               protectedTile = null;
               continue;
             }
             protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
-
+            
             // If the protection is invalid, just remove it.
             if (!protectedTile.active() || protectedTile.type != (int)protection.BlockType) {
               this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
@@ -1922,6 +1927,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             player.SendTileSquare(location);
             return true;
+          }
+
+          if (isChest) {
+            // Workaround a strange client issue related to chest breaking.
+            WorldGen.KillTile(location.X, location.Y);
+            player.SendTileSquare(location);
           }
           
           break;
