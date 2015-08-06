@@ -198,6 +198,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             terms.Add("/dumpbankchest");
           if (args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
             terms.Add("/lockchest");
+            terms.Add("/protector invalidate");
             if (args.Player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
               terms.Add("/protector cleanup");
               terms.Add("/protector removeall");
@@ -1931,8 +1932,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (isChest) {
             // Workaround a strange client issue related to chest breaking.
+            ObjectMeasureData measureData = TerrariaUtils.Tiles.MeasureObject(location);
+            DPoint chestLocation = measureData.OriginTileLocation;
+            int chestId = Chest.FindChest(chestLocation.X, chestLocation.Y);
+
+            Chest.DestroyChestDirect(chestLocation.X, chestLocation.Y, chestId);
             WorldGen.KillTile(location.X, location.Y);
-            player.SendTileSquare(location);
+            TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 3, chestLocation.X, chestLocation.Y, 0f, chestId);
           }
           
           break;
