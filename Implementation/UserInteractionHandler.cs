@@ -1856,91 +1856,62 @@ namespace Terraria.Plugins.CoderCow.Protector {
           //if (blockType != 0)
           //  break;
 
-          // Because Terraria is dumb-assed, TileKill which is usually only sent on a chest being removed, is also sent
-          // when the chest is filled but was hit enought times to be removed, thus we have to work around this by checking
-          // if there's content in the chest.
-          Tile tile = TerrariaUtils.Tiles[location];
-          bool isChest = (tile.type == TileID.Containers || tile.type == TileID.Dressers);
-          if (tile.active() && isChest) {
-            DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
-            int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
-            // Non existing chests are considered empty.
-            if (chestIndex != -1) {
-              Chest tChest = Main.chest[chestIndex];
-              bool isFilled = tChest.item.Any(i => i != null && i.stack > 0);
-              if (isFilled) {
-                lock (this.WorldMetadata.Protections) {
-                  ProtectionEntry protection;
-
-                  // Bank chests should be removable even if they contain content.
-                  // If this is not a bank chest.
-                  if (
-                    !this.WorldMetadata.Protections.TryGetValue(chestLocation, out protection) ||
-                    protection.BankChestKey == BankChestDataKey.Invalid
-                  ) {
-                    break;
-                  }
-                }
-              }
-            }
-          }
-
-          Tile protectedTile = null;
           foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(location)) {
             // If the protection is invalid, just remove it.
             if (!TerrariaUtils.Tiles.IsValidCoord(protection.TileLocation)) {
               this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
-              protectedTile = null;
-              continue;
-            }
-            protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
-            
-            // If the protection is invalid, just remove it.
-            if (!protectedTile.active() || protectedTile.type != (int)protection.BlockType) {
-              this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
-              protectedTile = null;
               continue;
             }
 
+            Tile protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
+            // If the protection is invalid, just remove it.
+            if (
+              !protectedTile.active() || 
+              protectedTile.type != (int)protection.BlockType
+            ) {
+              this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
+              continue;
+            }
+
+            string tileName = TerrariaUtils.Tiles.GetBlockTypeName((BlockType)protectedTile.type);
             if (
               protection.Owner == player.User.ID || (
                 this.Config.AutoDeprotectEverythingOnDestruction &&
                 player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)
               )
             ) {
-              this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
+              bool isChest = (protectedTile.type == TileID.Containers || protectedTile.type == TileID.Dressers);
+              if (isChest) {
+                ObjectMeasureData measureData = TerrariaUtils.Tiles.MeasureObject(protection.TileLocation);
+                DPoint chestLocation = measureData.OriginTileLocation;
+                int chestId = Chest.FindChest(chestLocation.X, chestLocation.Y);
 
-              if (this.Config.NotifyAutoDeprotections) {
-                player.SendWarningMessage(string.Format(
-                  "The {0} is not protected anymore.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)protectedTile.type)
-                ));
+                if (chestId != -1) {
+                  bool isBankChest = (protection.BankChestKey != BankChestDataKey.Invalid);
+                  if (isBankChest) {
+                    Chest.DestroyChestDirect(chestLocation.X, chestLocation.Y, chestId);
+                    WorldGen.KillTile(location.X, location.Y);
+                    TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 3, chestLocation.X, chestLocation.Y, 0f, chestId);
+                  } else {
+                    Chest tChest = Main.chest[chestId];
+                    bool isFilled = tChest.item.Any(i => i != null && i.stack > 0);
+                    if (isFilled)
+                     break; // Do not remove protections of filled chests.
+                  }
+                }
               }
-
-              protectedTile = null;
-              continue;
+              this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
+          
+              if (this.Config.NotifyAutoDeprotections) {
+                player.SendWarningMessage(string.Format("The {0} is not protected anymore.", tileName));
+              }
+            } else {
+              player.SendErrorMessage(string.Format("The {0} is protected.", tileName));
+              player.SendTileSquare(location);
+              return true;
             }
           }
 
-          if (protectedTile != null) {
-            player.SendErrorMessage(string.Format(
-              "The {0} is protected.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)protectedTile.type)
-            ));
-
-            player.SendTileSquare(location);
-            return true;
-          }
-
-          if (isChest) {
-            // Workaround a strange client issue related to chest breaking.
-            ObjectMeasureData measureData = TerrariaUtils.Tiles.MeasureObject(location);
-            DPoint chestLocation = measureData.OriginTileLocation;
-            int chestId = Chest.FindChest(chestLocation.X, chestLocation.Y);
-
-            Chest.DestroyChestDirect(chestLocation.X, chestLocation.Y, chestId);
-            WorldGen.KillTile(location.X, location.Y);
-            TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 3, chestLocation.X, chestLocation.Y, 0f, chestId);
-          }
-          
           break;
         }
         case TileEditType.PlaceWire:
