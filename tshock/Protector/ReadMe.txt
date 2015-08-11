@@ -37,7 +37,7 @@ However when using Protector, worlds will be limited by Terraria's maximum of
 Infinite Chests. You can try to operate this plugin with other protection 
 plugins, read the "About Data Import and Compatibility" for more information.
 
-Note: This plugin requires Terraria Server API 1.18 and TShock 4.3 in order to work.
+Note: This plugin requires Terraria Server API and TShock in order to work.
 
 Suggestions? Bugs? File issues here:
 https://github.com/CoderCow/Protector-Plugin/issues
@@ -134,6 +134,9 @@ as this will cause mixed item data in the world file and the chest database.
 
 Changelog
 ---------------------------------------------------------------------------------
+See commit log on the GitHub repository for future changes:
+https://github.com/CoderCow/Protector-Plugin/commits/master
+
 Version 1.3.9 [05/18/2014]
   -Updated to Terraria 1.2.4.1
 

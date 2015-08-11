@@ -15,7 +15,7 @@ Also, if your server happens to change worlds frequently or if you just want to 
 
 However when using Protector, worlds will be limited by Terraria's maximum of 1000 chests and 1000 signs, so this is no replacement for Infinite Signs or Infinite Chests. You can try to operate this plugin with other protection plugins, read the "About Data Import and Compatibility" for more information.
 
-Note: This plugin requires Terraria Server API 1.18 and TShock 4.3 in order to work.
+Note: This plugin requires Terraria Server API and TShock in order to work.
 
 More information to this plugin can be found [here](tshock/Protector/ReadMe.txt).
 
