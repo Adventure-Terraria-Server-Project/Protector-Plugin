@@ -1865,10 +1865,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             Tile protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
             // If the protection is invalid, just remove it.
-            if (
-              !protectedTile.active() || 
-              protectedTile.type != (int)protection.BlockType
-            ) {
+            if (!protectedTile.active() || protectedTile.type != (int)protection.BlockType) {
               this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
               continue;
             }
@@ -1896,15 +1893,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
                     Chest tChest = Main.chest[chestId];
                     bool isFilled = tChest.item.Any(i => i != null && i.stack > 0);
                     if (isFilled)
-                     break; // Do not remove protections of filled chests.
+                      break; // Do not remove protections of filled chests.
                   }
                 }
               }
               this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
           
-              if (this.Config.NotifyAutoDeprotections) {
+              if (this.Config.NotifyAutoDeprotections)
                 player.SendWarningMessage(string.Format("The {0} is not protected anymore.", tileName));
-              }
             } else {
               player.SendErrorMessage(string.Format("The {0} is protected.", tileName));
               player.SendTileSquare(location);
@@ -1923,33 +1919,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
             player.SendTileSquare(location);
             return true;
           }
-
-          break;
-        case TileEditType.PlaceTile: // As of Terraria 1.2.3, this packet should never be sent for chests.
-          // Fix: We do not allow chests to be placed on active stone to prevent players from using the chest duplication bugs.
-          // Fix2: Don't allow on ice blocks either, you never know.
-          /*if (blockType == BlockType.Chest) {
-            for (int x = 0; x < 2; x++) {
-              DPoint tileBeneathLocation = location.OffsetEx(x, 1);
-              if (
-                TerrariaUtils.Tiles[tileBeneathLocation].active() && (
-                  TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.ActiveStone ||
-                  TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.IceRodBlock
-                )
-              ) {
-                TSPlayer.All.SendData(PacketTypes.Tile, string.Empty, 0, location.X, location.Y);
-
-                bool dummy;
-                ChestStyle chestStyle = TerrariaUtils.Tiles.GetChestStyle(objectStyle, out dummy);
-                int itemType = (int)TerrariaUtils.Tiles.GetItemTypeFromChestType(chestStyle);
-                Item.NewItem(location.X * TerrariaUtils.TileSize, location.Y * TerrariaUtils.TileSize, 32, 32, itemType);
-
-                player.SendErrorMessage("Chests can not be placed on active stone or ice blocks.");
-
-                return true;
-              }
-            }
-          }*/
 
           break;
       }
@@ -2055,7 +2024,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    // Note: chestLocation is always {0, 0}. chestIndex == -1 chest, piggy, safe closed. chestIndex == -2 if piggy bank, chestIndex == -3 safe is is opened.
+    // Note: chestLocation is always {0, 0}. chestIndex == -1 chest, piggy, safe closed. chestIndex == -2 if piggy bank, chestIndex == -3 safe is opened.
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
