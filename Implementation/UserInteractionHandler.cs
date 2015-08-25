@@ -2087,6 +2087,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
         player.SendErrorMessage("You have to be logged in to make use of chests.");
         return true;
       }
+
+      if (this.Config.DungeonChestProtection && !NPC.downedBoss3 && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+        ChestKind kind = TerrariaUtils.Tiles.GuessChestKind(location);
+        if (kind == ChestKind.DungeonChest || kind == ChestKind.HardmodeDungeonChest) {
+          player.SendErrorMessage("Skeletron has not been defeated yet.");
+          return true;
+        }
+      }
       
       ProtectionEntry protection = null;
       // Only need the first enumerated entry as we don't need the protections of adjacent blocks.
@@ -2224,7 +2232,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public virtual bool HandleChestUnlock(TSPlayer player, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
-      
+ 
       ProtectionEntry protection = null;
       // Only need the first enumerated entry as we don't need the protections of adjacent blocks.
       foreach (ProtectionEntry enumProtection in this.ProtectionManager.EnumerateProtectionEntries(chestLocation)) {

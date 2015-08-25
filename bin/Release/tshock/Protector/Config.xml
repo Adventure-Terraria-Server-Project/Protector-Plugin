@@ -174,9 +174,15 @@
 
   <!--
     The range (in tiles) to use for quick stacking items into nearby chests.
-    Note: Terraria's Default is 12.5 tiles.
+    NOTE: Terraria's default is 12.5 tiles.
   -->
-  <QuickStackNearbyRange>
-    12.5
-  </QuickStackNearbyRange>
+  <QuickStackNearbyRange>12.5</QuickStackNearbyRange>
+
+  <!--
+    Whether dungeon chests should be sealed when skeletron was not defeated in the world yet.
+    NOTE: Any gold chest with natural dungeon walls behind is considered a dungeon chest, wether they are
+          protected or not.
+          Players in groups with the "prot_protectionmaster" permission are not affected by this.
+  -->
+  <DungeonChestProtection>true</DungeonChestProtection>
 </ProtectorConfiguration>
