@@ -270,22 +270,21 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw new LimitEnforcementException();
       }
 
-      ProtectionEntry protection;
       lock (this.WorldMetadata.Protections) {
+        ProtectionEntry protection;
+
         if (this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection)) {
           if (protection.Owner == player.User.ID)
             throw new AlreadyProtectedException();
 
           throw new TileProtectedException(tileLocation);
         }
-      }
 
-      protection = new ProtectionEntry(player.User.ID, tileLocation, (BlockType)tile.type);
-      
-      lock (this.WorldMetadata.Protections)
+        protection = new ProtectionEntry(player.User.ID, tileLocation, (BlockType)tile.type);
         this.WorldMetadata.Protections.Add(tileLocation, protection);
 
-      return protection;
+        return protection;
+      }
     }
 
     public void RemoveProtection(TSPlayer player, DPoint tileLocation, bool checkIfBlockTypeDeprotectableByConfig = true) {
