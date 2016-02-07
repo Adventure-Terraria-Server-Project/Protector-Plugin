@@ -1968,29 +1968,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public virtual bool HandleChestPlace(TSPlayer player, DPoint location, ChestStyle chestStyle) {
-      if (this.IsDisposed)
-        return false;
-      //if (chestIndex != -1 || !player.IsLoggedIn)
-      //  return false;
-
-      for (int x = 0; x < 2; x++) {
-        DPoint tileBeneathLocation = location.OffsetEx(x, 1);
-        if (
-          TerrariaUtils.Tiles[tileBeneathLocation].active() && (
-            TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.ActiveStone ||
-            TerrariaUtils.Tiles[tileBeneathLocation].type == (int)BlockType.IceRodBlock
-          )
-        ) {
-          TSPlayer.All.SendData(PacketTypes.Tile, string.Empty, 0, location.X, location.Y);
-
-          int itemType = (int)TerrariaUtils.Tiles.GetItemTypeFromChestType(chestStyle);
-          Item.NewItem(location.X * TerrariaUtils.TileSize, location.Y * TerrariaUtils.TileSize, 32, 32, itemType);
-
-          player.SendErrorMessage("Chests can not be placed on active stone or ice blocks.");
-          return true;
-        }
-      }
-
       return this.HandlePostTileEdit(player, TileEditType.PlaceTile, BlockType.Chest, location, (int)chestStyle);
     }
 
