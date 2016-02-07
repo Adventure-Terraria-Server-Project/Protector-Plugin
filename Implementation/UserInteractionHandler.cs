@@ -1975,33 +1975,42 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.IsDisposed)
         return false;
 
-      if (this.Config.LoginRequiredForChestUsage && !player.IsLoggedIn) {
-        player.SendErrorMessage("You have to be logged in in order to rename chests.");
-        return true;
-      }
-
-      int closedChestIndex = player.TPlayer.chest;
-      if (closedChestIndex < 0)
+      int chestToRenameIndex = player.TPlayer.chest;
+      if (chestToRenameIndex < 0)
         return false;
 
-      Chest tChest = Main.chest[closedChestIndex];
-      if (tChest == null)
+      Chest tChestToRename = Main.chest[chestToRenameIndex];
+      if (tChestToRename == null)
         return false;
 
-      DPoint chestLocation = new DPoint(tChest.x, tChest.y);
+      DPoint chestLocation = new DPoint(tChestToRename.x, tChestToRename.y);
       Tile chestTile = TerrariaUtils.Tiles[chestLocation];
       if (!chestTile.active() || (chestTile.type != (int)BlockType.Chest && chestTile.type != (int)BlockType.Dresser))
         return false;
-
+      
+      bool isAllowed = true;
       if (this.CheckProtected(player, chestLocation, true)) {
         player.SendErrorMessage("You have to be the owner of the chest in order to rename it.");
-        return true;
+        isAllowed = false;
       }
 
-      return false;
+      if (this.Config.LoginRequiredForChestUsage && !player.IsLoggedIn) {
+        player.SendErrorMessage("You have to be logged in in order to rename chests.");
+        isAllowed = false;
+      }
+
+      if (!isAllowed) {
+        // The name changed will already have happened for the player, so gotta send the original name back to them.
+        string originalName = tChestToRename.name;
+        DPoint chestToRename = new DPoint(tChestToRename.x, tChestToRename.y);
+        player.SendData(PacketTypes.ChestName, originalName, chestToRenameIndex, chestToRename.X, chestToRename.Y);
+        return true;
+      } else {
+        return false;
+      }
     }
 
-    // Note: chestLocation is always {0, 0}. chestIndex == -1 chest, piggy, safe closed. chestIndex == -2 if piggy bank, chestIndex == -3 safe is opened.
+    // Note: chestLocation is always {0, 0}. chestIndex == -1 chest, piggy, safe closed. chestIndex == -2 piggy bank opened, chestIndex == -3 safe opened.
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
