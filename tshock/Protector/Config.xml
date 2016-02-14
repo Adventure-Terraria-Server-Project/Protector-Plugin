@@ -24,22 +24,22 @@
 <ProtectorConfiguration
   xmlns="http://github.com/CoderCow/Protector-Plugin"
   
-  Version="1.0"
+  Version="1.2"
 >
   <!-- 
     Tile types which can be manually protected by players.
     
     The default setting covers:
     Most crafting stations, doors, chests, signs, pressure plates, levers, switches, timers, music boxes, pumps, piggy banks, 
-    clay pots, safes, beds, statues, dart traps, water fountains, cannon, turret, teleporter, bubble machine, pumpkin.
+    clay pots, safes, beds, statues, dart traps, water fountains, cannon, turret, teleporter, bubble machine, pumpkin, animal cages.
     
     NOTE: Players can not protect something inside of TShock regions they're not allowed to or if they have no build permission.
           
-          You can lookup tile ids here: http://terraria.gamepedia.com/Data_ids
+          You can lookup tile ids here: http://terraria.gamepedia.com/Tile_IDs
   -->
   <ManuallyProtectableTiles>
-    10, 11, 16, 21, 29, 55, 77, 78, 79, 85, 86, 94, 96, 97, 105, 106, 114, 132, 133, 134, 135, 136, 137, 139, 142, 143, 144, 207, 209, 
-    212, 218, 235, 244, 247, 254, 283, 303, 305, 306, 307
+    10, 11, 16, 21, 29, 55, 77, 78, 79, 85, 86, 88, 94, 96, 97, 105, 106, 114, 132, 133, 134, 135, 136, 137, 139, 142, 143, 144, 207, 209, 212, 218, 235, 244, 247, 
+    254, 283, 303, 305, 306, 307, 339, 349, 354, 355, 358, 359, 360, 361, 362, 363, 364, 377, 378, 386, 387, 388, 389, 391, 392, 393, 394, 411, 412, 413, 414
   </ManuallyProtectableTiles>
   
   <!-- 
@@ -58,24 +58,23 @@
           However, this does not count for auto protection as other protection plugins will probably prevent players from 
           placing the tiles right away.
           
-          You can lookup tile ids here: http://wiki.terrariaonline.com/Data_ids#Tile_IDs
+          You can lookup tile ids here: http://terraria.gamepedia.com/Tile_IDs
   -->
   <AutoProtectedTiles>
-    16, 21, 29, 55, 77, 79, 86, 96, 97, 105, 106, 114, 132, 133, 134, 136, 139, 142, 143, 144, 207, 209, 212, 217, 218, 219, 220, 228, 235, 240, 243, 244, 247, 
-    283, 300, 301, 302, 303, 304, 305, 306, 307, 308, 337, 338
+    16, 21, 29, 55, 77, 79, 86, 88, 96, 97, 105, 106, 114, 132, 133, 134, 136, 139, 142, 143, 144, 207, 209, 212, 217, 218, 219, 220, 228, 235, 240, 243, 244, 247,
+    283, 300, 301, 302, 303, 304, 305, 306, 307, 308, 337, 338, 349, 354, 355, 378, 386, 387, 412
   </AutoProtectedTiles>
   
   <!-- 
     Tile types that can not be deprotected after they have been protected.
     
     NOTE: If the owner removes the protected tile, the protection will still be deleted, they just can not deprotect the tile
-          while keeping it intact.
-          If you want to disallow item transfer through chests for example, define the chest tile id (21) here and in the 
-          "AutoProtectedTiles" setting and do not give the "prot_chestshare" permission.
+          while keeping it intact. Together with AutoProtectedTiles, this allows you to prevent players from making unprotected 
+          chests for example.
           
           Users with the permission "prot_protectionmaster" are not affected by this setting.
           
-          You can lookup tile ids here: http://wiki.terrariaonline.com/Data_ids#Tile_IDs
+          You can lookup tile ids here: http://terraria.gamepedia.com/Tile_IDs
   -->
   <NotDeprotectableTiles></NotDeprotectableTiles>
   
@@ -165,7 +164,7 @@
   <NotifyAutoDeprotection>true</NotifyAutoDeprotection>
 
   <!--
-    Note: The MaxBankChestsPerPlayer setting is the global limit per player, defining a per player limit higher than 
+    NOTE: The MaxBankChestsPerPlayer setting is the global limit per player, defining a per player limit higher than 
     the global limit is pointless here.
   -->
   <MaxBankChests>
@@ -180,9 +179,30 @@
 
   <!--
     Whether dungeon chests should be sealed when skeletron was not defeated in the world yet.
+
     NOTE: Any gold chest with natural dungeon walls behind is considered a dungeon chest, wether they are
           protected or not.
           Players in groups with the "prot_protectionmaster" permission are not affected by this.
   -->
   <DungeonChestProtection>true</DungeonChestProtection>
+
+  <!--
+    The amount of chests which should be saved by Protector itself. Note that Protector chests are used only when the world's chest 
+    limit (999) has been reached. Set to 0 if you don't want to make use of this feature.
+
+    NOTE: Unlike Terraria world chests, Protector chests do not support naming and are stored in Protectors world metadata file, so
+          if a plugin is not compatible with Protector, it will not be able to use the chest data of these chests as well as world editors
+          will not be able to handle their data.
+
+          The naming is limited because Terraria clients on their behalf can only store up to 1000 chest names. However, Protector prefers 
+          storing named chests in the world data over unnamed chests - e.g. even if a chest is currently stored in Protectors data, once you 
+          name it (and if there are not 999 named chests yet) it becomes a world chest and the previous unnamed world chest takes the data record
+          of the Protector chest.
+          This effectively yields only 999 possible named chests in your world no matter what number you configure here.
+
+          Also note that you can always convert chests to world or Protector chests by using /swapchest.
+          Use /protectioninfo to check whether a chest is stored by the world or Protector. Don't get confused here, chests must not be protected 
+          at all to be stored by Protector, /pi is just the only way to display this info for the sake of developer laziness.
+  -->
+  <MaxProtectorChests>500</MaxProtectorChests>
 </ProtectorConfiguration>

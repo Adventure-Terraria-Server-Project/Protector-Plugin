@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Terraria.ID;
 using DPoint = System.Drawing.Point;
 
 using Terraria.Plugins.Common;
@@ -25,11 +26,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
+    public ChestManager ChestManager { get; }
     public ServerMetadataHandler ServerMetadataHandler { get; private set; }
     public WorldMetadata WorldMetadata { get; private set; }
-    public TimerManager RefillTimers { get; private set; }
-    public Func<TimerBase,bool> RefillTimerCallbackHandler { get; private set; }
-
 
     public static bool IsShareableBlockType(BlockType blockType) {
       return (
@@ -45,15 +44,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public ProtectionManager(
-      PluginTrace pluginTrace, Configuration config, ServerMetadataHandler serverMetadataHandler, WorldMetadata worldMetadata
+      PluginTrace pluginTrace, Configuration config, ChestManager chestManager, ServerMetadataHandler serverMetadataHandler, WorldMetadata worldMetadata
     ) {
       this.PluginTrace = pluginTrace;
       this.config = config;
+      this.ChestManager = chestManager;
       this.ServerMetadataHandler = serverMetadataHandler;
       this.WorldMetadata = worldMetadata;
-
-      this.RefillTimers = new TimerManager(pluginTrace);
-      this.RefillTimerCallbackHandler = this.RefillChestTimer_Callback;
     }
 
     public IEnumerable<ProtectionEntry> EnumerateProtectionEntries(DPoint tileLocation) {
@@ -310,12 +307,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw new TileProtectedException(tileLocation);
 
       if (protection.BankChestKey != BankChestDataKey.Invalid) {
-        int tChestIndex = Chest.FindChest(tileLocation.X, tileLocation.Y);
-        if (tChestIndex != -1) {
-          Chest tChest = Main.chest[tChestIndex];
+        IChest chest = this.ChestManager.ChestFromLocation(tileLocation);
+        if (chest != null)
           for (int i = 0; i < Chest.maxItems; i++)
-            tChest.item[i] = ItemData.None.ToItem();
-        }
+            chest.SetItem(i, ItemData.None);
       }
 
       lock (this.WorldMetadata.Protections)
@@ -482,223 +477,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
     }
-    
-    /// <returns>
-    ///   A <c>bool</c> which is <c>false</c> if a refill chest already existed at the given location and thus just its refill 
-    ///   time was set or <c>true</c> if a new refill chest was actually defined.
-    /// </returns>
-    public bool SetUpRefillChest(
-      TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer = null, int? lootLimit = null, 
-      bool? autoLock = null, bool? autoEmpty = null, bool fairLoot = false, bool checkPermissions = false
-    ) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
-      Contract.Requires<ArgumentOutOfRangeException>(lootLimit == null || lootLimit >= -1);
-
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
-      BlockType blockType = (BlockType)tile.type;
-      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
-        throw new InvalidBlockTypeException(blockType);
-
-      if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetRefillChests_Permission))
-        throw new MissingPermissionException(ProtectorPlugin.SetRefillChests_Permission);
-
-      DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
-      ProtectionEntry protection;
-      lock (this.WorldMetadata.Protections)
-        if (!this.WorldMetadata.Protections.TryGetValue(chestLocation, out protection))
-          throw new NoProtectionException(chestLocation);
-
-      if (
-        !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission) && 
-        !this.CheckBlockAccess(player, chestLocation, true)
-      )
-        throw new TileProtectedException(chestLocation);
-
-      if (protection.BankChestKey != BankChestDataKey.Invalid)
-        throw new ChestIncompatibilityException();
-
-      RefillChestMetadata refillChestData;
-      if (protection.RefillChestData != null) {
-        refillChestData = protection.RefillChestData;
-
-        if (refillTime != null)
-          refillChestData.RefillTimer.TimeSpan = refillTime.Value;
-        if (oneLootPerPlayer != null)
-          refillChestData.OneLootPerPlayer = oneLootPerPlayer.Value;
-        if (lootLimit != null)
-          refillChestData.RemainingLoots = lootLimit.Value;
-        if (autoLock != null)
-          refillChestData.AutoLock = autoLock.Value;
-        if (autoEmpty != null)
-          refillChestData.AutoEmpty = autoEmpty.Value;
-
-        if (refillChestData.OneLootPerPlayer || refillChestData.RemainingLoots > 0)
-          if (refillChestData.Looters == null)
-            refillChestData.Looters = new Collection<int>();
-        else
-          refillChestData.Looters = null;
-
-        lock (this.RefillTimers)
-          if (this.RefillTimers.IsTimerRunning(refillChestData.RefillTimer))
-            this.RefillTimers.RemoveTimer(refillChestData.RefillTimer);
-
-        return false;
-      }
-
-      int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
-      if (tChestIndex == -1 || Main.chest[tChestIndex] == null)
-        throw new NoChestDataException(chestLocation);
-
-      TimeSpan actualRefillTime = TimeSpan.Zero;
-      if (refillTime != null)
-        actualRefillTime = refillTime.Value;
-
-      refillChestData = new RefillChestMetadata(player.User.ID);
-      refillChestData.RefillTimer = new Timer(actualRefillTime, refillChestData, this.RefillTimerCallbackHandler);
-      if (oneLootPerPlayer != null)
-        refillChestData.OneLootPerPlayer = oneLootPerPlayer.Value;
-      if (lootLimit != null)
-        refillChestData.RemainingLoots = lootLimit.Value;
-
-      if (refillChestData.OneLootPerPlayer || refillChestData.RemainingLoots > 0)
-        refillChestData.Looters = new Collection<int>();
-      else
-        refillChestData.Looters = null;
-
-      if (autoLock != null)
-        refillChestData.AutoLock = autoLock.Value;
-
-      if (autoEmpty != null)
-        refillChestData.AutoEmpty = autoEmpty.Value;
-
-      bool fairLootPutItem = fairLoot;
-      Chest tChest = Main.chest[tChestIndex];
-      for (int i = 0; i < Chest.maxItems; i++) {
-        ItemData item = ItemData.FromItem(tChest.item[i]);
-        if (item.StackSize == 0 && fairLootPutItem) {
-          try {
-            bool isLocked;
-            item.Type = TerrariaUtils.Tiles.GetItemTypeFromChestType(TerrariaUtils.Tiles.GetChestStyle(tile, out isLocked));
-
-            item.StackSize = 1;
-            tChest.item[i] = item.ToItem();
-          } catch (ArgumentException) {}
-
-          fairLootPutItem = false;
-        }
-
-        refillChestData.RefillItems[i] = item;
-      }
-
-      protection.RefillChestData = refillChestData;
-
-      return true;
-    }
-
-    public void SetUpBankChest(TSPlayer player, DPoint tileLocation, int bankChestIndex, bool checkPermissions = false) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
-      Contract.Requires<ArgumentOutOfRangeException>(bankChestIndex >= 1, "bankChestIndex");
-
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
-      BlockType blockType = (BlockType)tile.type;
-      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
-        throw new InvalidBlockTypeException(blockType);
-
-      if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetBankChests_Permission))
-        throw new MissingPermissionException(ProtectorPlugin.SetBankChests_Permission);
-
-      if (
-        checkPermissions && !player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permision)
-      ) {
-        if (bankChestIndex > this.Config.MaxBankChestsPerPlayer)
-          throw new ArgumentOutOfRangeException("bankChestIndex", this.Config.MaxBankChestsPerPlayer, "Global bank chest limit reached.");
-
-        int byGroupLimit;
-        if (
-          this.Config.MaxBankChests.TryGetValue(player.Group.Name, out byGroupLimit) &&
-          bankChestIndex > byGroupLimit
-        ) {
-          throw new ArgumentOutOfRangeException("bankChestIndex", byGroupLimit, "Group bank chest limit reached.");
-        }
-      }
-
-      DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
-      ProtectionEntry protection;
-      lock (this.WorldMetadata.Protections)
-        if (!this.WorldMetadata.Protections.TryGetValue(chestLocation, out protection))
-          throw new NoProtectionException(chestLocation);
-
-      if (!this.CheckBlockAccess(player, chestLocation, true))
-        throw new TileProtectedException(chestLocation);
-
-      if (protection.RefillChestData != null)
-        throw new ChestIncompatibilityException();
-     
-      int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
-      if (tChestIndex == -1 || Main.chest[tChestIndex] == null)
-        throw new NoChestDataException(chestLocation);
-
-      if (protection.BankChestKey != BankChestDataKey.Invalid)
-        throw new ChestTypeAlreadyDefinedException();
-
-      BankChestDataKey bankChestKey = new BankChestDataKey(player.User.ID, bankChestIndex);
-      lock (this.WorldMetadata.Protections) {
-        if (this.WorldMetadata.Protections.Values.Count(p => p.BankChestKey == bankChestKey) > 0)
-          throw new BankChestAlreadyInstancedException();
-      }
-
-      if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.BankChestShare_Permission))
-        protection.Unshare();
-
-      Chest tChest = Main.chest[tChestIndex];
-      BankChestMetadata bankChest = this.ServerMetadataHandler.EnqueueGetBankChestMetadata(bankChestKey).Result;
-      if (bankChest == null) {
-        bankChest = new BankChestMetadata();
-        for (int i = 0; i < Chest.maxItems; i++)
-          bankChest.Items[i] = ItemData.FromItem(tChest.item[i]);
-
-        this.ServerMetadataHandler.EnqueueAddOrUpdateBankChest(bankChestKey, bankChest);
-      } else {
-        for (int i = 0; i < tChest.item.Length; i++) {
-          if (tChest.item[i].stack > 0)
-            throw new ChestNotEmptyException(chestLocation);
-        }
-
-        for (int i = 0; i < Chest.maxItems; i++)
-          tChest.item[i] = bankChest.Items[i].ToItem();
-      }
-
-      protection.BankChestKey = bankChestKey;
-    }
-
-    public bool TryRefillChest(DPoint chestLocation, RefillChestMetadata refillChestData) {
-      int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
-      if (tChestIndex == -1)
-        return false;
-
-      Chest tChest = Main.chest[tChestIndex];
-      if (tChest == null)
-        return false;
-
-      for (int i = 0; i < Chest.maxItems; i++)
-        tChest.item[i] = refillChestData.RefillItems[i].ToItem();
-
-      if (
-        refillChestData.AutoLock && refillChestData.RefillTime != TimeSpan.Zero && 
-        !TerrariaUtils.Tiles.IsChestLocked(TerrariaUtils.Tiles[chestLocation])
-      ) {
-        TerrariaUtils.Tiles.LockChest(chestLocation);
-      }
-
-      return true;
-    }
 
     public void EnsureProtectionData(
-      out int invalidProtectionsCount, out int invalidRefillChestCount, out int invalidBankChestCount
+      bool resetBankChestContent, out int invalidProtectionsCount, out int invalidRefillChestCount, out int invalidBankChestCount
     ) {
       invalidRefillChestCount = 0;
       invalidBankChestCount = 0;
@@ -716,37 +497,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
             continue;
           }
 
-          if (protection.RefillChestData != null) {
-            int tChestIndex = Chest.FindChest(location.X, location.Y);
-            if (!tile.active() || (tile.type != (int)BlockType.Chest && tile.type != (int)BlockType.Dresser) || tChestIndex == -1) {
-              protection.RefillChestData = null;
-              invalidRefillChestCount++;
-              continue;
-            }
-
-            protection.RefillChestData.RefillTimer.Data = protection.RefillChestData;
-            protection.RefillChestData.RefillTimer.Callback = this.RefillTimerCallbackHandler;
-            this.RefillTimers.ContinueTimer(protection.RefillChestData.RefillTimer);
-          }
-          if (protection.BankChestKey != BankChestDataKey.Invalid) {
-            BankChestMetadata bankChest = this.ServerMetadataHandler.EnqueueGetBankChestMetadata(protection.BankChestKey).Result;
-            if (bankChest == null) {
-              protection.BankChestKey = BankChestDataKey.Invalid;
-              invalidBankChestCount++;
-              continue;
-            }
-
-            int tChestIndex = Chest.FindChest(location.X, location.Y);
-            if (!tile.active() || (tile.type != (int)BlockType.Chest && tile.type != (int)BlockType.Dresser) || tChestIndex == -1) {
-              protection.BankChestKey = BankChestDataKey.Invalid;
-              invalidBankChestCount++;
-              continue;
-            }
-
-            Chest tChest = Main.chest[tChestIndex];
-            for (int i = 0; i < Chest.maxItems; i++)
-              tChest.item[i] = bankChest.Items[i].ToItem();
-          }
+          if (protection.RefillChestData != null && !this.ChestManager.EnsureRefillChest(protection))
+            invalidRefillChestCount++;
+          else if (protection.BankChestKey != BankChestDataKey.Invalid && !this.ChestManager.EnsureBankChest(protection, resetBankChestContent))
+            invalidBankChestCount++;
         }
         
         foreach (DPoint invalidProtectionLocation in invalidProtectionLocations)
@@ -755,27 +509,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
         
         invalidProtectionsCount = invalidProtectionLocations.Count;
       } 
-    }
-
-    public void HandleGameUpdate() {
-      lock (this.RefillTimers) {
-        this.RefillTimers.HandleGameUpdate();
-      }
-    }
-
-    private bool RefillChestTimer_Callback(TimerBase timer) {
-      RefillChestMetadata refillChest = (RefillChestMetadata)timer.Data;
-      lock (this.WorldMetadata.Protections) {
-        ProtectionEntry protection = this.WorldMetadata.Protections.Values.SingleOrDefault(p => p.RefillChestData == refillChest);
-        if (protection == null)
-          return false;
-
-        DPoint chestLocation = protection.TileLocation;
-        this.TryRefillChest(chestLocation, refillChest);
-        
-        // Returning true would mean the Timer would repeat.
-        return false;
-      }
     }
   }
 }

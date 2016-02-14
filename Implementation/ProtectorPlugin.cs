@@ -17,7 +17,6 @@ using Terraria.Plugins.Common.Hooks;
 namespace Terraria.Plugins.CoderCow.Protector {
   [ApiVersion(1, 22)]
   public class ProtectorPlugin: TerrariaPlugin, IDisposable {
-    #region [Constants]
     private const string TracePrefix = @"[Protector] ";
 
     public const string ManualProtect_Permission        = "prot.manualprotect";
@@ -37,137 +36,35 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public const string NoBankChestLimits_Permision     = "prot.nobankchestlimits";
     public const string Utility_Permission              = "prot.utility";
     public const string Cfg_Permission                  = "prot.cfg";
-    #endregion
 
-    #region [Properties: Static DataDirectory, Static ConfigFilePath, Static SqlLiteDatabaseFile, Static WorldMetadataDirectory]
-    public static string DataDirectory {
-      get {
-        return Path.Combine(TShock.SavePath, "Protector");
-      }
-    }
+    public static string DataDirectory => Path.Combine(TShock.SavePath, "Protector");
+    public static string ConfigFilePath => Path.Combine(ProtectorPlugin.DataDirectory, "Config.xml");
+    public static string SqlLiteDatabaseFile => Path.Combine(ProtectorPlugin.DataDirectory, "Protector.sqlite");
+    public static string WorldMetadataDirectory => Path.Combine(ProtectorPlugin.DataDirectory, "World Data");
 
-    public static string ConfigFilePath {
-      get {
-        return Path.Combine(ProtectorPlugin.DataDirectory, "Config.xml");
-      }
-    }
+    public static ProtectorPlugin LatestInstance { get; private set; }
 
-    public static string SqlLiteDatabaseFile {
-      get {
-        return Path.Combine(ProtectorPlugin.DataDirectory, "Protector.sqlite");
-      }
-    }
-
-    public static string WorldMetadataDirectory {
-      get {
-        return Path.Combine(ProtectorPlugin.DataDirectory, "World Data");
-      }
-    }
-    #endregion
-
-    #region [Property: Static LatestInstance]
-    private static ProtectorPlugin latestInstance;
-
-    public static ProtectorPlugin LatestInstance {
-      get { return ProtectorPlugin.latestInstance; }
-    }
-    #endregion
-
-    #region [Property: Trace]
-    private PluginTrace trace;
-
-    public PluginTrace Trace {
-      get { return this.trace; }
-    }
-    #endregion
-
-    #region [Property: PluginInfo]
-    private readonly PluginInfo pluginInfo;
-
-    protected PluginInfo PluginInfo {
-      get { return this.pluginInfo; }
-    }
-    #endregion
-
-    #region [Property: Config]
-    private Configuration config;
-
-    protected Configuration Config {
-      get { return this.config; }
-    }
-    #endregion
-
-    #region [Property: GetDataHookHandler]
-    private GetDataHookHandler getDataHookHandler;
-
-    protected GetDataHookHandler GetDataHookHandler {
-      get { return this.getDataHookHandler; }
-    }
-    #endregion
-
-    #region [Property: PostGetDataHookHandler]
-    private GetDataHookHandler postGetDataHookHandler;
-
-    public GetDataHookHandler PostGetDataHookHandler {
-      get { return this.postGetDataHookHandler; }
-    }
-    #endregion
-
-    #region [Property: ProtectionManager]
-    private ProtectionManager protectionManager;
-
-    public ProtectionManager ProtectionManager {
-      get { return this.protectionManager; }
-    }
-    #endregion
-
-    #region [Property: UserInteractionHandler]
-    private UserInteractionHandler userInteractionHandler;
-
-    protected UserInteractionHandler UserInteractionHandler {
-      get { return this.userInteractionHandler; }
-    }
-    #endregion
-
-    #region [Property: ServerMetadataHandler]
-    private ServerMetadataHandler serverMetadataHandler;
-
-    protected ServerMetadataHandler ServerMetadataHandler {
-      get { return this.serverMetadataHandler; }
-    }
-    #endregion
-
-    #region [Property: WorldMetadataHandler, WorldMetadata]
-    private WorldMetadataHandler worldMetadataHandler;
-
-    protected WorldMetadataHandler WorldMetadataHandler {
-      get { return this.worldMetadataHandler; }
-    }
-
-    public WorldMetadata WorldMetadata { 
-      get { return this.WorldMetadataHandler.Metadata; }
-    }
-    #endregion
-
-    #region [Property: PluginCooperationHandler]
-    private PluginCooperationHandler pluginCooperationHandler;
-
-    protected PluginCooperationHandler PluginCooperationHandler {
-      get { return this.pluginCooperationHandler; }
-    }
-    #endregion
+    public PluginTrace Trace { get; private set; }
+    protected PluginInfo PluginInfo { get; private set; }
+    protected Configuration Config { get; private set; }
+    protected GetDataHookHandler GetDataHookHandler { get; private set; }
+    public ChestManager ChestManager { get; private set; }
+    public ProtectionManager ProtectionManager { get; private set; }
+    protected UserInteractionHandler UserInteractionHandler { get; private set; }
+    protected ServerMetadataHandler ServerMetadataHandler { get; private set; }
+    protected WorldMetadataHandler WorldMetadataHandler { get; private set; }
+    public WorldMetadata WorldMetadata => this.WorldMetadataHandler.Metadata;
+    protected PluginCooperationHandler PluginCooperationHandler { get; private set; }
 
     private bool hooksEnabled;
 
-
-    #region [Method: Constructor]
     public ProtectorPlugin(Main game): base(game) {
-      this.pluginInfo = new PluginInfo(
+      this.PluginInfo = new PluginInfo(
         "Protector",
         Assembly.GetAssembly(typeof(ProtectorPlugin)).GetName().Version,
-        "Beta",
+        "",
         "CoderCow",
-        "Protects blocks and objects from being changed."
+        "Protects single blocks and objects from being changed."
       );
 
       this.Order = 1;
@@ -176,12 +73,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
         Debug.Listeners.Add(new ConsoleTraceListener());
       #endif
 
-      this.trace = new PluginTrace(ProtectorPlugin.TracePrefix);
-      ProtectorPlugin.latestInstance = this;
+      this.Trace = new PluginTrace(ProtectorPlugin.TracePrefix);
+      ProtectorPlugin.LatestInstance = this;
     }
-    #endregion
 
-    #region [Methods: Initialize, Game_PostInitialize]
     public override void Initialize() {
       ServerApi.Hooks.GamePostInitialize.Register(this, this.Game_PostInitialize);
 
@@ -201,28 +96,22 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (!this.InitWorldMetdataHandler())
         return;
 
-      this.pluginCooperationHandler = new PluginCooperationHandler(this.Trace);
-      this.protectionManager = new ProtectionManager(
-        this.Trace, this.Config, this.ServerMetadataHandler, this.WorldMetadataHandler.Metadata
-      );
+      this.PluginCooperationHandler = new PluginCooperationHandler(this.Trace);
+      this.ChestManager = new ChestManager(
+        this.Trace, this.Config, this.ServerMetadataHandler, this.WorldMetadata);
+      this.ProtectionManager = new ProtectionManager(
+        this.Trace, this.Config, this.ChestManager, this.ServerMetadataHandler, this.WorldMetadata);
 
       this.InitUserInteractionHandler();
       this.UserInteractionHandler.EnsureProtectionData(TSPlayer.Server);
 
       this.hooksEnabled = true;
-
-      Task.Factory.StartNew(() => {
-        // Wait a bit until other plugins might have registered their hooks in PostInitialize.
-        Thread.Sleep(1000);
-
-        this.AddPostHooks();
-      });
     }
 
     private bool InitConfig() {
       if (File.Exists(ProtectorPlugin.ConfigFilePath)) {
         try {
-          this.config = Configuration.Read(ProtectorPlugin.ConfigFilePath);
+          this.Config = Configuration.Read(ProtectorPlugin.ConfigFilePath);
         } catch (Exception ex) {
           this.Trace.WriteLineError(
             "Reading the configuration file failed. This plugin will be disabled. Exception details:\n{0}", ex
@@ -233,7 +122,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           return false;
         }
       } else {
-        this.config = new Configuration();
+        this.Config = new Configuration();
       }
 
       // Invalidate Configuration
@@ -248,7 +137,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     private bool InitServerMetdataHandler() {
-      this.serverMetadataHandler = new ServerMetadataHandler(ProtectorPlugin.SqlLiteDatabaseFile);
+      this.ServerMetadataHandler = new ServerMetadataHandler(ProtectorPlugin.SqlLiteDatabaseFile);
 
       try {
         this.ServerMetadataHandler.EstablishConnection();
@@ -263,7 +152,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       try {
-        this.serverMetadataHandler.EnsureDataStructure();
+        this.ServerMetadataHandler.EnsureDataStructure();
       } catch (Exception ex) {
         this.Trace.WriteLineError(
           "An error occured while ensuring the database structure. This plugin will be disabled. Exception details: \n" + ex
@@ -278,7 +167,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     private bool InitWorldMetdataHandler() {
-      this.worldMetadataHandler = new WorldMetadataHandler(this.Trace, ProtectorPlugin.WorldMetadataDirectory);
+      this.WorldMetadataHandler = new WorldMetadataHandler(this.Trace, ProtectorPlugin.WorldMetadataDirectory);
 
       try {
         this.WorldMetadataHandler.InitOrReadMetdata();
@@ -290,19 +179,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
 
-      /*if (this.WorldMetadataHandler.IsWorldOlderThanLastWrittenMetadata()) {
-        try {
-          this.WorldMetadataHandler.CreateMetadataSnapshot();
-        } catch (InvalidOperationException ex) {
-          this.Trace.WriteLineError(ex.ToString());
-        }
-
-        this.Trace.WriteLineWarning(string.Format(
-          "You might have loaded an outdated version of the current world, so a snapshot of the current metadata was created. Simply ignore this message if you've intentionally loaded the outdated world file, however, if not then you should restore the most recent version of the world and restore the metadata snapshot found at \"{0}\" otherwise some protections might become invalid",
-          ProtectorPlugin.WorldMetadataDirectory
-        ));
-      }*/
-
       return true;
     }
 
@@ -311,26 +187,26 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (this.isDisposed)
           return null;
 
-        this.config = Configuration.Read(ProtectorPlugin.ConfigFilePath);
+        this.Config = Configuration.Read(ProtectorPlugin.ConfigFilePath);
 
-        this.protectionManager.Config = this.Config;
+        this.ProtectionManager.Config = this.Config;
 
-        return this.config;
+        return this.Config;
       };
-      this.userInteractionHandler = new UserInteractionHandler(
-        this.Trace, this.PluginInfo, this.Config, this.ServerMetadataHandler, 
-        this.WorldMetadataHandler.Metadata, this.ProtectionManager, this.PluginCooperationHandler, reloadConfiguration
+      this.UserInteractionHandler = new UserInteractionHandler(
+        this.Trace, this.PluginInfo, this.Config, this.ServerMetadataHandler, this.WorldMetadata, 
+        this.ProtectionManager, this.ChestManager, this.PluginCooperationHandler, reloadConfiguration
       );
     }
-    #endregion
 
-    #region [Methods: Server Hook Handling]
     private void AddHooks() {
-      if (this.getDataHookHandler != null)
+      if (this.GetDataHookHandler != null)
         throw new InvalidOperationException("Hooks already registered.");
       
-      this.getDataHookHandler = new GetDataHookHandler(this, true, 0);
+      this.GetDataHookHandler = new GetDataHookHandler(this, true);
+      this.GetDataHookHandler.InvokeTileOnObjectPlacement = false;
       this.GetDataHookHandler.TileEdit += this.Net_TileEdit;
+      this.GetDataHookHandler.ObjectPlacement += this.Net_ObjectPlacement;
       this.GetDataHookHandler.SignEdit += this.Net_SignEdit;
       this.GetDataHookHandler.SignRead += this.Net_SignRead;
       this.GetDataHookHandler.ChestPlace += this.Net_ChestPlace;
@@ -348,27 +224,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
       ServerApi.Hooks.WorldSave.Register(this, this.World_SaveWorld);
     }
 
-    private void AddPostHooks() {
-      if (this.postGetDataHookHandler != null)
-        throw new InvalidOperationException("Post hooks already registered.");
-
-      this.postGetDataHookHandler = new GetDataHookHandler(this, true);
-      this.PostGetDataHookHandler.InvokeTileOnObjectPlacement = true;
-      this.PostGetDataHookHandler.TileEdit += this.Net_PostTileEdit;
-    }
-
     private void RemoveHooks() {
-      if (this.getDataHookHandler != null) 
-        this.getDataHookHandler.Dispose();
+      this.GetDataHookHandler?.Dispose();
 
       ServerApi.Hooks.GameUpdate.Deregister(this, this.Game_Update);
       ServerApi.Hooks.WorldSave.Deregister(this, this.World_SaveWorld);
       ServerApi.Hooks.GamePostInitialize.Deregister(this, this.Game_PostInitialize);
-    }
-
-    private void RemovePostHooks() {
-      if (this.postGetDataHookHandler != null)
-        this.postGetDataHookHandler.Dispose();
     }
 
     private void Net_TileEdit(object sender, TileEditEventArgs e) {
@@ -378,11 +239,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       e.Handled = this.UserInteractionHandler.HandleTileEdit(e.Player, e.EditType, e.BlockType, e.Location, e.ObjectStyle);
     }
 
-    private void Net_PostTileEdit(object sender, TileEditEventArgs e) {
+    private void Net_ObjectPlacement(object sender, ObjectPlacementEventArgs e) {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
 
-      e.Handled = this.UserInteractionHandler.HandlePostTileEdit(e.Player, e.EditType, e.BlockType, e.Location, e.ObjectStyle);
+      e.Handled = this.UserInteractionHandler.HandleObjectPlacement(e.Player, e.Location, (int)e.BlockType, e.ObjectStyle, e.Alternative, e.Random, e.Direction);
     }
 
     private void Net_SignEdit(object sender, SignEditEventArgs e) {
@@ -403,7 +264,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
 
-      e.Handled = this.UserInteractionHandler.HandleChestPlace(e.Player, e.Location, e.ChestStyle);
+      e.Handled = this.UserInteractionHandler.HandleChestPlace(e.Player, e.Location, e.StorageType, e.StorageStyle);
     }
 
     private void Net_ChestOpen(object sender, ChestOpenEventArgs e) {
@@ -451,10 +312,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private void Net_DoorUse(object sender, DoorUseEventArgs e) {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
-      bool isOpening = false;
-      if (e.action == DoorAction.OpenDoor || e.action == DoorAction.OpenTallGate || e.action == DoorAction.OpenTrapdoor)
-        isOpening = true;
 
+      bool isOpening = (e.action == DoorAction.OpenDoor || e.action == DoorAction.OpenTallGate || e.action == DoorAction.OpenTrapdoor);
       e.Handled = this.UserInteractionHandler.HandleDoorUse(e.Player, e.Location, isOpening, e.Direction);
     }
 
@@ -477,7 +336,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       try {
-        this.ProtectionManager.HandleGameUpdate();
+        this.ChestManager.HandleGameUpdate();
       } catch (Exception ex) {
         this.Trace.WriteLineError("Unhandled exception in GameUpdate handler:\n" + ex);
       }
@@ -505,7 +364,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.Trace.WriteLineError("Unhandled exception in SaveWorld handler:\n" + ex);
       }
     }
-    #endregion
 
     #region [TerrariaPlugin Overrides]
     public override string Name {
@@ -539,12 +397,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (isDisposing) {
         this.hooksEnabled = false;
         this.RemoveHooks();
-        this.RemovePostHooks();
-        
-        if (this.userInteractionHandler != null)
-          this.userInteractionHandler.Dispose();
-        if (this.serverMetadataHandler != null) 
-          this.serverMetadataHandler.Dispose();
+
+        this.UserInteractionHandler?.Dispose();
+        this.ServerMetadataHandler?.Dispose();
       }
 
       base.Dispose(isDisposing);

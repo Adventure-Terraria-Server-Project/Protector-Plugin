@@ -13,15 +13,20 @@ using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class WorldMetadata: IMetadataFile {
-    protected const string CurrentVersion = "1.2";
+    protected const string CurrentVersion = "1.3";
 
     public string Version { get; set; }
     public Dictionary<DPoint,ProtectionEntry> Protections { get; set; }
-
+    public Dictionary<DPoint,ProtectorChestData> ProtectorChests { get; set; }
 
     public static WorldMetadata Read(string filePath) {
       using (StreamReader fileReader = new StreamReader(filePath)) {
-        return JsonConvert.DeserializeObject<WorldMetadata>(fileReader.ReadToEnd(), new JsonUnixTimestampConverter());
+        WorldMetadata data = JsonConvert.DeserializeObject<WorldMetadata>(fileReader.ReadToEnd(), new JsonUnixTimestampConverter());
+
+        if (data.ProtectorChests == null)
+          data.ProtectorChests = new Dictionary<DPoint,ProtectorChestData>(20);
+
+        return data;
       }
     }
 
@@ -37,6 +42,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public WorldMetadata() {
       this.Version = WorldMetadata.CurrentVersion;
       this.Protections = new Dictionary<DPoint,ProtectionEntry>(40);
+      this.ProtectorChests = new Dictionary<DPoint,ProtectorChestData>(20);
     }
 
     public int CountUserProtections(int userId) {

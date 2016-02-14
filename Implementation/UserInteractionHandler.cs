@@ -19,19 +19,22 @@ using TShockAPI;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class UserInteractionHandler: UserInteractionHandlerBase, IDisposable {
-    protected PluginInfo PluginInfo { get; private set; }
+    protected PluginInfo PluginInfo { get; }
     protected Configuration Config { get; private set; }
-    protected ServerMetadataHandler ServerMetadataHandler { get; private set; }
-    protected WorldMetadata WorldMetadata { get; private set; }
-    protected ProtectionManager ProtectionManager { get; private set; }
-    public PluginCooperationHandler PluginCooperationHandler { get; private set; }
+    protected ServerMetadataHandler ServerMetadataHandler { get; }
+    protected WorldMetadata WorldMetadata { get; }
+    protected ChestManager ChestManager { get; }
+    protected ProtectionManager ProtectionManager { get; }
+    public PluginCooperationHandler PluginCooperationHandler { get; }
     protected Func<Configuration> ReloadConfigurationCallback { get; private set; }
-
+    // Which player has currently opened which chest and the other way round for faster lookup.
+    protected Dictionary<int,DPoint> PlayerIndexChestDictionary { get; }
+    protected Dictionary<DPoint,int> ChestPlayerIndexDictionary { get; }
     
     public UserInteractionHandler(
       PluginTrace trace, PluginInfo pluginInfo, Configuration config, ServerMetadataHandler serverMetadataHandler, 
-      WorldMetadata worldMetadata, ProtectionManager protectionManager, PluginCooperationHandler pluginCooperationHandler, 
-      Func<Configuration> reloadConfigurationCallback
+      WorldMetadata worldMetadata, ProtectionManager protectionManager, ChestManager chestManager, 
+      PluginCooperationHandler pluginCooperationHandler, Func<Configuration> reloadConfigurationCallback
     ): base(trace) {
       Contract.Requires<ArgumentNullException>(trace != null);
       Contract.Requires<ArgumentException>(!pluginInfo.Equals(PluginInfo.Empty));
@@ -46,9 +49,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.Config = config;
       this.ServerMetadataHandler = serverMetadataHandler;
       this.WorldMetadata = worldMetadata;
+      this.ChestManager = chestManager;
       this.ProtectionManager = protectionManager;
       this.PluginCooperationHandler = pluginCooperationHandler;
       this.ReloadConfigurationCallback = reloadConfigurationCallback;
+
+      this.PlayerIndexChestDictionary = new Dictionary<int,DPoint>(20);
+      this.ChestPlayerIndexDictionary = new Dictionary<DPoint,int>(20);
 
       #region Command Setup
       base.RegisterCommand(
@@ -100,6 +107,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
         allowServer: false
       );
       base.RegisterCommand(
+        new[] { "swapchest", "schest" },
+        this.SwapChestCommand_Exec, this.SwapChestCommand_HelpCallback, ProtectorPlugin.Utility_Permission,
+        allowServer: false
+      );
+      base.RegisterCommand(
         new[] { "refillchest", "rchest" },
         this.RefillChestCommand_Exec, this.RefillChestCommand_HelpCallback, ProtectorPlugin.SetRefillChests_Permission,
         allowServer: false
@@ -119,6 +131,23 @@ namespace Terraria.Plugins.CoderCow.Protector {
         allowServer: false
       );
       #endregion
+      
+      #if DEBUG
+      base.RegisterCommand(new[] { "fc" }, args => {
+        for (int i= 0; i < Main.chest.Length; i++) {
+          if (i != ChestManager.DummyChestIndex)
+            Main.chest[i] = Main.chest[i] ?? new Chest();
+        }
+      }, requiredPermission: Permissions.maintenance);
+      base.RegisterCommand(new[] { "fcnames" }, args => {
+        for (int i= 0; i < Main.chest.Length; i++) {
+          if (i != ChestManager.DummyChestIndex) {
+            Main.chest[i] = Main.chest[i] ?? new Chest();
+            Main.chest[i].name = "Chest!";
+          }
+        }
+      }, requiredPermission: Permissions.maintenance);
+      #endif
     }
 
     #region [Command Handling /protector]
@@ -162,7 +191,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case "cmds": {
           int pageNumber = 1;
           if (args.Parameters.Count > 1 && (!int.TryParse(args.Parameters[1], out pageNumber) || pageNumber < 1)) {
-            args.Player.SendErrorMessage(string.Format("\"{0}\" is not a valid page number.", args.Parameters[1]));
+            args.Player.SendErrorMessage($"\"{args.Parameters[1]}\" is not a valid page number.");
             return true;
           }
 
@@ -171,6 +200,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             terms.Add("/protect");
           if (args.Player.Group.HasPermission(ProtectorPlugin.ManualDeprotect_Permission))
             terms.Add("/deprotect");
+
           terms.Add("/protectioninfo");
           if (
             args.Player.Group.HasPermission(ProtectorPlugin.ChestSharing_Permission) ||
@@ -198,6 +228,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             terms.Add("/dumpbankchest");
           if (args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
             terms.Add("/lockchest");
+            terms.Add("/swapchest");
             terms.Add("/protector invalidate");
             if (args.Player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
               terms.Add("/protector cleanup");
@@ -378,6 +409,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
           int cleanedUpChestsCount = 0;
           int cleanedUpInvalidChestDataCount = 0;
           for (int i = 0; i < Main.chest.Length; i++) {
+            if (i == ChestManager.DummyChestIndex)
+              continue;
+
             Chest tChest = Main.chest[i];
             if (tChest == null)
               continue;
@@ -459,7 +493,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
             return true;
           }
 
-          int chestCount = Main.chest.Count(chest => chest != null);
+          int protectorChestCount = this.WorldMetadata.ProtectorChests.Count;
+          int chestCount = Main.chest.Count(chest => chest != null) + protectorChestCount - 1;
           int signCount = Main.sign.Count(sign => sign != null);
           int protectionsCount = this.WorldMetadata.Protections.Count;
           int sharedProtectionsCount = this.WorldMetadata.Protections.Values.Count(p => p.IsShared);
@@ -488,8 +523,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
           
           if (args.Player != TSPlayer.Server) {
             args.Player.SendInfoMessage(string.Format(
-              "There are {0} of {1} chests and {2} of {3} signs in this world.", 
-              chestCount, Main.chest.Length, signCount, Sign.maxSigns
+              "There are {0} of {1} chests ({2} Protector chests) and {3} of {4} signs in this world.", 
+              chestCount, Main.chest.Length + this.Config.MaxProtectorChests - 1, protectorChestCount, signCount, Sign.maxSigns
             ));
             args.Player.SendInfoMessage(string.Format(
               "{0} protections are intact, {1} of them are shared with other players,",
@@ -547,7 +582,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           int protectFailures;
           try {
             this.PluginCooperationHandler.InfiniteChests_ChestDataImport(
-              this.ProtectionManager, out importedChests, out overwrittenChests, out protectFailures
+              this.ChestManager, this.ProtectionManager, out importedChests, out overwrittenChests, out protectFailures
             );
           } catch (FileNotFoundException ex) {
             args.Player.SendErrorMessage(string.Format("The \"{0}\" database file was not found.", ex.FileName));
@@ -1327,7 +1362,79 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
         case 2:
-          args.Player.SendMessage("Note that only gold- and shadow chests can be locked.", Color.LightGray);
+          args.Player.SendMessage("Note that not all types of chests can be locked.", Color.LightGray);
+          break;
+      }
+
+      return false;
+    }
+    #endregion
+
+    #region [Command Handling /swapchest]
+    private void SwapChestCommand_Exec(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return;
+
+      bool persistentMode = false;
+      if (args.Parameters.Count > 0) {
+        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+          persistentMode = true;
+        } else {
+          args.Player.SendErrorMessage("Proper syntax: /swapchest [+p]");
+          args.Player.SendInfoMessage("Type /swapchest help to get more help to this command.");
+          return;
+        }
+      }
+
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      interaction.DoesNeverComplete = persistentMode;
+      interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
+        if (
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
+        ) {
+          IChest newChest;
+          this.TrySwapChestData(playerLocal, location, out newChest);
+
+          playerLocal.SendTileSquare(location);
+          return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
+        }
+
+        return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
+      };
+      interaction.ChestOpenCallback += (playerLocal, location) => {
+        IChest newChest;
+        this.TrySwapChestData(playerLocal, location, out newChest);
+        playerLocal.SendTileSquare(location, 3);
+
+        return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
+      };
+      interaction.TimeExpiredCallback += (playerLocal) => {
+        playerLocal.SendErrorMessage("Waited too long. The next hit or opened chest will not swapped.");
+      };
+
+      args.Player.SendInfoMessage("Hit or open a chest to swap its data storage.");
+    }
+
+    private bool SwapChestCommand_HelpCallback(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return true;
+
+      int pageNumber;
+      if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
+        return false;
+
+      switch (pageNumber) {
+        default:
+          args.Player.SendMessage("Command reference for /swapchest (Page 1 of 1)", Color.Lime);
+          args.Player.SendMessage("/swapchest|/schest [+p]", Color.White);
+          args.Player.SendMessage("Swaps the data of the selected chest to the world's data or to Protector data.", Color.LightGray);
+          args.Player.SendMessage("This will not change the content of the chest or its protection, its name will be removed though.", Color.LightGray);
+          args.Player.SendMessage(string.Empty, Color.LightGray);
+          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
 
@@ -1594,21 +1701,25 @@ namespace Terraria.Plugins.CoderCow.Protector {
             ProtectionEntry protection = this.ProtectionManager.CreateProtection(args.Player, chestLocation, false);
             protection.IsSharedWithEveryone = this.Config.AutoShareRefillChests;
           } catch (AlreadyProtectedException) {
+            if (!this.ProtectionManager.CheckBlockAccess(args.Player, chestLocation, true) && !args.Player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+              args.Player.SendWarningMessage($"You did not have access to convert chest {TShock.Utils.ColorTag(chestLocation.ToString(), Color.Red)} into a refill chest.");
+              continue;
+            }
           } catch (Exception ex) {
-            this.PluginTrace.WriteLineWarning("Failed to create protection at {0}: \n{1}", chestLocation, ex);
+            this.PluginTrace.WriteLineWarning($"Failed to create protection at {TShock.Utils.ColorTag(chestLocation.ToString(), Color.Red)}: \n{ex}");
           }
-
+          
           try {
-            this.ProtectionManager.SetUpRefillChest(
+            this.ChestManager.SetUpRefillChest(
               args.Player, chestLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock, autoEmpty, fairLoot
             );
             createdChestsCounter++;
           } catch (Exception ex) {
-            this.PluginTrace.WriteLineWarning("Failed to create / update refill chest at {0}: \n{1}", chestLocation, ex);
+            this.PluginTrace.WriteLineWarning($"Failed to create / update refill chest at {TShock.Utils.ColorTag(chestLocation.ToString(), Color.Red)}: \n{ex}");
           }
         }
 
-        args.Player.SendSuccessMessage(string.Format("{0} refill chests were created / updated.", createdChestsCounter));
+        args.Player.SendSuccessMessage($"{TShock.Utils.ColorTag(createdChestsCounter.ToString(), Color.Red)} refill chests were created / updated.");
       }
     }
 
@@ -1850,12 +1961,26 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return true;
       
       switch (editType) {
+        case TileEditType.PlaceTile: {
+          Tile tile = TerrariaUtils.Tiles[location];
+          if (tile == null)
+            tile = Main.tile[location.X, location.Y] = new Tile();
+          
+          WorldGen.PlaceTile(location.X, location.Y, (int)blockType, false, true, -1, objectStyle);
+
+          if (this.Config.AutoProtectedTiles[(int)blockType])
+            this.TryCreateAutoProtection(player, location);
+
+          return true;
+        }
         case TileEditType.TileKill:
         case TileEditType.TileKillNoItem: {
           // Is the tile really going to be destroyed or just being hit?
           //if (blockType != 0)
           //  break;
 
+          Tile tile = TerrariaUtils.Tiles[location];
+          bool isChest = (tile.type == TileID.Containers || tile.type == TileID.Dressers);
           foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(location)) {
             // If the protection is invalid, just remove it.
             if (!TerrariaUtils.Tiles.IsValidCoord(protection.TileLocation)) {
@@ -1877,33 +2002,42 @@ namespace Terraria.Plugins.CoderCow.Protector {
                 player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)
               )
             ) {
-              bool isChest = (protectedTile.type == TileID.Containers || protectedTile.type == TileID.Dressers);
               if (isChest) {
                 ObjectMeasureData measureData = TerrariaUtils.Tiles.MeasureObject(protection.TileLocation);
                 DPoint chestLocation = measureData.OriginTileLocation;
-                int chestId = Chest.FindChest(chestLocation.X, chestLocation.Y);
+                IChest chest = this.ChestManager.ChestFromLocation(chestLocation);
 
-                if (chestId != -1) {
+                if (chest != null) {
                   bool isBankChest = (protection.BankChestKey != BankChestDataKey.Invalid);
                   if (isBankChest) {
-                    Chest.DestroyChestDirect(chestLocation.X, chestLocation.Y, chestId);
-                    WorldGen.KillTile(location.X, location.Y);
-                    TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 3, chestLocation.X, chestLocation.Y, 0f, chestId);
+                    this.DestroyBlockOrObject(chestLocation);
+                    //TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 3, chestLocation.X, chestLocation.Y, 0f, -1);
                   } else {
-                    Chest tChest = Main.chest[chestId];
-                    bool isFilled = tChest.item.Any(i => i != null && i.stack > 0);
-                    if (isFilled)
-                      break; // Do not remove protections of filled chests.
+                    for (int i = 0; i < Chest.maxItems; i++) {
+                      if (chest[i].StackSize > 0)
+                        break;
+                    }
                   }
                 }
               }
               this.ProtectionManager.RemoveProtection(player, protection.TileLocation, false);
           
               if (this.Config.NotifyAutoDeprotections)
-                player.SendWarningMessage(string.Format("The {0} is not protected anymore.", tileName));
+                player.SendWarningMessage($"The {tileName} is not protected anymore.");
             } else {
-              player.SendErrorMessage(string.Format("The {0} is protected.", tileName));
+              player.SendErrorMessage($"The {tileName} is protected.");
               player.SendTileSquare(location);
+              return true;
+            }
+          }
+
+          if (isChest) {
+            ObjectMeasureData measureData = TerrariaUtils.Tiles.MeasureObject(location);
+            DPoint chestLocation = measureData.OriginTileLocation;
+            IChest chest = this.ChestManager.ChestFromLocation(chestLocation);
+            if (chest != null) {
+              this.DestroyBlockOrObject(chestLocation);
+
               return true;
             }
           }
@@ -1926,70 +2060,80 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    // Called after (probably) all other plugin's tile edit handlers.
-    public virtual bool HandlePostTileEdit(
-      TSPlayer player, TileEditType editType, BlockType blockType, DPoint location, int objectStyle
-    ) {
-      if (this.IsDisposed || editType != TileEditType.PlaceTile)
+    public virtual bool HandleObjectPlacement(TSPlayer player, DPoint location, int blockType, int objectStyle, int alternative, int random, bool direction) {
+      if (this.IsDisposed)
         return false;
-      if (!this.Config.AutoProtectedTiles[(int)blockType])
-        return false;
+      
+      int directionInt = direction ? -1 : 1;
+      WorldGen.PlaceObject(location.X, location.Y, blockType, false, objectStyle, alternative, random, directionInt);
+      NetMessage.SendObjectPlacment(player.Index, location.X, location.Y, blockType, objectStyle, alternative, random, directionInt);
 
-      Task.Factory.StartNew(() => {
-        Thread.Sleep(150);
+      if (this.Config.AutoProtectedTiles[blockType])
+        this.TryCreateAutoProtection(player, location);
 
-        Tile tile = TerrariaUtils.Tiles[location];
-        if (!tile.active())
-          return;
-
-        try {
-          this.ProtectionManager.CreateProtection(player, location, false);
-              
-          if (this.Config.NotifyAutoProtections)
-            player.SendSuccessMessage(string.Format("This {0} has been protected.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)tile.type)));
-        } catch (PlayerNotLoggedInException) {
-          player.SendWarningMessage(string.Format(
-            "This {0} will not be protected because you're not logged in.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)tile.type)
-          ));
-        } catch (LimitEnforcementException) {
-          player.SendWarningMessage(string.Format(
-            "This {0} will not be protected because you've reached the protection limit.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)tile.type)
-          ));
-        } catch (TileProtectedException) {
-          this.PluginTrace.WriteLineError("Error: A block was tried to be auto protected where tile placement should not be possible.");
-        } catch (AlreadyProtectedException) {
-          this.PluginTrace.WriteLineError("Error: A block was tried to be auto protected on the same position of an existing protection.");
-        } catch (Exception ex) {
-          this.PluginTrace.WriteLineError("Unexpected exception was thrown during auto protection setup: \n" + ex);
-        }
-      }, TaskCreationOptions.PreferFairness);
-
-      return false;
+      return true;
     }
 
-    public virtual bool HandleChestPlace(TSPlayer player, DPoint location, ChestStyle chestStyle) {
-      return this.HandlePostTileEdit(player, TileEditType.PlaceTile, BlockType.Chest, location, (int)chestStyle);
+    public virtual bool HandleChestPlace(TSPlayer player, DPoint location, int storageType, int storageStyle) {
+      if (this.IsDisposed)
+        return false;  
+    
+      ushort tileToPlace = TileID.Containers;
+      bool isDresser = (storageType == 2);
+      if (isDresser)
+        tileToPlace = TileID.Dressers;
+
+      try {
+        this.ChestManager.PlaceChest(tileToPlace, storageStyle, location);
+      } catch (LimitEnforcementException ex) {
+        player.SendTileSquare(location.X, location.Y, 2);
+        player.SendErrorMessage("The limit of maximum possible chests has been reached. Please report this to a server administrator.");
+        this.PluginTrace.WriteLineWarning($"Chest limit of {Main.chest.Length + this.Config.MaxProtectorChests - 1} has been reached!");
+      }
+
+      if (this.Config.AutoProtectedTiles[tileToPlace])
+        this.TryCreateAutoProtection(player, location);
+
+      return true;
+    }
+
+    private bool TryCreateAutoProtection(TSPlayer forPlayer, DPoint location) {
+      try {
+        this.ProtectionManager.CreateProtection(forPlayer, location, false);
+        
+        if (this.Config.NotifyAutoProtections)
+          forPlayer.SendSuccessMessage(string.Format("This {0} has been protected.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)TerrariaUtils.Tiles[location].type)));
+
+        return true;
+      } catch (PlayerNotLoggedInException) {
+        forPlayer.SendWarningMessage(string.Format(
+          "This {0} will not be protected because you're not logged in.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)TerrariaUtils.Tiles[location].type)
+        ));
+      } catch (LimitEnforcementException) {
+        forPlayer.SendWarningMessage(string.Format(
+          "This {0} will not be protected because you've reached the protection limit.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)TerrariaUtils.Tiles[location].type)
+        ));
+      } catch (TileProtectedException) {
+        this.PluginTrace.WriteLineError("Error: A block was tried to be auto protected where tile placement should not be possible.");
+      } catch (AlreadyProtectedException) {
+        this.PluginTrace.WriteLineError("Error: A block was tried to be auto protected on the same position of an existing protection.");
+      } catch (Exception ex) {
+        this.PluginTrace.WriteLineError("Unexpected exception was thrown during auto protection: \n" + ex);
+      }
+
+      return false;
     }
 
     public virtual bool HandleChestRename(TSPlayer player, int chestIndex, string newName) {
       if (this.IsDisposed)
         return false;
 
-      int chestToRenameIndex = player.TPlayer.chest;
-      if (chestToRenameIndex < 0)
-        return false;
+      IChest chest = this.LastOpenedChest(player);
+      if (chest == null)
+        return true;
 
-      Chest tChestToRename = Main.chest[chestToRenameIndex];
-      if (tChestToRename == null)
-        return false;
-
-      DPoint chestLocation = new DPoint(tChestToRename.x, tChestToRename.y);
-      Tile chestTile = TerrariaUtils.Tiles[chestLocation];
-      if (!chestTile.active() || (chestTile.type != (int)BlockType.Chest && chestTile.type != (int)BlockType.Dresser))
-        return false;
-      
       bool isAllowed = true;
-      if (this.CheckProtected(player, chestLocation, true)) {
+      if (this.CheckProtected(player, chest.Location, true)) {
         player.SendErrorMessage("You have to be the owner of the chest in order to rename it.");
         isAllowed = false;
       }
@@ -2000,13 +2144,24 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       if (!isAllowed) {
-        // The name changed will already have happened for the player, so gotta send the original name back to them.
-        string originalName = tChestToRename.name;
-        DPoint chestToRename = new DPoint(tChestToRename.x, tChestToRename.y);
-        player.SendData(PacketTypes.ChestName, originalName, chestToRenameIndex, chestToRename.X, chestToRename.Y);
+        string originalName = string.Empty;
+        if (chest.IsWorldChest)
+          originalName = chest.Name;
+
+        // The name change will already have happened locally for the player, so gotta send the original name back to them.
+        player.SendData(PacketTypes.ChestName, originalName, chest.Index, chest.Location.X, chest.Location.Y);
         return true;
       } else {
-        return false;
+        // Only world chests can have names, so attempt to convert it into one.
+        if (!chest.IsWorldChest && !this.TrySwapChestData(null, chest.Location, out chest)) {
+          player.SendErrorMessage("The maximum amount of named chests for this world has been reached.");
+          return true;
+        }
+        
+        chest.Name = newName;
+        player.SendData(PacketTypes.ChestName, chest.Name, chest.Index, chest.Location.X, chest.Location.Y);
+
+        return true;
       }
     }
 
@@ -2014,22 +2169,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
-      if (chestIndex != -1 || chestIndex == -2 || chestIndex == -3)
+      bool isChestClosed = (chestIndex != -1 || chestIndex == -2 || chestIndex == -3);
+      if (isChestClosed)
         return false;
 
-      int closedChestIndex = player.TPlayer.chest;
-      if (closedChestIndex < 0)
+      IChest chest = this.LastOpenedChest(player);
+      if (chest == null)
         return false;
 
-      Chest tChest = Main.chest[closedChestIndex];
-      if (tChest == null)
-        return false;
-
-      chestLocation = new DPoint(tChest.x, tChest.y);
-      Tile chestTile = TerrariaUtils.Tiles[chestLocation];
-      if (!chestTile.active() || (chestTile.type != (int)BlockType.Chest && chestTile.type != (int)BlockType.Dresser))
-        return false;
-
+      Tile chestTile = TerrariaUtils.Tiles[chest.Location];
       bool isLocked;
       ChestStyle chestStyle = TerrariaUtils.Tiles.GetChestStyle(chestTile, out isLocked);
       if (isLocked || (
@@ -2052,9 +2200,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (protection == null || protection.RefillChestData == null)
         return false;
 
-      if (protection.RefillChestData.AutoEmpty && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
+      if (protection.RefillChestData.AutoEmpty && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
         for (int i = 0; i < Chest.maxItems; i++)
-          tChest.item[i] = new Item();
+          chest.SetItem(i, ItemData.None);
+      }
 
       if (protection.RefillChestData.AutoLock && protection.RefillChestData.RefillTime == TimeSpan.Zero)
         TerrariaUtils.Tiles.LockChest(chestLocation);
@@ -2066,6 +2215,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.IsDisposed)
         return false;
       if (base.HandleChestGetContents(player, location))
+        return true;
+      bool isDummyChest = (location.X == 0);
+      if (isDummyChest)
         return true;
       if (!TerrariaUtils.Tiles[location].active())
         return true;
@@ -2099,13 +2251,20 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
       
       DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
-      int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
-      if (tChestIndex == -1) {
-        player.SendErrorMessage("The data record of this chest is missing. This world's data might be corrupted.");
-        return true;
-      }
 
-      if (Chest.UsingChest(tChestIndex) != -1) {
+      IChest chest = this.ChestManager.ChestFromLocation(chestLocation, player);
+      if (chest == null)
+        return true;
+
+      int usingPlayerIndex = -1;
+      if (chest.IsWorldChest)
+        usingPlayerIndex = Chest.UsingChest(chest.Index);
+
+      bool isChestInUse = 
+        (usingPlayerIndex != -1 && usingPlayerIndex != player.Index) ||
+        (this.ChestPlayerIndexDictionary.TryGetValue(chestLocation, out usingPlayerIndex) && usingPlayerIndex != player.Index);
+
+      if (isChestInUse) {
         player.SendErrorMessage("Another player is already viewing the content of this chest.");
         return true;
       }
@@ -2120,11 +2279,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         if (refillChest.RefillTime != TimeSpan.Zero) {
-          // TODO: Bad code, RefillTimers shouldn't be public at all.
-          lock (this.ProtectionManager.RefillTimers) {
-            if (this.ProtectionManager.RefillTimers.IsTimerRunning(refillChest.RefillTimer)) {
+          lock (this.ChestManager.RefillTimers) {
+            if (this.ChestManager.RefillTimers.IsTimerRunning(refillChest.RefillTimer)) {
               TimeSpan timeLeft = (refillChest.RefillStartTime + refillChest.RefillTime) - DateTime.Now;
-              player.SendMessage(string.Format("This chest will refill in {0}.", timeLeft.ToLongString()), Color.OrangeRed);
+              player.SendMessage($"This chest will refill in {timeLeft.ToLongString()}.", Color.OrangeRed);
             } else {
               player.SendMessage("This chest will refill its content.", Color.OrangeRed);
             }
@@ -2132,6 +2290,38 @@ namespace Terraria.Plugins.CoderCow.Protector {
         } else {
           player.SendMessage("This chest will refill its content.", Color.OrangeRed);
         }
+      }
+  
+      lock (ChestManager.DummyChest) {
+        Main.chest[ChestManager.DummyChestIndex] = ChestManager.DummyChest;
+
+        if (chest.IsWorldChest) {
+          ChestManager.DummyChest.name = chest.Name;
+          player.TPlayer.chest = chest.Index;
+        } else {
+          player.TPlayer.chest = -1;
+        }
+
+        for (int i = 0; i < Chest.maxItems; i++) {
+          ChestManager.DummyChest.item[i] = chest[i].ToItem();
+          player.SendData(PacketTypes.ChestItem, string.Empty, ChestManager.DummyChestIndex, i);
+        }
+
+        ChestManager.DummyChest.x = chestLocation.X;
+        ChestManager.DummyChest.y = chestLocation.Y;
+        player.SendData(PacketTypes.ChestOpen, string.Empty, ChestManager.DummyChestIndex);
+        ChestManager.DummyChest.x = 0;
+      }
+
+      DPoint oldChestLocation;
+      if (this.PlayerIndexChestDictionary.TryGetValue(player.Index, out oldChestLocation)) {
+        this.PlayerIndexChestDictionary.Remove(player.Index);
+        this.ChestPlayerIndexDictionary.Remove(oldChestLocation);
+      }
+
+      if (!chest.IsWorldChest) {
+        this.PlayerIndexChestDictionary[player.Index] = chestLocation;
+        this.ChestPlayerIndexDictionary[chestLocation] = player.Index;
       }
       
       return false;
@@ -2141,15 +2331,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.IsDisposed)
         return false;
 
-      Chest chest = Main.chest[chestIndex];
+      // Get the chest location of the chest the player has last opened.
+      IChest chest = this.LastOpenedChest(player);
       if (chest == null)
         return true;
 
-      DPoint location = new DPoint(chest.x, chest.y);
-
       ProtectionEntry protection = null;
       // Only need the first enumerated entry as we don't need the protections of adjacent blocks.
-      foreach (ProtectionEntry enumProtection in this.ProtectionManager.EnumerateProtectionEntries(location)) {
+      foreach (ProtectionEntry enumProtection in this.ProtectionManager.EnumerateProtectionEntries(chest.Location)) {
         protection = enumProtection;
         break;
       }
@@ -2170,15 +2359,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
         ) {
           refillChest.RefillItems[slotIndex] = newItem;
 
-          this.ProtectionManager.TryRefillChest(location, refillChest);
+          this.ChestManager.TryRefillChest(chest, refillChest);
 
           if (refillChest.RefillTime == TimeSpan.Zero) {
             player.SendSuccessMessage("The content of this refill chest was updated.");
           } else {
-            // TODO: Bad code, RefillTimers shouldn't be public at all.
-            lock (this.ProtectionManager.RefillTimers) {
-              if (this.ProtectionManager.RefillTimers.IsTimerRunning(refillChest.RefillTimer))
-                this.ProtectionManager.RefillTimers.RemoveTimer(refillChest.RefillTimer);
+            lock (this.ChestManager.RefillTimers) {
+              if (this.ChestManager.RefillTimers.IsTimerRunning(refillChest.RefillTimer))
+                this.ChestManager.RefillTimers.RemoveTimer(refillChest.RefillTimer);
             }
 
             player.SendSuccessMessage("The content of this refill chest was updated and the timer was reset.");
@@ -2198,11 +2386,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         // As the first item is taken out, we start the refill timer.
-        ItemData oldItem = ItemData.FromItem(chest.item[slotIndex]);
+        ItemData oldItem = chest[slotIndex];
         if (newItem.Type == ItemType.None || (newItem.Type == oldItem.Type && newItem.StackSize <= oldItem.StackSize)) {
           // TODO: Bad code, refill timers shouldn't be public at all.
-          lock (this.ProtectionManager.RefillTimers)
-            this.ProtectionManager.RefillTimers.StartTimer(refillChest.RefillTimer);
+          lock (this.ChestManager.RefillTimers)
+            this.ChestManager.RefillTimers.StartTimer(refillChest.RefillTimer);
         } else {
           player.SendErrorMessage("You can not put items into this chest.");
           return true;
@@ -2212,7 +2400,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.ServerMetadataHandler.EnqueueUpdateBankChestItem(bankChestKey, slotIndex, newItem);
       }
 
-      return false;
+      chest.SetItem(slotIndex, newItem);
+      return true;
     }
 
     public virtual bool HandleChestUnlock(TSPlayer player, DPoint chestLocation) {
@@ -2323,78 +2512,132 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return true;
     }
 
-    // Modded version of Terraria's Original
-    private Item PutItemInNearbyChest(TSPlayer player, Item item, Vector2 position) {
-      float quickStackRange = this.Config.QuickStackNearbyRange * 16;
+    // Modded version of Terraria's original method.
+    private Item PutItemInNearbyChest(TSPlayer player, Item itemToStore, Vector2 position) {
+      bool isStored = false;
 
       for (int i = 0; i < Main.chest.Length; i++) {
-        Chest chest = Main.chest[i];
-        if (chest == null || !Main.tile[chest.x, chest.y].active())
+        if (i == ChestManager.DummyChestIndex)
+          continue;
+        Chest tChest = Main.chest[i];
+        if (tChest == null || !Main.tile[tChest.x, tChest.y].active())
           continue;
 
-        bool containsSameItem = false;
-        bool hasEmptySlot = false;
-
-        bool isPlayerInChest = false;
-        for (int j = 0; j < 255; j++) {
-          if (Main.player[j].chest == i) {
-            isPlayerInChest = true;
+        bool isPlayerInChest = Main.player.Any((p) => p.chest == i);
+        if (!isPlayerInChest) {
+          IChest chest = new ChestAdapter(i, tChest);
+          isStored = this.TryToStoreItemInNearbyChest(player, position, itemToStore, chest);
+          if (isStored)
             break;
+        }
+      }
+
+      if (!isStored) {
+        lock (this.WorldMetadata.ProtectorChests) {
+          foreach (DPoint chestLocation in this.WorldMetadata.ProtectorChests.Keys) {
+            if (!TerrariaUtils.Tiles[chestLocation].active())
+              continue;
+
+            bool isPlayerInChest = this.ChestPlayerIndexDictionary.ContainsKey(chestLocation);
+            if (!isPlayerInChest) {
+              IChest chest = this.WorldMetadata.ProtectorChests[chestLocation];
+              isStored = this.TryToStoreItemInNearbyChest(player, position, itemToStore, chest);
+              if (isStored)
+                break;
+            }
           }
         }
+      }
 
-        if (!isPlayerInChest && !Chest.isLocked(chest.x, chest.y)) {
-          Vector2 vector2 = new Vector2((chest.x * 16 + 16), (chest.y * 16 + 16));
-          if ((vector2 - position).Length() < quickStackRange) {
-            ProtectionEntry protection;
-            if (this.ProtectionManager.CheckBlockAccess(player, new DPoint(chest.x, chest.y), false, out protection)) {
-              bool isRefillChest = (protection != null && protection.RefillChestData != null);
-              if (!isRefillChest) { 
-                bool isBankChest = (protection != null && protection.BankChestKey != BankChestDataKey.Invalid);
+      return itemToStore;
+    }
 
-                for (int j = 0; j < chest.item.Length; j++) {
-                  Item chestItem = chest.item[j];
-                  if (chestItem.type <= 0 || chestItem.stack <= 0)
-                    hasEmptySlot = true;
-                  else if (item.IsTheSameAs(chestItem)) {
-                    containsSameItem = true;
-                    int stackLeft = chestItem.maxStack - chestItem.stack;
-                    if (stackLeft > 0) {
-                      if (stackLeft > item.stack)
-                        stackLeft = item.stack;
+    // Modded version of Terraria's Original
+    private bool TryToStoreItemInNearbyChest(TSPlayer player, Vector2 playerPosition, Item itemToStore, IChest chest) {
+      float quickStackRange = this.Config.QuickStackNearbyRange * 16;  
+    
+      if (Chest.isLocked(chest.Location.X, chest.Location.Y))
+        return false;
 
-                      item.stack = item.stack - stackLeft;
-                      chestItem.stack = chestItem.stack + stackLeft;
-                      if (isBankChest)
-                        this.ServerMetadataHandler.EnqueueUpdateBankChestItem(protection.BankChestKey, j, ItemData.FromItem(chestItem));
+      Vector2 vector2 = new Vector2((chest.Location.X * 16 + 16), (chest.Location.Y * 16 + 16));
+      if ((vector2 - playerPosition).Length() > quickStackRange)
+        return false;
 
-                      if (item.stack <= 0) {
-                        item.SetDefaults();
-                        return item;
-                      }
-                    }
-                  }
+      ProtectionEntry protection;
+      if (this.ProtectionManager.CheckBlockAccess(player, chest.Location, false, out protection)) {
+        bool isRefillChest = (protection != null && protection.RefillChestData != null);
+
+        if (!isRefillChest) { 
+          bool isBankChest = (protection != null && protection.BankChestKey != BankChestDataKey.Invalid);
+          bool hasEmptySlot = false;
+          bool containsSameItem = false;
+
+          for (int i = 0; i < Chest.maxItems; i++) {
+            ItemData chestItem = chest[i];
+
+            if (chestItem.Type <= 0 || chestItem.StackSize <= 0)
+              hasEmptySlot = true;
+            else if (itemToStore.netID == (int)chestItem.Type) {
+              int remainingStack = itemToStore.maxStack - chestItem.StackSize;
+
+              if (remainingStack > 0) {
+                if (remainingStack > itemToStore.stack)
+                  remainingStack = itemToStore.stack;
+
+                itemToStore.stack = itemToStore.stack - remainingStack;
+                chestItem.StackSize = chestItem.StackSize + remainingStack;
+                if (isBankChest)
+                  this.ServerMetadataHandler.EnqueueUpdateBankChestItem(protection.BankChestKey, i, chestItem);
+
+                if (itemToStore.stack <= 0) {
+                  itemToStore.SetDefaults();
+                  return true;
                 }
-                if (containsSameItem && hasEmptySlot && item.stack > 0) {
-                  for (int k = 0; k < chest.item.Length; k++) {
-                    Item chestItem = chest.item[k];
-                    if (chestItem.type == 0 || chestItem.stack == 0) {
-                      chest.item[k] = item.Clone();
+              }
 
-                      if (isBankChest)
-                        this.ServerMetadataHandler.EnqueueUpdateBankChestItem(protection.BankChestKey, k, ItemData.FromItem(item));
+              containsSameItem = true;
+            }
+          }
+          if (containsSameItem && hasEmptySlot && itemToStore.stack > 0) {
+            for (int i = 0; i < Chest.maxItems; i++) {
+              ItemData chestItem = chest[i];
 
-                      item.SetDefaults();
-                      return item;
-                    }
-                  }
-                }
+              if (chestItem.Type == 0 || chestItem.StackSize == 0) {
+                ItemData itemDataToStore = ItemData.FromItem(itemToStore);
+                chest.SetItem(i, itemDataToStore);
+
+                if (isBankChest)
+                  this.ServerMetadataHandler.EnqueueUpdateBankChestItem(protection.BankChestKey, i, itemDataToStore);
+
+                itemToStore.SetDefaults();
+                return true;
               }
             }
           }
         }
       }
-      return item;
+
+      return false;
+    }
+
+    private IChest LastOpenedChest(TSPlayer player) {
+      DPoint chestLocation;
+      int chestIndex = player.TPlayer.chest;
+
+      bool isWorldDataChest = (chestIndex != -1 && chestIndex != ChestManager.DummyChestIndex);
+      if (isWorldDataChest) {
+        Chest chest = Main.chest[chestIndex];
+
+        if (chest != null)
+          return new ChestAdapter(chestIndex, chest);
+        else
+          return null;
+      } else if (this.PlayerIndexChestDictionary.TryGetValue(player.Index, out chestLocation)) {
+        lock (this.WorldMetadata.ProtectorChests)
+          return this.WorldMetadata.ProtectorChests[chestLocation];
+      } else {
+        return null;
+      }      
     }
     #endregion
 
@@ -2414,12 +2657,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
         return true;
       } catch (ArgumentException ex) {
-        if (ex.ParamName == "tileLocation") {
-          if (sendFailureMessages)
-            player.SendErrorMessage("Nothing to protect here.");
-
-          return false;
-        }
+        if (ex.ParamName == "tileLocation" && sendFailureMessages)
+          player.SendErrorMessage("Nothing to protect here.");
 
         throw;
       } catch (InvalidBlockTypeException ex) {
@@ -2432,8 +2671,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
         
           player.SendErrorMessage(string.Format(messageFormat, TerrariaUtils.Tiles.GetBlockTypeName(ex.BlockType)));
         }
-
-        return false;
       } catch (LimitEnforcementException) {
         if (sendFailureMessages) {
           player.SendErrorMessage(
@@ -2441,28 +2678,23 @@ namespace Terraria.Plugins.CoderCow.Protector {
             this.Config.MaxProtectionsPerPlayerPerWorld)
           );
         }
-
-        return false;
       } catch (AlreadyProtectedException) {
         if (sendFailureMessages) {
           BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
           player.SendErrorMessage(string.Format("This {0} is already protected.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)));
         }
-
-        return false;
       } catch (TileProtectedException) {
         if (sendFailureMessages) {
           BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
           player.SendErrorMessage(string.Format("This {0} is protected by someone else or is inside of a protected region.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)));
         }
-
-        return false;
       } catch (Exception ex) {
         player.SendErrorMessage("An unexpected internal error occured.");
         this.PluginTrace.WriteLineError("Error on creating protection: ", ex.ToString());
 
-        return false;
       }
+
+      return false;
     }
 
     private bool TryAlterProtectionShare(
@@ -2639,11 +2871,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
       if (protection == null) {
-        if (sendFailureMessages) {
-          player.SendErrorMessage(string.Format(
-            "This {0} is not protected by Protector at all.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-          ));
-        }
+        if (sendFailureMessages)
+          player.SendErrorMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not protected by Protector at all.");
         
         return false;
       }
@@ -2655,9 +2884,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       );
       
       if (!canViewExtendedInfo) {
-        player.SendMessage(string.Format(
-          "This {0} is protected and not shared with you.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-        ), Color.LightGray);
+        player.SendMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is protected and not shared with you.", Color.LightGray);
 
         player.SendWarningMessage("You are not permitted to get more information about this protection.");
         return true;
@@ -2674,9 +2901,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           ownerName = string.Concat("{deleted user id: ", protection.Owner, "}");
       }
 
-      player.SendMessage(string.Format(
-        "This {0} is protected. The owner is {1}.", TerrariaUtils.Tiles.GetBlockTypeName(blockType), ownerName
-      ), Color.LightGray);
+      player.SendMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is protected. The owner is {TShock.Utils.ColorTag(ownerName, Color.Red)}.", Color.LightGray);
       
       string creationTimeFormat = "Protection created On: unknown";
       if (protection.TimeOfCreation != DateTime.MinValue)
@@ -2694,38 +2919,42 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (protection.RefillChestData != null) {
           RefillChestMetadata refillChest = protection.RefillChestData;
           if (refillChest.RefillTime != TimeSpan.Zero)
-            player.SendMessage(string.Format("This is a refill chest with a timer set to {0}.", refillChest.RefillTime.ToLongString()), Color.LightGray);
+            player.SendMessage($"This is a refill chest with a timer set to {TShock.Utils.ColorTag(refillChest.RefillTime.ToLongString(), Color.Red)}.", Color.LightGray);
           else
             player.SendMessage("This is a refill chest without a timer.", Color.LightGray);
 
           if (refillChest.OneLootPerPlayer || refillChest.RemainingLoots != -1) {
             StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.Append("It can only be looted ");
+
             if (refillChest.OneLootPerPlayer)
               messageBuilder.Append("one time by each player");
             if (refillChest.RemainingLoots != -1) {
               if (messageBuilder.Length > 0)
                 messageBuilder.Append(" and ");
 
-              messageBuilder.Append(refillChest.RemainingLoots);
+              messageBuilder.Append(TShock.Utils.ColorTag(refillChest.RemainingLoots.ToString(), Color.Red));
               messageBuilder.Append(" more times in total");
             }
             if (refillChest.Looters != null) {
               messageBuilder.Append(" and was looted ");
-              messageBuilder.Append(refillChest.Looters.Count);
+              messageBuilder.Append(TShock.Utils.ColorTag(refillChest.Looters.Count.ToString(), Color.Red));
               messageBuilder.Append(" times until now");
             }
-
-            messageBuilder.Insert(0, "It can only be looted ");
             messageBuilder.Append('.');
 
             player.SendMessage(messageBuilder.ToString(), Color.LightGray);
           }
         } else if (protection.BankChestKey != BankChestDataKey.Invalid) {
           BankChestDataKey bankChestKey = protection.BankChestKey;
-          player.SendMessage(
-            string.Format("This is a bank chest instance with the number {0}.", bankChestKey.BankChestIndex), Color.LightGray
-          );
+          player.SendMessage($"This is a bank chest instance with the number {bankChestKey.BankChestIndex}.", Color.LightGray);
         }
+
+        IChest chest = this.ChestManager.ChestFromLocation(protection.TileLocation);
+        if (chest.IsWorldChest)
+          player.SendMessage($"It is stored as part of the world data (id: {TShock.Utils.ColorTag(chest.Index.ToString(), Color.Red)}).", Color.LightGray);
+        else
+          player.SendMessage($"It is {TShock.Utils.ColorTag("not", Color.Red)} stored as part of the world data.", Color.LightGray);
       }
       
       if (ProtectionManager.IsShareableBlockType(blockType)) {
@@ -2747,19 +2976,19 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         if (sharedListBuilder.Length == 0 && protection.SharedGroups == null) {
-          player.SendMessage("Protection is not shared with users or groups.", Color.LightGray);
+          player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with users or groups.", Color.LightGray);
           return true;
         }
         
         if (sharedListBuilder.Length > 0)
-          player.SendMessage("Shared with users: " + sharedListBuilder, Color.LightGray);
+          player.SendMessage($"Shared with users: {TShock.Utils.ColorTag(sharedListBuilder.ToString(), Color.Red)}", Color.LightGray);
         else
-          player.SendMessage("Protection is not shared with users.", Color.LightGray);
+          player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with users.", Color.LightGray);
 
         if (protection.SharedGroups != null)
-          player.SendMessage("Shared with groups: " + protection.SharedGroups.ToString(), Color.LightGray);
+          player.SendMessage($"Shared with groups: {TShock.Utils.ColorTag(protection.SharedGroups.ToString(), Color.Red)}", Color.LightGray);
         else
-          player.SendMessage("Protection is not shared with groups.", Color.LightGray);
+          player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with groups.", Color.LightGray);
       }
 
       return true;
@@ -2794,6 +3023,113 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
+    public bool TrySwapChestData(TSPlayer player, DPoint anyChestTileLocation, out IChest newChest) {
+      newChest = null;
+
+      if (TerrariaUtils.Tiles[anyChestTileLocation].type != TileID.Containers && TerrariaUtils.Tiles[anyChestTileLocation].type != TileID.Dressers) {
+        player.SendErrorMessage("The selected tile is not a chest or dresser.");
+        return false;
+      }
+
+      DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(anyChestTileLocation).OriginTileLocation;
+      IChest chest = this.ChestManager.ChestFromLocation(chestLocation, player);
+      if (chest == null)
+        return false;
+
+      ItemData[] content = new ItemData[Chest.maxItems];
+      for (int i = 0; i < Chest.maxItems; i++)
+        content[i] = chest[i];
+      
+      if (chest.IsWorldChest) {
+        lock (this.WorldMetadata.ProtectorChests) {
+          bool isChestAvailable = this.WorldMetadata.ProtectorChests.Count < this.Config.MaxProtectorChests;
+          if (!isChestAvailable) {
+            player?.SendErrorMessage("The maximum of possible Protector chests has been reached.");
+            return false;
+          }
+
+          int playerUsingChestIndex = Chest.UsingChest(chest.Index);
+          if (playerUsingChestIndex != -1)
+            Main.player[playerUsingChestIndex].chest = -1;
+
+          Main.chest[chest.Index] = null;
+          newChest = new ProtectorChestData(chestLocation, content);
+
+          this.WorldMetadata.ProtectorChests.Add(chestLocation, (ProtectorChestData)newChest);
+
+          //TSPlayer.All.SendData(PacketTypes.ChestName, string.Empty, chest.Index, chestLocation.X, chestLocation.Y);
+
+          // Tell the client to remove the chest with the given index from its own chest array.
+          TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 1, chestLocation.X, chestLocation.Y, 0, chest.Index);
+          TSPlayer.All.SendTileSquare(chestLocation.X, chestLocation.Y, 2);
+          player?.SendWarningMessage("This chest is now a Protector chest.");
+        }
+      } else {
+        int availableUnnamedChestIndex = -1;
+        int availableEmptyChestIndex = -1;
+        for (int i = 0; i < Main.chest.Length; i++) {
+          if (i == ChestManager.DummyChestIndex)
+            continue;
+
+          Chest tChest = Main.chest[i];
+          if (tChest == null) {
+            availableEmptyChestIndex = i;
+            break;
+          } else if (availableUnnamedChestIndex == -1 && string.IsNullOrWhiteSpace(tChest.name)) {
+            availableUnnamedChestIndex = i;
+          }
+        }
+
+        // Prefer unset chests over unnamed chests.
+        int availableChestIndex = availableEmptyChestIndex;
+        if (availableChestIndex == -1)
+          availableChestIndex = availableUnnamedChestIndex;
+
+        bool isChestAvailable = (availableChestIndex != -1);
+        if (!isChestAvailable) {
+          player?.SendErrorMessage("The maximum of possible world chests has been reached.");
+          return false;
+        }
+
+        lock (this.WorldMetadata.ProtectorChests)
+          this.WorldMetadata.ProtectorChests.Remove(chestLocation);
+
+        Chest availableChest = Main.chest[availableChestIndex];
+        bool isExistingButUnnamedChest = (availableChest != null);
+        if (isExistingButUnnamedChest) {
+          if (!this.TrySwapChestData(null, new DPoint(availableChest.x, availableChest.y), out newChest))
+            return false;
+        }
+
+        availableChest = Main.chest[availableChestIndex] = new Chest();
+        availableChest.x = chestLocation.X;
+        availableChest.y = chestLocation.Y;
+        availableChest.item = content.Select(i => i.ToItem()).ToArray();
+
+        newChest = new ChestAdapter(availableChestIndex, availableChest);
+        player?.SendWarningMessage("This chest is now a world chest.");
+      }
+
+      return true;
+    }
+
+    public void RemoveChestData(IChest chest) {
+      ItemData[] content = new ItemData[Chest.maxItems];
+      for (int i = 0; i < Chest.maxItems; i++)
+        content[i] = chest[i];
+
+      if (chest.IsWorldChest) {
+        int playerUsingChestIndex = Chest.UsingChest(chest.Index);
+        if (playerUsingChestIndex != -1)
+          Main.player[playerUsingChestIndex].chest = -1;
+
+        Main.chest[chest.Index] = null;
+      } else {
+        lock (this.WorldMetadata.ProtectorChests)
+          this.WorldMetadata.ProtectorChests.Remove(chest.Location);
+      }
+    }
+
     public bool TrySetUpRefillChest(
       TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer, int? lootLimit, bool? autoLock, 
       bool? autoEmpty, bool sendMessages = true
@@ -2805,8 +3141,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
 
+      if (!this.ProtectionManager.CheckBlockAccess(player, tileLocation, true) && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+        player.SendErrorMessage("You don't own the protection of this chest.");
+        return false;
+      }
+
       try {
-        if (this.ProtectionManager.SetUpRefillChest(
+        if (this.ChestManager.SetUpRefillChest(
           player, tileLocation, refillTime, oneLootPerPlayer, lootLimit, autoLock, autoEmpty, false, true
         )) {
           if (sendMessages) {
@@ -2877,11 +3218,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
           player.SendErrorMessage("The chest needs to be protected to be converted to a refill chest.");
 
         return false;
-      } catch (TileProtectedException) {
-        if (sendMessages)
-          player.SendErrorMessage("You do not own the protection of this chest.");
-
-        return false;
       } catch (ChestIncompatibilityException) {
         if (sendMessages)
           player.SendErrorMessage("A chest can not be a refill- and bank chest at the same time.");
@@ -2904,12 +3240,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
         
         return false;
       }
+
+      if (!this.ProtectionManager.CheckBlockAccess(player, tileLocation, true) && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+        player.SendErrorMessage("You don't own the protection of this chest.");
+        return false;
+      }
       
       try {
-        this.ProtectionManager.SetUpBankChest(player, tileLocation, bankChestIndex, true);
+        this.ChestManager.SetUpBankChest(player, tileLocation, bankChestIndex, true);
 
         player.SendSuccessMessage(string.Format(
-          "This chest is now an instance of your bank chest with the number {0}.", bankChestIndex
+          $"This chest is now an instance of your bank chest with the number {TShock.Utils.ColorTag(bankChestIndex.ToString(), Color.Red)}."
         ));
 
         return true;
@@ -2950,11 +3291,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
           player.SendErrorMessage("The chest needs to be protected to be converted to a bank chest.");
 
         return false;
-      } catch (TileProtectedException) {
-        if (sendMessages)
-          player.SendErrorMessage("You do not own the protection of this chest.");
-
-        return false;
       } catch (ChestNotEmptyException) {
         if (sendMessages)
           player.SendErrorMessage("The chest has to be empty in order to restore a bank chest here.");
@@ -2993,8 +3329,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       int invalidBankChestCount;
 
       this.ProtectionManager.EnsureProtectionData(
-        out invalidProtectionsCount, out invalidRefillChestCount, out invalidBankChestCount
-      );
+        false, out invalidProtectionsCount, out invalidRefillChestCount, out invalidBankChestCount);
 
       if (player != TSPlayer.Server) {
         if (invalidProtectionsCount > 0)
@@ -3023,17 +3358,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       if (tile.type == (int)BlockType.Chest || tile.type == (int)BlockType.Dresser) {
-        DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
-        int chestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
-        if (chestIndex != -1) {
-          Chest tChest = Main.chest[chestIndex];
-          for (int i = 0; i < Chest.maxItems; i++)
-            tChest.item[i] = ItemData.None.ToItem();
-        }
+        this.ChestManager.DestroyChest(tileLocation);
+      } else {
+        WorldGen.KillTile(tileLocation.X, tileLocation.Y, false, false, true);
+        TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 0, tileLocation.X, tileLocation.Y, 0, -1);
       }
-
-      WorldGen.KillTile(tileLocation.X, tileLocation.Y, false, false, true);
-      TSPlayer.All.SendTileSquare(tileLocation);
     }
 
     public bool CheckRefillChestLootability(RefillChestMetadata refillChest, TSPlayer player, bool sendReasonMessages = true) {

@@ -10,7 +10,7 @@ using Terraria.Plugins.Common;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class Configuration {
-    public const string CurrentVersion = "1.0";
+    public const string CurrentVersion = "1.2";
 
     public bool[] ManuallyProtectableTiles { get; set; }
     public bool[] AutoProtectedTiles { get; set; }
@@ -30,7 +30,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public float QuickStackNearbyRange { get; set; }
     public bool DungeonChestProtection { get; set; }
     public Dictionary<string,int> MaxBankChests { get; set; }
-
+    public int MaxProtectorChests { get; set; }
 
     public static Configuration Read(string filePath) {
       XmlReaderSettings configReaderSettings = new XmlReaderSettings {
@@ -84,6 +84,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       resultingConfig.NotifyAutoDeprotections = BoolEx.ParseEx(rootElement["NotifyAutoDeprotection"].InnerXml);
       resultingConfig.DungeonChestProtection = BoolEx.ParseEx(rootElement["DungeonChestProtection"].InnerXml);
       resultingConfig.QuickStackNearbyRange = float.Parse(rootElement["QuickStackNearbyRange"].InnerXml);
+      resultingConfig.MaxProtectorChests = int.Parse(rootElement["MaxProtectorChests"].InnerXml);
 
       XmlElement maxBankChestsElement = rootElement["MaxBankChests"];
       resultingConfig.MaxBankChests = new Dictionary<string,int>();

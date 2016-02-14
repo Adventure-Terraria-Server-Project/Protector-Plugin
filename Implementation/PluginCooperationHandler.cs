@@ -30,7 +30,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public void InfiniteChests_ChestDataImport(
-      ProtectionManager protectionManager, 
+      ChestManager chestManager, ProtectionManager protectionManager, 
       out int importedChests, out int overwrittenChests, out int protectFailures
     ) {
       string sqliteDatabaseFilePath = Path.Combine(TShock.SavePath, "chests.sqlite");
@@ -129,7 +129,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
                 ProtectionEntry protection = protectionManager.CreateProtection(owner, chestLocation, true, false, false);
                 protection.IsSharedWithEveryone = (rawFlags & InfiniteChestsChestFlags.PUBLIC) != 0;
                 if ((rawFlags & InfiniteChestsChestFlags.REFILL) != 0)
-                  protectionManager.SetUpRefillChest(owner, chestLocation, TimeSpan.Zero);
+                  chestManager.SetUpRefillChest(owner, chestLocation, TimeSpan.Zero);
               } catch (Exception ex) {
                 this.PluginTrace.WriteLineWarning(
                   "Failed to create protection or define refill chest at {0}:\n{1}", chestLocation, ex

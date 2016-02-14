@@ -1,6 +1,6 @@
 ﻿=================================================================================
  Protector Plugin for TerrariaServer-API
-   (c) CoderCow 2013-2015
+   (c) CoderCow, Stealownz 2013-2016
 =================================================================================
  
 Protects Objects and Blocks
@@ -24,18 +24,20 @@ automatically protected on placement, can be deprotected, how many protections
 a player can create in general and what can be shared or not.
 
 Furthermore, one might make use of Protector's special chest related features, 
-like powerful Refill Chests allowing a timed refill of their content, restrict 
-players from looting them more than one time or allowing only X times of lootings 
-in total. 
+like powerful refill chests allowing a timed refill of their content, restrict 
+players from looting them more than one time, allowing only X times of lootings 
+in total and more.
+
 Also, if your server happens to change worlds frequently or if you just want 
 to offer your players to use chests which can be easily transported including 
-their content, then you can allow the usage of so called Bank Chests storing
+their content, then you can allow the usage of so called bank chests storing
 their content world independently - imagine them as server sided piggy banks.
 
 However when using Protector, worlds will be limited by Terraria's maximum of 
-1000 chests and 1000 signs, so this is no replacement for Infinite Signs or
-Infinite Chests. You can try to operate this plugin with other protection 
-plugins, read the "About Data Import and Compatibility" for more information.
+1000 signs, so this is no replacement for Infinite Signs. Protector can
+however extend the world's chest limit of 1000 chests to as many as you need.
+You can try to operate this plugin with other protection plugins, read the 
+"About Data Import and Compatibility" for more information.
 
 Note: This plugin requires Terraria Server API and TShock in order to work.
 
@@ -59,6 +61,7 @@ Commands
 /RefillChest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
 /RefillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
 /LockChest [+p]
+/SwapChest [+p]
 /Protector
 /Protector Commands
 /Protector RemoveEmptyChests
@@ -67,7 +70,7 @@ Commands
 /Protector RemoveAll <region <region>|user <user>> [-d]
 /Protector ImportInfiniteChests
 /Protector ImportInfiniteSigns
-/Protector ReloadConfig
+/Protector ReloadConfig|ReloadCfg
 
 To get more information about a command type 
 /<command> help
@@ -114,7 +117,7 @@ prot.utility
   Can display a summary about all chests, signs and protections of a world, can 
   lock chests, can convert all dungeon chests, sky island chests, ocean chests, 
   hell shadow chests to refill chests (also requires "prot_setrefillchest"), can 
-  remove all empty non protected chests of the world.
+  remove all empty non protected chests of the world, can swap chest data storage.
 prot.cfg
   Can import Infinite Chests' data or Infinite Signs' database files, can 
   reload Protector's configuration file.
@@ -127,7 +130,8 @@ Signs plugins. Make SURE you create world backups before using this functionalit
 as those changes can otherwise not be revoked.
 
 This plugin might be operated together with Infinite Chests / Infinite Signs if 
-protection of chests, signs and tombstones are not handled by Protector at all. 
+protection of chests, signs and tombstones are not meant to be handled by Protector 
+at all. 
 Do NOT try to use any chest features of Protector together with Infinite Chests 
 as this will cause mixed item data in the world file and the chest database.
 

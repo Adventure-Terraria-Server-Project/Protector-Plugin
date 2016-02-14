@@ -151,12 +151,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Implementation\ChestManager.cs" />
+    <Compile Include="Implementation\ChestUtils.cs" />
+    <Compile Include="Implementation\PacketUtils.cs" />
     <Compile Include="Implementation\PluginCooperationHandler.cs" />
     <Compile Include="Implementation\ServerMetadataHandler.cs" />
     <Compile Include="Implementation\ProtectionManager.cs" />
     <Compile Include="Implementation\_Data\BankChestDataKey.cs" />
+    <Compile Include="Implementation\_Data\IChest.cs" />
+    <Compile Include="Implementation\_Data\ProtectorChestData.cs" />
     <Compile Include="Implementation\_Data\Config\Configuration.cs" />
     <Compile Include="Implementation\_Data\Server\BankChestMetadata.cs" />
+    <Compile Include="Implementation\_Data\ChestAdapter.cs" />
     <Compile Include="Implementation\_Data\World\ProtectionEntry.cs" />
     <Compile Include="Implementation\_Data\World\RefillChestMetadata.cs" />
     <Compile Include="Implementation\UserInteractionHandler.cs" />
@@ -212,7 +218,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)packages\Mono.pdb2mdb.0.1.0.20130128\tools\pdb2mdb.exe" "$(TargetPath)"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Label="SlowCheetah">
     <SlowCheetahToolsPath>$([System.IO.Path]::GetFullPath( $(MSBuildProjectDirectory)\..\packages\SlowCheetah.2.5.10.3\tools\))</SlowCheetahToolsPath>
