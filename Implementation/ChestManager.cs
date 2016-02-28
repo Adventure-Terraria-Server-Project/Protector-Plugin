@@ -100,9 +100,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         else
           refillChestData.Looters = null;
 
-        lock (this.RefillTimers)
-          if (this.RefillTimers.IsTimerRunning(refillChestData.RefillTimer))
-            this.RefillTimers.RemoveTimer(refillChestData.RefillTimer);
+        this.RefillTimers.RemoveTimer(refillChestData.RefillTimer);
 
         return false;
       }
@@ -436,11 +434,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return true;
     }
 
-    public void HandleGameUpdate() {
-      // Yeah, there are much better ways to synchonize the timers, but there is pretty much no lock contention here either. 
-      // There shouldn't be any performance impact.
-      lock (this.RefillTimers)
-        this.RefillTimers.HandleGameUpdate();
+    public void HandleGameSecondUpdate() {
+      this.RefillTimers.HandleGameUpdate();
     }
 
     private bool RefillChestTimer_Callback(TimerBase timer) {

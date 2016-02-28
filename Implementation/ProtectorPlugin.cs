@@ -336,7 +336,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       try {
-        this.ChestManager.HandleGameUpdate();
+        this.ChestManager.HandleGameSecondUpdate();
       } catch (Exception ex) {
         this.Trace.WriteLineError("Unhandled exception in GameUpdate handler:\n" + ex);
       }
