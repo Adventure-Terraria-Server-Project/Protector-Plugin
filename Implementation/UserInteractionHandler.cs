@@ -2478,13 +2478,23 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public virtual bool HandlePlayerSpawn(TSPlayer player, DPoint spawnTileLocation) {
       if (this.IsDisposed)
         return false;
-      if (this.Config.EnableBedSpawnProtection) {
-        DPoint bedTileLocation = new DPoint(spawnTileLocation.X, spawnTileLocation.Y - 1);
-        
-        Tile spawnTile = TerrariaUtils.Tiles[bedTileLocation];
-        if (!spawnTile.active() || spawnTile.type != (int)BlockType.Bed)
-          return false;
 
+      bool isBedSpawn = (spawnTileLocation.X != -1 || spawnTileLocation.Y != -1);
+      if (!isBedSpawn)
+        return false;
+
+      DPoint bedTileLocation = new DPoint(spawnTileLocation.X, spawnTileLocation.Y - 1);
+      Tile spawnTile = TerrariaUtils.Tiles[bedTileLocation];
+      bool isInvalidBedSpawn = (!spawnTile.active() || spawnTile.type != TileID.Beds);
+      
+      if (isInvalidBedSpawn) {
+        player.Teleport(Main.spawnTileX * TerrariaUtils.TileSize, (Main.spawnTileY - 3) * TerrariaUtils.TileSize);
+        this.PluginTrace.WriteLineWarning($"Player \"{player.Name}\" tried to spawn on an invalid location.");
+
+        return true;
+      }
+
+      if (this.Config.EnableBedSpawnProtection) {
         if (this.CheckProtected(player, bedTileLocation, false)) {
           player.SendErrorMessage("The bed you have set spawn at is protected, you can not spawn there.");
           player.SendErrorMessage("You were transported to your last valid spawn location instead.");
@@ -2498,7 +2508,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      return false;
+      return true;
     }
 
     public virtual bool HandleQuickStackNearby(TSPlayer player, int playerSlotIndex) {

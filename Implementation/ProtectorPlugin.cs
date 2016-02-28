@@ -217,11 +217,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.GetDataHookHandler.ChestUnlock += this.Net_ChestUnlock;
       this.GetDataHookHandler.HitSwitch += this.Net_HitSwitch;
       this.GetDataHookHandler.DoorUse += this.Net_DoorUse;
-      this.GetDataHookHandler.PlayerSpawn += this.Net_PlayerSpawn;
       this.GetDataHookHandler.QuickStackNearby += this.Net_QuickStackNearby;
 
       ServerApi.Hooks.GameUpdate.Register(this, this.Game_Update);
       ServerApi.Hooks.WorldSave.Register(this, this.World_SaveWorld);
+      GetDataHandlers.PlayerSpawn += this.TShock_PlayerSpawn;
     }
 
     private void RemoveHooks() {
@@ -230,6 +230,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       ServerApi.Hooks.GameUpdate.Deregister(this, this.Game_Update);
       ServerApi.Hooks.WorldSave.Deregister(this, this.World_SaveWorld);
       ServerApi.Hooks.GamePostInitialize.Deregister(this, this.Game_PostInitialize);
+      GetDataHandlers.PlayerSpawn -= this.TShock_PlayerSpawn;
     }
 
     private void Net_TileEdit(object sender, TileEditEventArgs e) {
@@ -317,11 +318,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
       e.Handled = this.UserInteractionHandler.HandleDoorUse(e.Player, e.Location, isOpening, e.Direction);
     }
 
-    private void Net_PlayerSpawn(object sender, PlayerSpawnEventArgs e) {
+    private void TShock_PlayerSpawn(object sender, GetDataHandlers.SpawnEventArgs e) {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
+      
+      TSPlayer player = TShock.Players[e.Player];
+      if (player == null || !player.IsLoggedIn)
+        return;
 
-      e.Handled = this.UserInteractionHandler.HandlePlayerSpawn(e.Player, e.SpawnTileLocation);
+      e.Handled = this.UserInteractionHandler.HandlePlayerSpawn(player, new DPoint(e.SpawnX, e.SpawnY));
     }
 
     private void Net_QuickStackNearby(object sender, PlayerSlotEventArgs e) {
