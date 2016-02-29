@@ -1967,6 +1967,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             tile = Main.tile[location.X, location.Y] = new Tile();
           
           WorldGen.PlaceTile(location.X, location.Y, (int)blockType, false, true, -1, objectStyle);
+          NetMessage.SendData((int)PacketTypes.Tile, -1, player.Index, string.Empty, 1, location.X, location.Y, (int)blockType, objectStyle);
 
           if (this.Config.AutoProtectedTiles[(int)blockType])
             this.TryCreateAutoProtection(player, location);
@@ -2003,20 +2004,20 @@ namespace Terraria.Plugins.CoderCow.Protector {
               )
             ) {
               if (isChest) {
+                bool isBankChest = (protection.BankChestKey != BankChestDataKey.Invalid);
                 ObjectMeasureData measureData = TerrariaUtils.Tiles.MeasureObject(protection.TileLocation);
                 DPoint chestLocation = measureData.OriginTileLocation;
                 IChest chest = this.ChestManager.ChestFromLocation(chestLocation);
 
-                if (chest != null) {
-                  bool isBankChest = (protection.BankChestKey != BankChestDataKey.Invalid);
-                  if (isBankChest) {
-                    this.DestroyBlockOrObject(chestLocation);
-                    //TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 3, chestLocation.X, chestLocation.Y, 0f, -1);
-                  } else {
-                    for (int i = 0; i < Chest.maxItems; i++) {
-                      if (chest[i].StackSize > 0)
-                        break;
-                    }
+                if (chest == null)
+                  return true;
+
+                if (isBankChest) {
+                  this.DestroyBlockOrObject(chestLocation);
+                } else {
+                  for (int i = 0; i < Chest.maxItems; i++) {
+                    if (chest[i].StackSize > 0)
+                      return true;
                   }
                 }
               }
@@ -2036,8 +2037,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
             DPoint chestLocation = measureData.OriginTileLocation;
             IChest chest = this.ChestManager.ChestFromLocation(chestLocation);
             if (chest != null) {
-              this.DestroyBlockOrObject(chestLocation);
+              // Don't allow removing of non empty chests.
+              for (int i = 0; i < Chest.maxItems; i++) {
+                if (chest[i].StackSize > 0)
+                  return true;
+              }
 
+              this.DestroyBlockOrObject(chestLocation);
               return true;
             }
           }
@@ -2064,7 +2070,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.IsDisposed)
         return false;
       
-      int directionInt = direction ? -1 : 1;
+      int directionInt = direction ? 1 : -1;
       WorldGen.PlaceObject(location.X, location.Y, blockType, false, objectStyle, alternative, random, directionInt);
       NetMessage.SendObjectPlacment(player.Index, location.X, location.Y, blockType, objectStyle, alternative, random, directionInt);
 
@@ -2169,8 +2175,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
-      bool isChestOpened = (chestIndex > -1);
-      if (isChestOpened)
+      bool isChestClosed = (chestIndex == -1);
+      if (!isChestClosed)
         return false;
 
       IChest chest = this.LastOpenedChest(player);
@@ -2480,21 +2486,21 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
 
       bool isBedSpawn = (spawnTileLocation.X != -1 || spawnTileLocation.Y != -1);
-      if (!isBedSpawn)
+      RemoteClient client = Netplay.Clients[player.Index];
+      if (!isBedSpawn || client.State <= 3)
         return false;
 
       DPoint bedTileLocation = new DPoint(spawnTileLocation.X, spawnTileLocation.Y - 1);
       Tile spawnTile = TerrariaUtils.Tiles[bedTileLocation];
       bool isInvalidBedSpawn = (!spawnTile.active() || spawnTile.type != TileID.Beds);
       
+      bool allowNewSpawnSet = true;
       if (isInvalidBedSpawn) {
         player.Teleport(Main.spawnTileX * TerrariaUtils.TileSize, (Main.spawnTileY - 3) * TerrariaUtils.TileSize);
         this.PluginTrace.WriteLineWarning($"Player \"{player.Name}\" tried to spawn on an invalid location.");
 
-        return true;
-      }
-
-      if (this.Config.EnableBedSpawnProtection) {
+        allowNewSpawnSet = false;
+      } else if (this.Config.EnableBedSpawnProtection) {
         if (this.CheckProtected(player, bedTileLocation, false)) {
           player.SendErrorMessage("The bed you have set spawn at is protected, you can not spawn there.");
           player.SendErrorMessage("You were transported to your last valid spawn location instead.");
@@ -2504,9 +2510,20 @@ namespace Terraria.Plugins.CoderCow.Protector {
           else
             player.Teleport(player.TPlayer.SpawnX * TerrariaUtils.TileSize, (player.TPlayer.SpawnY - 3) * TerrariaUtils.TileSize);
 
-          return true;
+          allowNewSpawnSet = false;
         }
       }
+
+      if (allowNewSpawnSet) {
+        player.TPlayer.SpawnX = spawnTileLocation.X;
+        player.TPlayer.SpawnY = spawnTileLocation.Y;
+        player.sX = spawnTileLocation.X;
+        player.sY = spawnTileLocation.X;
+      }
+
+      player.TPlayer.Spawn();
+      NetMessage.SendData(12, -1, player.Index, string.Empty, player.Index);
+      player.Dead = false;
 
       return true;
     }
@@ -2634,9 +2651,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
       DPoint chestLocation;
       int chestIndex = player.TPlayer.chest;
 
-      Console.WriteLine(chestIndex);
       bool isWorldDataChest = (chestIndex != -1 && chestIndex != ChestManager.DummyChestIndex);
       if (isWorldDataChest) {
+        bool isPiggyOrSafe = (chestIndex == -2 || chestIndex == -3);
+        if (isPiggyOrSafe)
+          return null;
+
         Chest chest = Main.chest[chestIndex];
 
         if (chest != null)
