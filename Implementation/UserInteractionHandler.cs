@@ -2169,8 +2169,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public virtual bool HandleChestOpen(TSPlayer player, int chestIndex, DPoint chestLocation) {
       if (this.IsDisposed)
         return false;
-      bool isChestClosed = (chestIndex != -1 || chestIndex == -2 || chestIndex == -3);
-      if (isChestClosed)
+      bool isChestOpened = (chestIndex > -1);
+      if (isChestOpened)
         return false;
 
       IChest chest = this.LastOpenedChest(player);
@@ -2634,6 +2634,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       DPoint chestLocation;
       int chestIndex = player.TPlayer.chest;
 
+      Console.WriteLine(chestIndex);
       bool isWorldDataChest = (chestIndex != -1 && chestIndex != ChestManager.DummyChestIndex);
       if (isWorldDataChest) {
         Chest chest = Main.chest[chestIndex];
