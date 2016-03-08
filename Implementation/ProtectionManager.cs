@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Terraria.Enums;
 using Terraria.ID;
+using Terraria.ObjectData;
 using DPoint = System.Drawing.Point;
 
 using Terraria.Plugins.Common;
@@ -60,98 +62,103 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       lock (this.WorldMetadata.Protections) {
         ProtectionEntry protection;
-        if (TerrariaUtils.Tiles.IsSolidBlockType((BlockType)tile.type, true) || tile.type == (int)BlockType.WoodenBeam) {
+        if (TerrariaUtils.Tiles.IsSolidBlockType((BlockType)tile.type, true) || tile.type == TileID.WoodenBeam) {
           if (this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection))
             yield return protection;
 
-          // Check for adjacent sprites.
-          DPoint topTileLocation = new DPoint(tileLocation.X, tileLocation.Y - 1);
-          Tile topTile = TerrariaUtils.Tiles[topTileLocation];
-          if (
-            topTile.active() && !TerrariaUtils.Tiles.IsSolidBlockType((BlockType)topTile.type, true, true)
-          ) {
-            if (
-              topTile.type == (int)BlockType.CrystalShard || 
-              topTile.type == (int)BlockType.Torch ||
-              topTile.type == (int)BlockType.Sign ||
-              topTile.type == (int)BlockType.Switch
-            ) {
-              if (
-                TerrariaUtils.Tiles.GetObjectOrientation(topTile) == Direction.Up && 
-                this.WorldMetadata.Protections.TryGetValue(TerrariaUtils.Tiles.MeasureObject(topTileLocation).OriginTileLocation, out protection)
-              ) {
-                yield return protection;
-              }
-            } else if (
-              topTile.type != (int)BlockType.Vine &&
-              topTile.type != (int)BlockType.JungleVine &&
-              topTile.type != (int)BlockType.HallowedVine &&
-              !(topTile.type >= (int)BlockType.CopperChandelier && topTile.type == (int)BlockType.GoldChandelier) &&
-              topTile.type != (int)BlockType.Banner &&
-              topTile.type != (int)BlockType.ChainLantern &&
-              topTile.type != (int)BlockType.ChineseLantern &&
-              topTile.type != (int)BlockType.DiscoBall &&
-              topTile.type != (int)BlockType.XMasLight
-            ) {
-              ObjectMeasureData topObjectMeasureData = TerrariaUtils.Tiles.MeasureObject(topTileLocation);
-              if (this.WorldMetadata.Protections.TryGetValue(topObjectMeasureData.OriginTileLocation, out protection))
-                yield return protection;
+          // ** Enumerate Adjacent Object Protections **
 
-              foreach (ProtectionEntry protectionOnTop in this.EnumProtectionEntriesOnTopOfObject(topObjectMeasureData))
-                yield return protectionOnTop;
+          DPoint topTileLocation = new DPoint(tileLocation.X, tileLocation.Y - 1);
+          DPoint leftTileLocation = new DPoint(tileLocation.X - 1, tileLocation.Y);
+          DPoint rightTileLocation = new DPoint(tileLocation.X + 1, tileLocation.Y);
+          DPoint bottomTileLocation = new DPoint(tileLocation.X, tileLocation.Y + 1);
+          Tile topTile = TerrariaUtils.Tiles[topTileLocation];
+          Tile leftTile = TerrariaUtils.Tiles[leftTileLocation];
+          Tile rightTile = TerrariaUtils.Tiles[rightTileLocation];
+          Tile bottomTile = TerrariaUtils.Tiles[bottomTileLocation];
+          TileObjectData topTileData = TileObjectData.GetTileData(topTile);
+          TileObjectData leftTileData = TileObjectData.GetTileData(leftTile);
+          TileObjectData rightTileData = TileObjectData.GetTileData(rightTile);
+          TileObjectData bottomTileData = TileObjectData.GetTileData(bottomTile);
+
+          // Top tile is object and is object placed on top of this tile?
+          if (topTileData != null && topTileData.AnchorBottom.type != AnchorType.None && topTile.type != TileID.Containers && topTile.type != TileID.Dressers) {
+            ObjectMeasureData topObjectMeasureData = TerrariaUtils.Tiles.MeasureObject(topTileLocation);
+            bool isObjectAllowingWallPlacement = (
+              topTile.type == TileID.Signs ||
+              topTile.type == TileID.Switches ||
+              topTile.type == TileID.Lever
+            );
+
+            bool isProtected = this.WorldMetadata.Protections.TryGetValue(topObjectMeasureData.OriginTileLocation, out protection);
+            if (isProtected) {
+              bool hasWallsBehind = false;
+              if (isObjectAllowingWallPlacement)
+                hasWallsBehind = TerrariaUtils.Tiles.EnumerateObjectTiles(topObjectMeasureData).All((t) => t.wall != 0);
+
+              if (!isObjectAllowingWallPlacement || !hasWallsBehind)
+                yield return protection;
+            }
+
+            // There may also be protected objects on top of the object.
+            foreach (ProtectionEntry topProtection in this.EnumProtectionEntriesOnTopOfObject(topObjectMeasureData))
+              yield return topProtection;
+          }
+
+          // Left tile is object and is object placed on the left edge of this tile?
+          if (leftTileData != null && leftTileData.AnchorRight.type != AnchorType.None) {
+            ObjectMeasureData leftObjectMeasureData = TerrariaUtils.Tiles.MeasureObject(leftTileLocation);
+            bool isObjectAllowingWallPlacement = (
+              leftTile.type == TileID.Signs ||
+              leftTile.type == TileID.Switches
+            );
+
+            bool isProtected = this.WorldMetadata.Protections.TryGetValue(leftObjectMeasureData.OriginTileLocation, out protection);
+            if (isProtected) {
+              bool hasWallsBehind = false;
+              if (isObjectAllowingWallPlacement)
+                hasWallsBehind = TerrariaUtils.Tiles.EnumerateObjectTiles(leftObjectMeasureData).All((t) => t.wall != 0);
+
+              if (!isObjectAllowingWallPlacement || !hasWallsBehind)
+                yield return protection;
             }
           }
-        
-          DPoint leftTileLocation = new DPoint(tileLocation.X - 1, tileLocation.Y);
-          Tile leftTile = TerrariaUtils.Tiles[leftTileLocation];
-          if (
-            leftTile.active() && (
-              leftTile.type == (int)BlockType.CrystalShard || 
-              leftTile.type == (int)BlockType.Torch ||
-              leftTile.type == (int)BlockType.Sign ||
-              leftTile.type == (int)BlockType.Switch
-            ) &&
-            TerrariaUtils.Tiles.GetObjectOrientation(leftTile) == Direction.Left
-          ) {
-            if (this.WorldMetadata.Protections.TryGetValue(TerrariaUtils.Tiles.MeasureObject(leftTileLocation).OriginTileLocation, out protection))
-              yield return protection;
+
+          // Right tile is object and is object placed on the right edge of this tile?
+          if (rightTileData != null && rightTileData.AnchorLeft.type != AnchorType.None) {
+            ObjectMeasureData rightObjectMeasureData = TerrariaUtils.Tiles.MeasureObject(rightTileLocation);
+            bool isObjectAllowingWallPlacement = (
+              rightTile.type == TileID.Signs ||
+              rightTile.type == TileID.Switches
+            );
+
+            bool isProtected = this.WorldMetadata.Protections.TryGetValue(rightObjectMeasureData.OriginTileLocation, out protection);
+            if (isProtected) {
+              bool hasWallsBehind = false;
+              if (isObjectAllowingWallPlacement)
+                hasWallsBehind = TerrariaUtils.Tiles.EnumerateObjectTiles(rightObjectMeasureData).All((t) => t.wall != 0);
+
+              if (!isObjectAllowingWallPlacement || !hasWallsBehind)
+                yield return protection;
+            }
           }
 
-          DPoint rightTileLocation = new DPoint(tileLocation.X + 1, tileLocation.Y);
-          Tile rightTile = TerrariaUtils.Tiles[rightTileLocation];
-          if (
-            rightTile.active() && (
-              rightTile.type == (int)BlockType.CrystalShard || 
-              rightTile.type == (int)BlockType.Torch ||
-              rightTile.type == (int)BlockType.Sign ||
-              rightTile.type == (int)BlockType.Switch
-            ) &&
-            TerrariaUtils.Tiles.GetObjectOrientation(rightTile) == Direction.Right
-          ) {
-            if (this.WorldMetadata.Protections.TryGetValue(TerrariaUtils.Tiles.MeasureObject(rightTileLocation).OriginTileLocation, out protection))
-              yield return protection;
-          }
+          // Bottom tile is object and is object placed on the bottom edge of this tile?
+          if (bottomTileData != null && bottomTileData.AnchorTop.type != AnchorType.None) {
+            ObjectMeasureData bottomObjectMeasureData = TerrariaUtils.Tiles.MeasureObject(bottomTileLocation);
+            bool isObjectAllowingWallPlacement = (
+              bottomTile.type == TileID.Signs
+            );
 
-          DPoint bottomTileLocation = new DPoint(tileLocation.X, tileLocation.Y + 1);
-          Tile bottomTile = TerrariaUtils.Tiles[bottomTileLocation];
-          if (
-            bottomTile.active() && (
-              bottomTile.type == (int)BlockType.Vine ||
-              bottomTile.type == (int)BlockType.JungleVine ||
-              bottomTile.type == (int)BlockType.HallowedVine ||
-              (bottomTile.type >= (int)BlockType.CopperChandelier && bottomTile.type == (int)BlockType.GoldChandelier) ||
-              bottomTile.type == (int)BlockType.Banner ||
-              bottomTile.type == (int)BlockType.ChainLantern ||
-              bottomTile.type == (int)BlockType.ChineseLantern ||
-              bottomTile.type == (int)BlockType.DiscoBall ||
-              bottomTile.type == (int)BlockType.XMasLight || (
-                (bottomTile.type == (int)BlockType.CrystalShard || bottomTile.type == (int)BlockType.Sign) &&
-                TerrariaUtils.Tiles.GetObjectOrientation(bottomTile) == Direction.Down
-              )
-            )
-          ) {
-            if (this.WorldMetadata.Protections.TryGetValue(TerrariaUtils.Tiles.MeasureObject(bottomTileLocation).OriginTileLocation, out protection))
-              yield return protection;
+            bool isProtected = this.WorldMetadata.Protections.TryGetValue(bottomObjectMeasureData.OriginTileLocation, out protection);
+            if (isProtected) {
+              bool hasWallsBehind = false;
+              if (isObjectAllowingWallPlacement)
+                hasWallsBehind = TerrariaUtils.Tiles.EnumerateObjectTiles(bottomObjectMeasureData).All((t) => t.wall != 0);
+
+              if (!isObjectAllowingWallPlacement || !hasWallsBehind)
+                yield return protection;
+            }
           }
         } else {
           // This tile represents a sprite, no solid block.
@@ -161,11 +168,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
           if (this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection))
             yield return protection;
 
-          if (tile.type >= (int)BlockType.HerbGrowing && tile.type <= (int)BlockType.HerbBlooming) {
+          if (tile.type >= TileID.ImmatureHerbs && tile.type <= TileID.BloomingHerbs) {
             // Clay Pots and their plants have a special handling - the plant should not be removable if the pot is protected.
             Tile tileBeneath = TerrariaUtils.Tiles[tileLocation.X, tileLocation.Y + 1];
             if (
-              tileBeneath.type == (int)BlockType.ClayPot && 
+              tileBeneath.type == TileID.ClayPot && 
               this.WorldMetadata.Protections.TryGetValue(new DPoint(tileLocation.X, tileLocation.Y + 1), out protection)
             ) {
               yield return protection;
@@ -184,20 +191,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
         DPoint absoluteLocation = measureData.OriginTileLocation.OffsetEx(rx, -1);
 
         Tile topTile = TerrariaUtils.Tiles[absoluteLocation];
-        if (
-          topTile.type == (int)BlockType.Bottle ||
-          topTile.type == (int)BlockType.Chest ||
-          topTile.type == (int)BlockType.Candle ||
-          topTile.type == (int)BlockType.WaterCandle ||
-          topTile.type == (int)BlockType.Book ||
-          topTile.type == (int)BlockType.ClayPot ||
-          topTile.type == (int)BlockType.Bed ||
-          topTile.type == (int)BlockType.SkullLantern ||
-          topTile.type == (int)BlockType.TrashCan_UNUSED ||
-          topTile.type == (int)BlockType.Candelabra ||
-          topTile.type == (int)BlockType.Bowl ||
-          topTile.type == (int)BlockType.CrystalBall
-        ) {
+        TileObjectData topData = TileObjectData.GetTileData(topTile);
+        if (topData != null && (topData.AnchorBottom.type & AnchorType.Table) != 0) {
           lock (this.WorldMetadata.Protections) {
             ProtectionEntry protection;
             if (this.WorldMetadata.Protections.TryGetValue(absoluteLocation, out protection))
