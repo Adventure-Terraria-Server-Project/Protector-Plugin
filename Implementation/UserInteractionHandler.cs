@@ -2798,6 +2798,20 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         return false;
+      } catch (ProtectionNotSharedException) {
+        string blockName = TerrariaUtils.Tiles.GetBlockTypeName((BlockType)TerrariaUtils.Tiles[tileLocation].type);
+
+        if (isShareAll) {
+          player.SendErrorMessage(string.Format("This {0} isn't shared with everyone.", blockName));
+        } else if (!isGroup) {
+          player.SendErrorMessage(string.Format("This {0} isn't shared with {1}.", blockName, shareTargetName));
+        } else {
+          player.SendErrorMessage(string.Format(
+            "This {0} isn't shared with group {1}.", blockName, shareTargetName
+          ));
+        }
+
+        return false;
       } catch (InvalidBlockTypeException ex) {
         if (sendFailureMessages) {
           string messageFormat;
