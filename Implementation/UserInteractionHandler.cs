@@ -2533,7 +2533,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
 
       Item item = player.TPlayer.inventory[playerSlotIndex];
-      this.PutItemInNearbyChest(player, item, player.TPlayer.Center);
+      // TODO: fix this
+      //this.PutItemInNearbyChest(player, item, player.TPlayer.Center);
 
       player.SendData(PacketTypes.PlayerSlot, string.Empty, player.Index, playerSlotIndex, item.prefix);
       return true;
