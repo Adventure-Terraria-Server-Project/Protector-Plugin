@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Terraria.ID;
 using Terraria.Plugins.Common;
 using TShockAPI;
+using TShockAPI.DB;
 using DPoint = System.Drawing.Point;
 
 namespace Terraria.Plugins.CoderCow.Protector {
@@ -424,6 +425,24 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (chest == null) {
         protection.BankChestKey = BankChestDataKey.Invalid;
         return false;
+      }
+
+      User owner = TShock.Users.GetUserByID(protection.Owner);
+      if (owner == null) {
+        this.DestroyChest(chest);
+
+        protection.BankChestKey = BankChestDataKey.Invalid;
+        return false;
+      }
+
+      Group ownerGroup = TShock.Groups.GetGroupByName(owner.Group);
+      if (ownerGroup != null) {
+        if (protection.SharedUsers != null && !ownerGroup.HasPermission(ProtectorPlugin.BankChestShare_Permission))
+          protection.SharedUsers.Clear();
+        if (protection.SharedGroups != null && !ownerGroup.HasPermission(ProtectorPlugin.BankChestShare_Permission))
+          protection.SharedGroups.Clear();
+        if (protection.IsSharedWithEveryone && !ownerGroup.HasPermission(ProtectorPlugin.BankChestShare_Permission))
+          protection.IsSharedWithEveryone = false;
       }
 
       if (resetContent) {

@@ -492,6 +492,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
             continue;
           }
 
+          User owner = TShock.Users.GetUserByID(protection.Owner);
+          if (owner == null) {
+            invalidProtectionLocations.Add(location);
+            continue;
+          }
+
           if (protection.RefillChestData != null && !this.ChestManager.EnsureRefillChest(protection))
             invalidRefillChestCount++;
           else if (protection.BankChestKey != BankChestDataKey.Invalid && !this.ChestManager.EnsureBankChest(protection, resetBankChestContent))
@@ -500,7 +506,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
         
         foreach (DPoint invalidProtectionLocation in invalidProtectionLocations)
           this.WorldMetadata.Protections.Remove(invalidProtectionLocation);
-
         
         invalidProtectionsCount = invalidProtectionLocations.Count;
       } 
