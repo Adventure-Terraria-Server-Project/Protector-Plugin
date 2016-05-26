@@ -138,7 +138,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (item.StackSize == 0 && fairLootPutItem) {
           try {
             bool isLocked;
-            item.Type = TerrariaUtils.Tiles.GetItemTypeFromChestType(TerrariaUtils.Tiles.GetChestStyle(tile, out isLocked));
+            item.Type = TerrariaUtils.Tiles.GetItemTypeFromChestStyle(TerrariaUtils.Tiles.GetChestStyle(tile, out isLocked));
 
             item.StackSize = 1;
             chest.SetItem(i, item);
@@ -202,7 +202,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       BankChestDataKey bankChestKey = new BankChestDataKey(player.User.ID, bankChestIndex);
       lock (this.WorldMetadata.Protections) {
-        if (this.WorldMetadata.Protections.Values.Count(p => p.BankChestKey == bankChestKey) > 0)
+        if (this.WorldMetadata.Protections.Values.Any(p => p.BankChestKey == bankChestKey))
           throw new BankChestAlreadyInstancedException();
       }
 

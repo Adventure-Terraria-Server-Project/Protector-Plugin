@@ -2051,10 +2051,26 @@ namespace Terraria.Plugins.CoderCow.Protector {
           break;
         }
         case TileEditType.PlaceWire:
+        case TileEditType.PlaceWireBlue:
+        case TileEditType.PlaceWireGreen:
+        case TileEditType.PlaceWireYellow:
+        case TileEditType.PlaceActuator:
         case TileEditType.DestroyWire:
+        case TileEditType.DestroyWireBlue:
+        case TileEditType.DestroyWireGreen:
+        case TileEditType.DestroyWireYellow:
+        case TileEditType.DestroyActuator:
           if (this.Config.AllowWiringProtectedBlocks)
             break;
 
+          if (this.CheckProtected(player, location, false)) {
+            player.SendTileSquare(location);
+            return true;
+          }
+
+          break;
+        case TileEditType.PokeLogicGate:
+        case TileEditType.Actuate:
           if (this.CheckProtected(player, location, false)) {
             player.SendTileSquare(location);
             return true;

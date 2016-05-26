@@ -67,7 +67,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
             yield return protection;
 
           // ** Enumerate Adjacent Object Protections **
-
           DPoint topTileLocation = new DPoint(tileLocation.X, tileLocation.Y - 1);
           DPoint leftTileLocation = new DPoint(tileLocation.X - 1, tileLocation.Y);
           DPoint rightTileLocation = new DPoint(tileLocation.X + 1, tileLocation.Y);
