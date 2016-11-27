@@ -14,7 +14,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
   public class ServerMetadataHandler: DatabaseHandlerBase {
     private readonly object workQueueLock = new object();
 
-    protected AsyncWorkQueue WorkQueue { get; private set; }
+    protected AsyncWorkQueue WorkQueue { get; }
 
 
     public ServerMetadataHandler(string sqliteFilePath): base(sqliteFilePath) {
@@ -23,7 +23,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public override void EnsureDataStructure() {      
       SqlTableCreator tableCreator = new SqlTableCreator(this.DbConnection, this.GetQueryBuilder());
-      tableCreator.EnsureExists(new SqlTable(
+      tableCreator.EnsureTableStructure(new SqlTable(
         "Protector_BankChests",
         new SqlColumn("UserId", MySqlDbType.Int32),
         new SqlColumn("ChestIndex", MySqlDbType.Int32),
