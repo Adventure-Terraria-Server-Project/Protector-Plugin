@@ -2670,8 +2670,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool isWorldDataChest = (chestIndex != -1 && chestIndex != ChestManager.DummyChestIndex);
       if (isWorldDataChest) {
-        bool isPiggyOrSafe = (chestIndex == -2 || chestIndex == -3);
-        if (isPiggyOrSafe)
+        bool isPiggyOrSafeOrForge = (chestIndex == -2 || chestIndex == -3 || chestIndex == -4);
+        if (isPiggyOrSafeOrForge)
           return null;
 
         Chest chest = Main.chest[chestIndex];
