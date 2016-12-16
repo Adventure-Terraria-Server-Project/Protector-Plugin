@@ -289,25 +289,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public bool TryRefillChest(DPoint chestLocation, RefillChestMetadata refillChestData) {
-      int tChestIndex = Chest.FindChest(chestLocation.X, chestLocation.Y);
-      if (tChestIndex == -1)
-        return false;
-
-      Chest tChest = Main.chest[tChestIndex];
-      if (tChest == null)
-        return false;
-
-      for (int i = 0; i < Chest.maxItems; i++)
-        tChest.item[i] = refillChestData.RefillItems[i].ToItem();
-
-      if (
-        refillChestData.AutoLock && refillChestData.RefillTime != TimeSpan.Zero && 
-        !TerrariaUtils.Tiles.IsChestLocked(TerrariaUtils.Tiles[chestLocation])
-      ) {
-        TerrariaUtils.Tiles.LockChest(chestLocation);
-      }
-
-      return true;
+      IChest chest = this.ChestFromLocation(chestLocation);
+      if (chest == null)
+        throw new InvalidOperationException("No chest data found at lcoation.");
+        
+      return this.TryRefillChest(chest, refillChestData);
     }
 
     public bool TryRefillChest(IChest chest, RefillChestMetadata refillChestData) {
@@ -525,7 +511,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
           return false;
 
         DPoint chestLocation = protection.TileLocation;
-        this.TryRefillChest(chestLocation, refillChest);
+        try {
+          this.TryRefillChest(chestLocation, refillChest);
+        } catch (InvalidOperationException) {
+          this.PluginTrace.WriteLineWarning($"Chest at position {chestLocation} doesn't seem to exist anymore. Can't refill it.");
+          return false;
+        }
         
         // Returning true would mean the Timer would repeat.
         return false;
