@@ -10,6 +10,8 @@ using Terraria.Plugins.Common;
 
 using TShockAPI;
 using TShockAPI.DB;
+using Wolfje.Plugins.SEconomy;
+using Wolfje.Plugins.SEconomy.Journal;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class PluginCooperationHandler {
@@ -22,13 +24,19 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
-    public PluginTrace PluginTrace { get; private set; }
+    private const string SeconomySomeTypeQualifiedName = "Wolfje.Plugins.SEconomy.SEconomy, Wolfje.Plugins.SEconomy";
+
+    public PluginTrace PluginTrace { get; }
+    public bool IsSeconomyAvailable { get; private set; }
 
 
     public PluginCooperationHandler(PluginTrace pluginTrace) {
       this.PluginTrace = pluginTrace;
+      
+      this.IsSeconomyAvailable = (Type.GetType(SeconomySomeTypeQualifiedName, false) != null);
     }
 
+    #region Infinite Chests
     public void InfiniteChests_ChestDataImport(
       ChestManager chestManager, ProtectionManager protectionManager, 
       out int importedChests, out int overwrittenChests, out int protectFailures
@@ -140,8 +148,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           }
         }
       } finally {
-        if (dbConnection != null)
-          dbConnection.Close();
+        dbConnection?.Close();
       }
     }
 
@@ -262,5 +269,30 @@ namespace Terraria.Plugins.CoderCow.Protector {
           dbConnection.Close();
       }
     }
+    #endregion
+
+    #region Seconomy
+    public Money Seconomy_GetBalance(string playerName) => this.Seconomy_Instance().GetPlayerBankAccount(playerName).Balance;
+
+    public void Seconomy_TransferToWorld(string playerName, Money amount, string journalMsg, string transactionMsg) {
+      SEconomy seconomy = this.Seconomy_Instance();
+
+      IBankAccount account = seconomy.GetPlayerBankAccount(playerName);
+      account.TransferTo(seconomy.WorldAccount, amount, BankAccountTransferOptions.AnnounceToSender, journalMsg, transactionMsg);
+    }
+
+    public string Seconomy_MoneyName() => this.Seconomy_Instance().Configuration.MoneyConfiguration.MoneyNamePlural;
+
+    private SEconomy Seconomy_Instance() {
+      SEconomy seconomy = SEconomyPlugin.Instance;
+      if (seconomy == null) {
+        var errMsg = "The SEconomy instance was null.";
+        this.PluginTrace.WriteLineWarning(errMsg);
+        throw new InvalidOperationException(errMsg);
+      }
+
+      return seconomy;
+    }
+    #endregion
   }
 }

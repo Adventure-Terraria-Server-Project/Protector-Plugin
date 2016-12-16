@@ -24,7 +24,7 @@
 <ProtectorConfiguration
   xmlns="http://github.com/CoderCow/Protector-Plugin"
   
-  Version="1.2"
+  Version="1.3"
 >
   <!-- 
     Tile types which can be manually protected by players.
@@ -72,7 +72,7 @@
           while keeping it intact. Together with AutoProtectedTiles, this allows you to prevent players from making unprotected 
           chests for example.
           
-          Users with the permission "prot_protectionmaster" are not affected by this setting.
+          Users with the permission "prot.protectionmaster" are not affected by this setting.
           
           You can lookup tile ids here: http://terraria.gamepedia.com/Tile_IDs
   -->
@@ -81,19 +81,19 @@
   <!--
     The maximum amount of protections a player can create in one world.
     
-    NOTE: Users with the permission "prot_nolimits" are not affected by this setting.
+    NOTE: Users with the permission "prot.nolimits" are not affected by this setting.
   -->
   <MaxProtectionsPerPlayerPerWorld>40</MaxProtectionsPerPlayerPerWorld>
 
   <!-- 
     The maximum amount of bank chests a player can create.
     
-    NOTE: Users with the permission "prot_nobankchestlimits" are not affected by this setting.
+    NOTE: Users with the permission "prot.nobankchestlimits" are not affected by this setting.
   -->
   <MaxBankChestsPerPlayer>10</MaxBankChestsPerPlayer>
   
   <!--
-    Whether the owner of a refill chest (or someone with the "prot_protectionmaster" permission) can edit the content of
+    Whether the owner of a refill chest (or someone with the "prot.protectionmaster" permission) can edit the content of
     an existing refill chest afterwards.
     If you want to use refill chests like a regular user, set this to "false".
   -->
@@ -129,7 +129,7 @@
   <AllowWiringProtectedBlocks>false</AllowWiringProtectedBlocks>
 
   <!--
-    Whether protections of tiles are automatically removed when a user who's group has the "prot_deprotecteverything" permission 
+    Whether protections of tiles are automatically removed when a user who's group has the "prot.deprotecteverything" permission 
     destroys them. If set to false, the user will have to manually deprotect the tiles first before they can be destroyed.
     
     NOTE: If the corresponding OWNER of the protection breaks the tile, the protection will always automatically get removed and
@@ -182,7 +182,7 @@
 
     NOTE: Any gold chest with natural dungeon walls behind is considered a dungeon chest, wether they are
           protected or not.
-          Players in groups with the "prot_protectionmaster" permission are not affected by this.
+          Players in groups with the "prot.protectionmaster" permission are not affected by this.
   -->
   <DungeonChestProtection>true</DungeonChestProtection>
 
@@ -205,4 +205,11 @@
           at all to be stored by Protector, /pi is just the only way to display this info for the sake of developer laziness.
   -->
   <MaxProtectorChests>500</MaxProtectorChests>
+
+  <!--
+    The amount of SEconomy money to pay for setting up a trade chest.
+
+    NOTE: Free for everyone with the "prot.freetradechests" permission.
+  -->
+  <TradeChestPayment>25</TradeChestPayment>
 </ProtectorConfiguration>

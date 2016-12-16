@@ -13,7 +13,7 @@ using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class WorldMetadata: IMetadataFile {
-    protected const string CurrentVersion = "1.3";
+    protected const string CurrentVersion = "1.4";
 
     public string Version { get; set; }
     public Dictionary<DPoint,ProtectionEntry> Protections { get; set; }

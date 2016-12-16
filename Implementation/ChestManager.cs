@@ -19,11 +19,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     private Configuration config;
 
-    public PluginTrace PluginTrace { get; private set; }
-    public WorldMetadata WorldMetadata { get; private set; }
-    public ServerMetadataHandler ServerMetadataHandler { get; private set; }
-    public TimerManager RefillTimers { get; private set; }
-    public Func<TimerBase,bool> RefillTimerCallbackHandler { get; private set; }
+    public PluginTrace PluginTrace { get; }
+    public WorldMetadata WorldMetadata { get; }
+    public ServerMetadataHandler ServerMetadataHandler { get; }
+    public PluginCooperationHandler CooperationHandler { get; }
+    public TimerManager RefillTimers { get; }
+    public Func<TimerBase,bool> RefillTimerCallbackHandler { get; }
 
     public Configuration Config {
       get { return this.config; }
@@ -39,12 +40,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public ChestManager(
-      PluginTrace pluginTrace, Configuration config, ServerMetadataHandler serverMetadataHandler, WorldMetadata worldMetadata
+      PluginTrace pluginTrace, Configuration config, ServerMetadataHandler serverMetadataHandler, WorldMetadata worldMetadata,
+      PluginCooperationHandler cooperationHandler
     ) {
       this.PluginTrace = pluginTrace;
       this.config = config;
       this.ServerMetadataHandler = serverMetadataHandler;
       this.WorldMetadata = worldMetadata;
+      this.CooperationHandler = cooperationHandler;
 
       this.RefillTimers = new TimerManager(pluginTrace);
       this.RefillTimerCallbackHandler = this.RefillChestTimer_Callback;
@@ -134,14 +137,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool fairLootPutItem = fairLoot;
       for (int i = 0; i < Chest.maxItems; i++) {
-        ItemData item = chest[i];
+        ItemData item = chest.Items[i];
         if (item.StackSize == 0 && fairLootPutItem) {
           try {
             bool isLocked;
             item.Type = TerrariaUtils.Tiles.GetItemTypeFromChestStyle(TerrariaUtils.Tiles.GetChestStyle(tile, out isLocked));
 
             item.StackSize = 1;
-            chest.SetItem(i, item);
+            chest.Items[i] = item;
           } catch (ArgumentException) {}
 
           fairLootPutItem = false;
@@ -190,7 +193,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (!this.WorldMetadata.Protections.TryGetValue(chestLocation, out protection))
           throw new NoProtectionException(chestLocation);
 
-      if (protection.RefillChestData != null)
+      if (protection.RefillChestData != null || protection.TradeChestData != null)
         throw new ChestIncompatibilityException();
      
       IChest chest = this.ChestFromLocation(chestLocation);
@@ -213,19 +216,76 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (bankChest == null) {
         bankChest = new BankChestMetadata();
         for (int i = 0; i < Chest.maxItems; i++)
-          bankChest.Items[i] = chest[i];
+          bankChest.Items[i] = chest.Items[i];
 
         this.ServerMetadataHandler.EnqueueAddOrUpdateBankChest(bankChestKey, bankChest);
       } else {
         for (int i = 0; i < Chest.maxItems; i++)
-          if (chest[i].StackSize > 0)
+          if (chest.Items[i].StackSize > 0)
             throw new ChestNotEmptyException(chestLocation);
         
         for (int i = 0; i < Chest.maxItems; i++)
-          chest.SetItem(i, bankChest.Items[i]);
+          chest.Items[i] = bankChest.Items[i];
       }
 
       protection.BankChestKey = bankChestKey;
+    }
+
+    public void SetUpTradeChest(TSPlayer player, DPoint tileLocation, int sellAmount, int sellItemId, int payAmount, int payItemId, int lootLimit = 0, bool checkPermissions = false) {
+      Contract.Requires<ArgumentNullException>(player != null);
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
+      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
+      Contract.Requires<ArgumentOutOfRangeException>(sellAmount > 0, "sellAmount");
+      Contract.Requires<ArgumentOutOfRangeException>(payAmount > 0, "payAmount");
+
+      Item itemInfo = new Item();
+      itemInfo.netDefaults(sellItemId);
+      if (sellAmount > itemInfo.maxStack)
+        throw new ArgumentOutOfRangeException("sellAmount");
+      itemInfo.netDefaults(payItemId);
+      if (payAmount > itemInfo.maxStack)
+        throw new ArgumentOutOfRangeException("payAmount");
+
+      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      BlockType blockType = (BlockType)tile.type;
+      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
+        throw new InvalidBlockTypeException(blockType);
+
+      if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetTradeChests_Permission))
+        throw new MissingPermissionException(ProtectorPlugin.SetTradeChests_Permission);
+
+      DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
+      ProtectionEntry protection;
+      lock (this.WorldMetadata.Protections)
+        if (!this.WorldMetadata.Protections.TryGetValue(chestLocation, out protection))
+          throw new NoProtectionException(chestLocation);
+
+      if (protection.BankChestKey != BankChestDataKey.Invalid)
+        throw new ChestIncompatibilityException();
+     
+      IChest chest = this.ChestFromLocation(chestLocation);
+      if (chest == null)
+        throw new NoChestDataException(chestLocation);
+
+      bool isNewTradeChest = (protection.TradeChestData == null);
+      if (isNewTradeChest && checkPermissions && this.CooperationHandler.IsSeconomyAvailable && !player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permision)) {
+        if (this.CooperationHandler.Seconomy_GetBalance(player.Name) < this.Config.TradeChestPayment)
+          throw new PaymentException(this.Config.TradeChestPayment);
+
+        this.CooperationHandler.Seconomy_TransferToWorld(player.Name, this.Config.TradeChestPayment, "Trade Chest", "Setup Price");
+      }
+
+      protection.TradeChestData = protection.TradeChestData ?? new TradeChestMetadata();
+      protection.TradeChestData.ItemToSellAmount = sellAmount;
+      if (protection.TradeChestData.ItemToSellId != sellItemId)
+        protection.TradeChestData.LootersTable.Clear();
+
+      protection.TradeChestData.ItemToSellId = sellItemId;
+      protection.TradeChestData.ItemToPayAmount = payAmount;
+      protection.TradeChestData.ItemToPayId = payItemId;
+      protection.TradeChestData.LootLimitPerPlayer = lootLimit;
+      
+      this.PluginTrace.WriteLineVerbose($"{player.Name} just setup a trade chest selling {sellAmount}x {sellItemId} for {payAmount}x {payItemId} with a limit of {lootLimit} at {tileLocation}");
     }
 
     public bool TryRefillChest(DPoint chestLocation, RefillChestMetadata refillChestData) {
@@ -252,7 +312,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public bool TryRefillChest(IChest chest, RefillChestMetadata refillChestData) {
       for (int i = 0; i < Chest.maxItems; i++)
-        chest.SetItem(i, refillChestData.RefillItems[i]);
+        chest.Items[i] = refillChestData.RefillItems[i];
 
       if (
         refillChestData.AutoLock && refillChestData.RefillTime != TimeSpan.Zero && 
@@ -447,7 +507,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       if (resetContent) {
         for (int i = 0; i < Chest.maxItems; i++)
-          chest.SetItem(i, bankChest.Items[i]);
+          chest.Items[i] = bankChest.Items[i];
       }
 
       return true;

@@ -44,6 +44,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public StringCollection SharedGroups { get; set; }
     public BankChestDataKey BankChestKey { get; set; }
     public RefillChestMetadata RefillChestData { get; set; }
+    public TradeChestMetadata TradeChestData { get; set; }
 
 
     public ProtectionEntry(int owner, DPoint tileLocation, BlockType blockType, DateTime timeOfCreation = default(DateTime)) {

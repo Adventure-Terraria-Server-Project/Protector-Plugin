@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ using Terraria.ID;
 using DPoint = System.Drawing.Point;
 
 using Terraria.Plugins.Common;
-
+using Terraria.Plugins.Common.Collections;
 using TShockAPI;
 
 namespace Terraria.Plugins.CoderCow.Protector {
@@ -130,6 +131,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.DumpBankChestCommand_Exec, this.DumpBankChestCommand_HelpCallback, ProtectorPlugin.DumpBankChests_Permission,
         allowServer: false
       );
+      base.RegisterCommand(
+        new[] { "tradechest", "tchest" },
+        this.TradeChestCommand_Exec, this.TradeChestCommand_HelpCallback, ProtectorPlugin.SetTradeChests_Permission,
+        allowServer: false
+      );
       #endregion
       
       #if DEBUG
@@ -226,6 +232,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
             terms.Add("/bankchest");
           if (args.Player.Group.HasPermission(ProtectorPlugin.DumpBankChests_Permission))
             terms.Add("/dumpbankchest");
+          if (args.Player.Group.HasPermission(ProtectorPlugin.SetTradeChests_Permission))
+            terms.Add("/tradechest");
           if (args.Player.Group.HasPermission(ProtectorPlugin.Utility_Permission)) {
             terms.Add("/lockchest");
             terms.Add("/swapchest");
@@ -811,11 +819,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           playerLocal.SendTileSquare(location);
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
-        } else if (editType == TileEditType.DestroyWall) {
-          playerLocal.SendTileSquare(location);
-          return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
         }
 
+        playerLocal.SendTileSquare(location);
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       Func<TSPlayer,DPoint,CommandInteractionResult> usageCallbackFunc = (playerLocal, location) => {
@@ -895,11 +901,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           playerLocal.SendTileSquare(location);
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
-        } else if (editType == TileEditType.DestroyWall) {
-          playerLocal.SendTileSquare(location);
-          return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
         }
 
+        playerLocal.SendTileSquare(location);
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       Func<TSPlayer,DPoint,CommandInteractionResult> usageCallbackFunc = (playerLocal, location) => {
@@ -1263,11 +1267,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           playerLocal.SendTileSquare(location);
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
-        } else if (editType == TileEditType.DestroyWall) {
-          playerLocal.SendTileSquare(location);
-          return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
         }
 
+        playerLocal.SendTileSquare(location);
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       Func<TSPlayer,DPoint,CommandInteractionResult> usageCallbackFunc = (playerLocal, location) => {
@@ -1329,6 +1331,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
         }
 
+        playerLocal.SendTileSquare(location);
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       interaction.ChestOpenCallback += (playerLocal, location) => {
@@ -1402,6 +1405,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
         }
 
+        playerLocal.SendTileSquare(location);
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       interaction.ChestOpenCallback += (playerLocal, location) => {
@@ -1518,11 +1522,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           playerLocal.SendTileSquare(location);
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
-        } else if (editType == TileEditType.DestroyWall) {
-          playerLocal.SendTileSquare(location);
-          return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
         }
 
+        playerLocal.SendTileSquare(location);
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       interaction.ChestOpenCallback += (playerLocal, location) => {
@@ -1913,6 +1915,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
         }
 
+        playerLocal.SendTileSquare(location);
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       interaction.ChestOpenCallback += (playerLocal, chestLocation) => {
@@ -1950,6 +1953,134 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
     #endregion
 
+    #region [Command Handling /tradechest]
+    private void TradeChestCommand_Exec(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return;
+
+      if (args.Parameters.Count < 4) {
+        args.Player.SendErrorMessage("Proper syntax: /tradechest <sell amount> <sell item> <pay amount> <pay item> [limit]");
+        args.Player.SendErrorMessage("Example to sell 200 wood for 5 gold coins: /tradechest 200 Wood 5 \"Gold Coin\"");
+        args.Player.SendErrorMessage("Type /tradechest help to get more help to this command.");
+        return;
+      }
+
+      string sellAmountRaw = args.Parameters[0];
+      string sellItemRaw = args.Parameters[1];
+      string payAmountRaw = args.Parameters[2];
+      string payItemRaw = args.Parameters[3];
+
+      int sellAmount;
+      Item sellItem;
+      int payAmount;
+      Item payItem;
+      int lootLimit = 0;
+
+      if (!int.TryParse(sellAmountRaw, out sellAmount) || sellAmount <= 0) {
+        args.Player.SendErrorMessage($"Expected <sell amount> to be a postive number, but \"{sellAmountRaw}\" was given.");
+        return;
+      }
+      if (!int.TryParse(payAmountRaw, out payAmount) || payAmount <= 0) {
+        args.Player.SendErrorMessage($"Expected <sell amount> to be a postive number, but \"{payAmountRaw}\" was given.");
+        return;
+      }
+      if (args.Parameters.Count > 4 && (!int.TryParse(args.Parameters[4], out lootLimit) || lootLimit <= 0)) {
+        args.Player.SendErrorMessage($"Expected [limit] to be a postive number, but \"{args.Parameters[4]}\" was given.");
+        return;
+      }
+
+      List<Item> itemsToLookup = TShock.Utils.GetItemByIdOrName(sellItemRaw);
+      if (itemsToLookup.Count == 0) {
+        args.Player.SendErrorMessage($"Unable to guess a valid item type from \"{sellItemRaw}\".");
+        return;
+      }
+      if (itemsToLookup.Count > 1) {
+        args.Player.SendErrorMessage("Found multiple matches for the given <sell item>: " + string.Join(", ", itemsToLookup));
+        return;
+      }
+      sellItem = itemsToLookup[0];
+
+      itemsToLookup = TShock.Utils.GetItemByIdOrName(payItemRaw);
+      if (itemsToLookup.Count == 0) {
+        args.Player.SendErrorMessage($"Unable to guess a valid item type from \"{payItemRaw}\".");
+        return;
+      }
+      if (itemsToLookup.Count > 1) {
+        args.Player.SendErrorMessage("Found multiple matches for the given <pay item>: " + string.Join(", ", itemsToLookup));
+        return;
+      }
+      payItem = itemsToLookup[0];
+
+      if (sellItem.netID == payItem.netID || (TerrariaUtils.Items.IsCoinType((ItemType)sellItem.netID) && TerrariaUtils.Items.IsCoinType((ItemType)payItem.netID))) {
+        args.Player.SendErrorMessage("The item to be sold should be different from the item to pay with.");
+        return;
+      }
+
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
+      interaction.TileEditCallback += (playerLocal, editType, tileId, location, objectStyle) => {
+        if (
+          editType != TileEditType.PlaceTile || 
+          editType != TileEditType.PlaceWall || 
+          editType != TileEditType.DestroyWall || 
+          editType != TileEditType.PlaceActuator
+        ) {
+          this.TrySetUpTradeChest(playerLocal, location, sellAmount, sellItem.netID, payAmount, payItem.netID, lootLimit);
+
+          playerLocal.SendTileSquare(location);
+          return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
+        }
+
+        playerLocal.SendTileSquare(location);
+        return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
+      };
+      interaction.ChestOpenCallback += (playerLocal, location) => {
+        this.TrySetUpTradeChest(playerLocal, location, sellAmount, sellItem.netID, payAmount, payItem.netID, lootLimit);
+        return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
+      };
+      interaction.TimeExpiredCallback += (playerLocal) => {
+        playerLocal.SendMessage("Waited too long. No trade chest will be created.", Color.Red);
+      };
+
+      string priceInfo = "";
+      if (this.PluginCooperationHandler.IsSeconomyAvailable && this.Config.TradeChestPayment > 0 && !args.Player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permision))
+        priceInfo = $" This will cost you {this.Config.TradeChestPayment} {this.PluginCooperationHandler.Seconomy_MoneyName()}";
+
+      args.Player.SendInfoMessage("Open a chest to convert it into a trade chest." + priceInfo);
+    }
+
+    private bool TradeChestCommand_HelpCallback(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return true;
+
+      int pageNumber;
+      if (!PaginationUtil.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
+        return false;
+
+      switch (pageNumber) {
+        default:
+          args.Player.SendMessage("Command reference for /tradechest (Page 1 of 2)", Color.Lime);
+          args.Player.SendMessage("/tradechest|/tchest <sell amount> <sell item> <pay amount> <pay item> [limit]", Color.White);
+          args.Player.SendMessage("sell amount = The amount of items to sell to the player per click on the chest.", Color.LightGray);
+          args.Player.SendMessage("sell item = The type of item to sell.", Color.LightGray);
+          args.Player.SendMessage("pay amount = The amount of <pay item> to take from the player's inventory when they buy.", Color.LightGray);
+          args.Player.SendMessage("pay item = The item type to take from the player when they buy.", Color.LightGray);
+          args.Player.SendMessage("limit = Optional. Amount of times a single player is allowed to buy from this chest.", Color.LightGray);
+          break;
+        case 2:
+          args.Player.SendMessage("Converts a chest to a special chest which can sell its content to other players.", Color.LightGray);
+          args.Player.SendMessage("You may also use this command to alter an existing trade chest.", Color.LightGray);
+          args.Player.SendMessage("Other players buy from trade chests by just clicking and only the owner, shared users or admins can view the content of the trade chest.", Color.LightGray);
+          args.Player.SendMessage("The payment of the purchasers is also stored in the chest, so make sure there's always enough space available. Also make sure", Color.LightGray);
+          args.Player.SendMessage("the chest is always filled with enough goods or players will not be able to buy from you.", Color.LightGray);
+          break;
+        case 3:
+          args.Player.SendMessage("Note that prefixes are not regarded for the payment or for the item to be sold.", Color.LightGray);
+          break;
+      }
+
+      return true;
+    }
+    #endregion
 
     #region [Hook Handlers]
     public override bool HandleTileEdit(
@@ -2016,7 +2147,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
                   this.DestroyBlockOrObject(chestLocation);
                 } else {
                   for (int i = 0; i < Chest.maxItems; i++) {
-                    if (chest[i].StackSize > 0)
+                    if (chest.Items[i].StackSize > 0)
                       return true;
                   }
                 }
@@ -2027,6 +2158,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
                 player.SendWarningMessage($"The {tileName} is not protected anymore.");
             } else {
               player.SendErrorMessage($"The {tileName} is protected.");
+
+              if (protection.TradeChestData != null)
+                player.SendWarningMessage("If you want to trade with this chest, right click it first.");
+
               player.SendTileSquare(location);
               return true;
             }
@@ -2039,7 +2174,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             if (chest != null) {
               // Don't allow removing of non empty chests.
               for (int i = 0; i < Chest.maxItems; i++) {
-                if (chest[i].StackSize > 0)
+                if (chest.Items[i].StackSize > 0)
                   return true;
               }
 
@@ -2224,7 +2359,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       if (protection.RefillChestData.AutoEmpty && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
         for (int i = 0; i < Chest.maxItems; i++)
-          chest.SetItem(i, ItemData.None);
+          chest.Items[i] = ItemData.None;
       }
 
       if (protection.RefillChestData.AutoLock && protection.RefillChestData.RefillTime == TimeSpan.Zero)
@@ -2236,7 +2371,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public override bool HandleChestGetContents(TSPlayer player, DPoint location) {
       if (this.IsDisposed)
         return false;
-      if (base.HandleChestGetContents(player, location))
+
+      return this.HandleChestGetContents(player, location, skipInteractions: false);
+    }
+
+    public bool HandleChestGetContents(TSPlayer player, DPoint location, bool skipInteractions) {
+      if (this.IsDisposed)
+        return false;
+      if (!skipInteractions && base.HandleChestGetContents(player, location))
         return true;
       bool isDummyChest = (location.X == 0);
       if (isDummyChest)
@@ -2262,15 +2404,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
         protection = enumProtection;
         break;
       }
-
-      bool playerHasAccess = true;
-      if (protection != null)
-        playerHasAccess = this.ProtectionManager.CheckProtectionAccess(protection, player);
-
-      if (!playerHasAccess) {
-        player.SendErrorMessage("This chest is protected.");
-        return true;
-      }
       
       DPoint chestLocation = TerrariaUtils.Tiles.MeasureObject(location).OriginTileLocation;
 
@@ -2278,39 +2411,55 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (chest == null)
         return true;
 
-      int usingPlayerIndex = -1;
-      if (chest.IsWorldChest)
-        usingPlayerIndex = Chest.UsingChest(chest.Index);
-
-      bool isChestInUse = 
-        (usingPlayerIndex != -1 && usingPlayerIndex != player.Index) ||
-        (this.ChestPlayerIndexDictionary.TryGetValue(chestLocation, out usingPlayerIndex) && usingPlayerIndex != player.Index);
-
-      if (isChestInUse) {
+      if (this.IsChestInUse(player, chest)) {
         player.SendErrorMessage("Another player is already viewing the content of this chest.");
         return true;
       }
-      
-      if (protection != null && protection.RefillChestData != null) {
-        RefillChestMetadata refillChest = protection.RefillChestData;
-        if (this.CheckRefillChestLootability(refillChest, player)) {
-          if (refillChest.OneLootPerPlayer)
-            player.SendMessage("You can loot this chest a single time only.", Color.OrangeRed);
-        } else {
-          return true; 
+
+      if (protection != null) {
+        bool isTradeChest = (protection.TradeChestData != null);
+        if (!this.ProtectionManager.CheckProtectionAccess(protection, player)) {
+          if (isTradeChest)
+            this.InitTrade(player, chest, protection);
+          else
+            player.SendErrorMessage("This chest is protected.");
+
+          return true;
         }
 
-        if (refillChest.RefillTime != TimeSpan.Zero) {
-          lock (this.ChestManager.RefillTimers) {
-            if (this.ChestManager.RefillTimers.IsTimerRunning(refillChest.RefillTimer)) {
-              TimeSpan timeLeft = (refillChest.RefillStartTime + refillChest.RefillTime) - DateTime.Now;
-              player.SendMessage($"This chest will refill in {timeLeft.ToLongString()}.", Color.OrangeRed);
-            } else {
-              player.SendMessage("This chest will refill its content.", Color.OrangeRed);
-            }
+        if (isTradeChest) {
+          Item sellItem = new Item();
+          sellItem.netDefaults(protection.TradeChestData.ItemToSellId);
+          sellItem.stack = protection.TradeChestData.ItemToSellAmount;
+          Item payItem = new Item();
+          payItem.netDefaults(protection.TradeChestData.ItemToPayId);
+          payItem.stack = protection.TradeChestData.ItemToPayAmount;
+
+          player.SendMessage($"This is a trade chest selling {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)}", Color.OrangeRed);
+          player.SendMessage("You have access to it, so you can modify it any time.", Color.LightGray);
+        }
+      
+        if (protection.RefillChestData != null) {
+          RefillChestMetadata refillChest = protection.RefillChestData;
+          if (this.CheckRefillChestLootability(refillChest, player)) {
+            if (refillChest.OneLootPerPlayer)
+              player.SendMessage("You can loot this chest a single time only.", Color.OrangeRed);
+          } else {
+            return true; 
           }
-        } else {
-          player.SendMessage("This chest will refill its content.", Color.OrangeRed);
+
+          if (refillChest.RefillTime != TimeSpan.Zero) {
+            lock (this.ChestManager.RefillTimers) {
+              if (this.ChestManager.RefillTimers.IsTimerRunning(refillChest.RefillTimer)) {
+                TimeSpan timeLeft = (refillChest.RefillStartTime + refillChest.RefillTime) - DateTime.Now;
+                player.SendMessage($"This chest will refill in {timeLeft.ToLongString()}.", Color.OrangeRed);
+              } else {
+                player.SendMessage("This chest will refill its content.", Color.OrangeRed);
+              }
+            }
+          } else {
+            player.SendMessage("This chest will refill its content.", Color.OrangeRed);
+          }
         }
       }
   
@@ -2325,7 +2474,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         for (int i = 0; i < Chest.maxItems; i++) {
-          ChestManager.DummyChest.item[i] = chest[i].ToItem();
+          ChestManager.DummyChest.item[i] = chest.Items[i].ToItem();
           player.SendData(PacketTypes.ChestItem, string.Empty, ChestManager.DummyChestIndex, i);
         }
 
@@ -2347,6 +2496,102 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
       
       return false;
+    }
+
+    private bool IsChestInUse(TSPlayer player, IChest chest) {
+      int usingPlayerIndex = -1;
+      if (chest.IsWorldChest)
+        usingPlayerIndex = Chest.UsingChest(chest.Index);
+
+      return
+        (usingPlayerIndex != -1 && usingPlayerIndex != player.Index) ||
+        (this.ChestPlayerIndexDictionary.TryGetValue(chest.Location, out usingPlayerIndex) && usingPlayerIndex != player.Index);
+    }
+
+    private void InitTrade(TSPlayer player, IChest chest, ProtectionEntry protection) {
+      TradeChestMetadata tradeChestData = protection.TradeChestData;
+      Item sellItem = new Item();
+      sellItem.netDefaults(tradeChestData.ItemToSellId);
+      sellItem.stack = tradeChestData.ItemToSellAmount;
+      Item payItem = new Item();
+      payItem.netDefaults(tradeChestData.ItemToPayId);
+      payItem.stack = tradeChestData.ItemToPayAmount;
+
+      player.SendMessage($"This is a trade chest owned by {TShock.Utils.ColorTag(GetUserName(protection.Owner), Color.Red)}.", Color.LightGray);
+
+      Inventory chestInventory = new Inventory(chest.Items, specificPrefixes: false);
+      int stock = chestInventory.Amount(sellItem.netID);
+      if (stock < sellItem.stack) {
+        player.SendMessage($"It was trading {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)} but it is out of stock.", Color.LightGray);
+        return;
+      }
+
+      player.SendMessage($"Click again to purchase {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)}", Color.LightGray);
+
+      CommandInteraction interaction = this.StartOrResetCommandInteraction(player);
+      
+      interaction.ChestOpenCallback += (playerLocal, chestLocation) => {
+        bool complete;
+
+        bool wasThisChestHit = (chestLocation == chest.Location);
+        if (wasThisChestHit) {
+          // this is important to check, otherwise players could use trade chests to easily duplicate items
+          if (!this.IsChestInUse(playerLocal, chest))
+            this.PerformTrade(player, protection, chestInventory, sellItem, payItem);
+          else
+            player.SendErrorMessage("Another player is currently viewing the content of this chest.");
+
+          complete = false;
+        } else {
+          this.HandleChestGetContents(playerLocal, chestLocation, skipInteractions: true);
+          complete = true;
+        }
+
+        playerLocal.SendTileSquare(chest.Location);
+        return new CommandInteractionResult {IsHandled = true, IsInteractionCompleted = complete};
+      };
+    }
+
+    private void PerformTrade(TSPlayer player, ProtectionEntry protection, Inventory chestInventory, Item sellItem, Item payItem) {
+      Inventory playerInventory = new Inventory(new PlayerItemsAdapter(player.Index, player.TPlayer.inventory, 0, 53), specificPrefixes: false);
+
+      ItemData sellItemData = ItemData.FromItem(sellItem);
+      ItemData payItemData = ItemData.FromItem(payItem);
+      ItemData?[] playerInvUpdates;
+      try {
+        playerInvUpdates = playerInventory.Remove(payItemData);
+        playerInventory.Add(playerInvUpdates, sellItemData);
+      } catch (InvalidOperationException) {
+        player.SendErrorMessage($"You either don't have the needed {TShock.Utils.ItemTag(payItem)} to purchase {TShock.Utils.ItemTag(sellItem)} or your inventory is full.");
+        return;
+      }
+
+      bool isRefillChest = (protection.RefillChestData != null);
+      ItemData?[] chestInvUpdates;
+      try {
+        if (isRefillChest) {
+          chestInvUpdates = chestInventory.Add(payItemData);
+        } else {
+          chestInvUpdates = chestInventory.Remove(sellItemData);
+          chestInventory.Add(chestInvUpdates, payItemData);
+        }
+      } catch (InvalidOperationException) {
+        player.SendErrorMessage("The items in the trade chest are either sold out or there's no space in it to add your payment.");
+        return;
+      }
+
+      try {
+        protection.TradeChestData.AddOrUpdateLooter(player.User.ID);
+      } catch (InvalidOperationException) {
+        player.SendErrorMessage($"The vendor doesn't allow more than {protection.TradeChestData.LootLimitPerPlayer} purchases per player.");
+        return;
+      }
+
+      playerInventory.ApplyUpdates(playerInvUpdates);
+      chestInventory.ApplyUpdates(chestInvUpdates);
+
+      protection.TradeChestData.AddJournalEntry(player.Name, sellItem, payItem);
+      player.SendSuccessMessage($"You've just purchased {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)} from {TShock.Utils.ColorTag(GetUserName(protection.Owner), Color.Red)}.");
     }
 
     public virtual bool HandleChestModifySlot(TSPlayer player, int chestIndex, int slotIndex, ItemData newItem) {
@@ -2408,7 +2653,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         // As the first item is taken out, we start the refill timer.
-        ItemData oldItem = chest[slotIndex];
+        ItemData oldItem = chest.Items[slotIndex];
         if (newItem.Type == ItemType.None || (newItem.Type == oldItem.Type && newItem.StackSize <= oldItem.StackSize)) {
           // TODO: Bad code, refill timers shouldn't be public at all.
           lock (this.ChestManager.RefillTimers)
@@ -2422,7 +2667,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.ServerMetadataHandler.EnqueueUpdateBankChestItem(bankChestKey, slotIndex, newItem);
       }
 
-      chest.SetItem(slotIndex, newItem);
+      chest.Items[slotIndex] = newItem;
       return true;
     }
 
@@ -2610,14 +2855,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
       ProtectionEntry protection;
       if (this.ProtectionManager.CheckBlockAccess(player, chest.Location, false, out protection)) {
         bool isRefillChest = (protection != null && protection.RefillChestData != null);
+        bool isTradeChest = (protection != null && protection.TradeChestData != null);
 
-        if (!isRefillChest) { 
+        if (!isRefillChest && !isTradeChest) { 
           bool isBankChest = (protection != null && protection.BankChestKey != BankChestDataKey.Invalid);
           bool hasEmptySlot = false;
           bool containsSameItem = false;
 
           for (int i = 0; i < Chest.maxItems; i++) {
-            ItemData chestItem = chest[i];
+            ItemData chestItem = chest.Items[i];
 
             if (chestItem.Type <= 0 || chestItem.StackSize <= 0)
               hasEmptySlot = true;
@@ -2644,11 +2890,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
           }
           if (containsSameItem && hasEmptySlot && itemToStore.stack > 0) {
             for (int i = 0; i < Chest.maxItems; i++) {
-              ItemData chestItem = chest[i];
+              ItemData chestItem = chest.Items[i];
 
               if (chestItem.Type == 0 || chestItem.StackSize == 0) {
                 ItemData itemDataToStore = ItemData.FromItem(itemToStore);
-                chest.SetItem(i, itemDataToStore);
+                chest.Items[i] = itemDataToStore;
 
                 if (isBankChest)
                   this.ServerMetadataHandler.EnqueueUpdateBankChestItem(protection.BankChestKey, i, itemDataToStore);
@@ -2953,25 +3199,21 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       string ownerName;
-      if (protection.Owner == -1) {
+      if (protection.Owner == -1)
         ownerName = "{Server}";
-      } else {
-        TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(protection.Owner);
-        if (tsUser != null)
-          ownerName = tsUser.Name;
-        else
-          ownerName = string.Concat("{deleted user id: ", protection.Owner, "}");
-      }
+      else
+        ownerName = GetUserName(protection.Owner);
+      
 
       player.SendMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is protected. The owner is {TShock.Utils.ColorTag(ownerName, Color.Red)}.", Color.LightGray);
       
-      string creationTimeFormat = "Protection created On: unknown";
+      string creationTimeFormat = "unknown";
       if (protection.TimeOfCreation != DateTime.MinValue)
-        creationTimeFormat = "Protection created On: {0:MM/dd/yy, h:mm tt} UTC ({1} ago)";
+        creationTimeFormat = "{0:MM/dd/yy, h:mm tt} UTC ({1} ago)";
 
       player.SendMessage(
         string.Format(
-          CultureInfo.InvariantCulture, creationTimeFormat, protection.TimeOfCreation, 
+          CultureInfo.InvariantCulture, "Protection created On: " + creationTimeFormat, protection.TimeOfCreation, 
           (DateTime.UtcNow - protection.TimeOfCreation).ToLongString()
         ), 
         Color.LightGray
@@ -3010,6 +3252,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
         } else if (protection.BankChestKey != BankChestDataKey.Invalid) {
           BankChestDataKey bankChestKey = protection.BankChestKey;
           player.SendMessage($"This is a bank chest instance with the number {bankChestKey.BankChestIndex}.", Color.LightGray);
+        } else if (protection.TradeChestData != null) {
+          Item sellItem = new Item();
+          sellItem.netDefaults(protection.TradeChestData.ItemToSellId);
+          sellItem.stack = protection.TradeChestData.ItemToSellAmount;
+          Item payItem = new Item();
+          payItem.netDefaults(protection.TradeChestData.ItemToPayId);
+          payItem.stack = protection.TradeChestData.ItemToPayAmount;
+
+          player.SendMessage($"This is a trade chest. It's selling {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)}", Color.LightGray);
         }
 
         IChest chest = this.ChestManager.ChestFromLocation(protection.TileLocation);
@@ -3022,38 +3273,55 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (ProtectionManager.IsShareableBlockType(blockType)) {
         if (protection.IsSharedWithEveryone) {
           player.SendMessage("Protection is shared with everyone.", Color.LightGray);
-          return true;
-        }
+        } else {
+          StringBuilder sharedListBuilder = new StringBuilder();
+          if (protection.SharedUsers != null) {
+            for (int i = 0; i < protection.SharedUsers.Count; i++) {
+              if (i > 0)
+                sharedListBuilder.Append(", ");
 
-        StringBuilder sharedListBuilder = new StringBuilder();
-        if (protection.SharedUsers != null) {
-          for (int i = 0; i < protection.SharedUsers.Count; i++) {
-            if (i > 0)
-              sharedListBuilder.Append(", ");
+              TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(protection.SharedUsers[i]);
+              if (tsUser != null)
+                sharedListBuilder.Append(tsUser.Name);
+            }
+          }
 
-            TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(protection.SharedUsers[i]);
-            if (tsUser != null)
-              sharedListBuilder.Append(tsUser.Name);
+          if (sharedListBuilder.Length == 0 && protection.SharedGroups == null) {
+            player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with users or groups.", Color.LightGray);
+          } else {
+            if (sharedListBuilder.Length > 0)
+              player.SendMessage($"Shared with users: {TShock.Utils.ColorTag(sharedListBuilder.ToString(), Color.Red)}", Color.LightGray);
+            else
+              player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with users.", Color.LightGray);
+
+            if (protection.SharedGroups != null)
+              player.SendMessage($"Shared with groups: {TShock.Utils.ColorTag(protection.SharedGroups.ToString(), Color.Red)}", Color.LightGray);
+            else
+              player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with groups.", Color.LightGray);
           }
         }
+      }
 
-        if (sharedListBuilder.Length == 0 && protection.SharedGroups == null) {
-          player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with users or groups.", Color.LightGray);
-          return true;
-        }
-        
-        if (sharedListBuilder.Length > 0)
-          player.SendMessage($"Shared with users: {TShock.Utils.ColorTag(sharedListBuilder.ToString(), Color.Red)}", Color.LightGray);
-        else
-          player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with users.", Color.LightGray);
+      if (protection.TradeChestData != null && protection.TradeChestData.TransactionJournal.Count > 0) {
+        player.SendMessage($"Trade Chest Journal (Last {protection.TradeChestData.TransactionJournal.Count} Transactions)", Color.LightYellow);
+        protection.TradeChestData.TransactionJournal.ForEach(entry => {
+          string entryText = entry.Item1;
+          DateTime entryTime = entry.Item2;
+          TimeSpan timeSpan = DateTime.UtcNow - entryTime;
 
-        if (protection.SharedGroups != null)
-          player.SendMessage($"Shared with groups: {TShock.Utils.ColorTag(protection.SharedGroups.ToString(), Color.Red)}", Color.LightGray);
-        else
-          player.SendMessage($"Protection is {TShock.Utils.ColorTag("not", Color.Red)} shared with groups.", Color.LightGray);
+          player.SendMessage($"{entryText} {timeSpan.ToLongString()} ago.", Color.LightGray);
+        });
       }
 
       return true;
+    }
+
+    private static string GetUserName(int userId) {
+      TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(userId);
+      if (tsUser != null)
+        return tsUser.Name;
+      else 
+        return string.Concat("{deleted user id: ", userId, "}");
     }
 
     private bool CheckProtected(TSPlayer player, DPoint tileLocation, bool fullAccessRequired) {
@@ -3100,7 +3368,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       ItemData[] content = new ItemData[Chest.maxItems];
       for (int i = 0; i < Chest.maxItems; i++)
-        content[i] = chest[i];
+        content[i] = chest.Items[i];
       
       if (chest.IsWorldChest) {
         lock (this.WorldMetadata.ProtectorChests) {
@@ -3178,7 +3446,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public void RemoveChestData(IChest chest) {
       ItemData[] content = new ItemData[Chest.maxItems];
       for (int i = 0; i < Chest.maxItems; i++)
-        content[i] = chest[i];
+        content[i] = chest.Items[i];
 
       if (chest.IsWorldChest) {
         int playerUsingChestIndex = Chest.UsingChest(chest.Index);
@@ -3192,6 +3460,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
+    /// <exception cref="FormatException">The format item in <paramref name="format" /> is invalid.-or- The index of a format item is not zero. </exception>
     public bool TrySetUpRefillChest(
       TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer, int? lootLimit, bool? autoLock, 
       bool? autoEmpty, bool sendMessages = true
@@ -3222,7 +3491,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           if (sendMessages) {
             if (refillTime != null) {
               if (refillTime != TimeSpan.Zero)
-                player.SendSuccessMessage(string.Format("Set the refill timer of this chest to {0}.", refillTime.Value.ToLongString()));
+                player.SendSuccessMessage($"Set the refill timer of this chest to {refillTime.Value.ToLongString()}.");
               else
                 player.SendSuccessMessage("This chest will now refill instantly.");
             }
@@ -3234,7 +3503,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
             if (lootLimit != null) {
               if (lootLimit.Value != -1)
-                player.SendSuccessMessage(string.Format("This chest can now be looted only {0} more times.", lootLimit));
+                player.SendSuccessMessage($"This chest can now be looted only {lootLimit} more times.");
               else
                 player.SendSuccessMessage("This chest can now be looted endlessly.");
             }
@@ -3365,7 +3634,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       } catch (ChestIncompatibilityException) {
         if (sendMessages)
-          player.SendErrorMessage("A chest can not be a Bank- and Refill- or One Time Loot chest at the same time.");
+          player.SendErrorMessage("A bank chest can not be a refill- or trade chest at the same time.");
 
         return false;
       } catch (NoChestDataException) {
@@ -3383,6 +3652,64 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
         return false;
       }
+    }
+
+    public bool TrySetUpTradeChest(TSPlayer player, DPoint tileLocation, int sellAmount, int sellItemId, int payAmount, int payItemId, int lootLimit = 0, bool sendMessages = true) {
+      if (!player.IsLoggedIn) {
+        if (sendMessages)
+          player.SendErrorMessage("You have to be logged in in order to set up trade chests.");
+        
+        return false;
+      }
+
+      if (!this.ProtectionManager.CheckBlockAccess(player, tileLocation, true) && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+        player.SendErrorMessage("You don't own the protection of this chest.");
+        return false;
+      }
+      
+      try {
+        this.ChestManager.SetUpTradeChest(player, tileLocation, sellAmount, sellItemId, payAmount, payItemId, lootLimit, true);
+
+        player.SendSuccessMessage("Trade chest was successfully created / updated.");
+        return true;
+      } catch (ArgumentOutOfRangeException ex) {
+        if (sendMessages)
+          player.SendErrorMessage("Invalid item amount given.");
+
+        return false;
+      } catch (ArgumentException ex) {
+        if (ex.ParamName == "tileLocation") {
+          if (sendMessages)
+            player.SendErrorMessage("There is no chest here.");
+
+          return false;
+        }
+
+        throw;
+      } catch (MissingPermissionException) {
+        if (sendMessages)
+          player.SendErrorMessage("You are not allowed to define trade chests.");
+      } catch (PaymentException ex) {
+        if (sendMessages)
+          player.SendErrorMessage("You don't have the necessary amount of {0} {1} to set up a trade chest!", ex.PaymentAmount, this.PluginCooperationHandler.Seconomy_MoneyName());
+      } catch (InvalidBlockTypeException) {
+        if (sendMessages)
+          player.SendErrorMessage("Only chests can be converted to trade chests.");
+      } catch (NoProtectionException) {
+        if (sendMessages)
+          player.SendErrorMessage("The chest needs to be protected to be converted to a trade chest.");
+      } catch (ChestTypeAlreadyDefinedException) {
+        if (sendMessages)
+          player.SendErrorMessage("The chest is already a trade chest.");
+      } catch (ChestIncompatibilityException) {
+        if (sendMessages)
+          player.SendErrorMessage("A trade chest can not be a bank chest at the same time.");
+      } catch (NoChestDataException) {
+        if (sendMessages)
+          player.SendErrorMessage("Error: There are no chest data for this chest available. This world's data might be corrupted.");
+      }
+
+      return false;
     }
 
     public void EnsureProtectionData(TSPlayer player) {

@@ -13,9 +13,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
     string Name { get; set; }
     DPoint Location { get; }
     int Index { get; }
-    ItemData this[int slotIndex] { get; }
-
-    void SetItem(int slot, ItemData item);
-    ItemData[] ContentAsArray();
+    IList<ItemData> Items { get; }
   }
 }

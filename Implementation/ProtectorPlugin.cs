@@ -31,9 +31,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public const string UseEverything_Permision         = "prot.useeverything";
     public const string SetRefillChests_Permission      = "prot.setrefillchest";
     public const string SetBankChests_Permission        = "prot.setbankchest";
+    public const string SetTradeChests_Permission       = "prot.settradechest";
     public const string DumpBankChests_Permission       = "prot.dumpbankchest";
     public const string BankChestShare_Permission       = "prot.bankchestshare";
     public const string NoBankChestLimits_Permision     = "prot.nobankchestlimits";
+    public const string FreeTradeChests_Permision       = "prot.freetradechests";
     public const string Utility_Permission              = "prot.utility";
     public const string Cfg_Permission                  = "prot.cfg";
 
@@ -98,7 +100,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       this.PluginCooperationHandler = new PluginCooperationHandler(this.Trace);
       this.ChestManager = new ChestManager(
-        this.Trace, this.Config, this.ServerMetadataHandler, this.WorldMetadata);
+        this.Trace, this.Config, this.ServerMetadataHandler, this.WorldMetadata, this.PluginCooperationHandler);
       this.ProtectionManager = new ProtectionManager(
         this.Trace, this.Config, this.ChestManager, this.ServerMetadataHandler, this.WorldMetadata);
 

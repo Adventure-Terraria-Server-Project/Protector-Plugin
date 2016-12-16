@@ -304,7 +304,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         IChest chest = this.ChestManager.ChestFromLocation(tileLocation);
         if (chest != null)
           for (int i = 0; i < Chest.maxItems; i++)
-            chest.SetItem(i, ItemData.None);
+            chest.Items[i] = ItemData.None;
       }
 
       lock (this.WorldMetadata.Protections)

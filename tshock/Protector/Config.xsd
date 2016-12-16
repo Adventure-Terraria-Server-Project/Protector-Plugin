@@ -58,6 +58,7 @@
         <xs:element name="QuickStackNearbyRange" type="xs:float" />
         <xs:element name="DungeonChestProtection" type="FlexBool" />
         <xs:element name="MaxProtectorChests" type="xs:int" />
+        <xs:element name="TradeChestPayment" type="xs:int" />
 
         <xs:element name="MaxBankChests">
           <xs:complexType>

@@ -152,7 +152,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Implementation\ChestManager.cs" />
-    <Compile Include="Implementation\ChestUtils.cs" />
     <Compile Include="Implementation\PacketUtils.cs" />
     <Compile Include="Implementation\PluginCooperationHandler.cs" />
     <Compile Include="Implementation\ServerMetadataHandler.cs" />
@@ -164,6 +163,7 @@
     <Compile Include="Implementation\_Data\Server\BankChestMetadata.cs" />
     <Compile Include="Implementation\_Data\ChestAdapter.cs" />
     <Compile Include="Implementation\_Data\World\ProtectionEntry.cs" />
+    <Compile Include="Implementation\_Data\World\TradeChestMetadata.cs" />
     <Compile Include="Implementation\_Data\World\RefillChestMetadata.cs" />
     <Compile Include="Implementation\UserInteractionHandler.cs" />
     <Compile Include="Implementation\ProtectorPlugin.cs" />
@@ -202,6 +202,11 @@
     <ProjectReference Include="..\Plugin Common Library\Plugin Common Library.csproj">
       <Project>{1d38e0cf-bf13-4229-860f-3809f39f0892}</Project>
       <Name>Plugin Common Library</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SEconomy\SEconomyPlugin\SEconomyPlugin.csproj">
+      <Project>{a3dfc107-09d3-4bc4-be73-ce7d1cc98495}</Project>
+      <Name>SEconomyPlugin</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\TShock\TerrariaServerAPI\TerrariaServer.csproj">
       <Project>{6877506e-adc6-4142-98a6-79e4fa02855a}</Project>
