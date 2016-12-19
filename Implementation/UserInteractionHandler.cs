@@ -11,6 +11,7 @@ using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 using Terraria.ID;
 using DPoint = System.Drawing.Point;
 
@@ -2095,7 +2096,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         case TileEditType.PlaceTile: {
           Tile tile = TerrariaUtils.Tiles[location];
           if (tile == null)
-            tile = Main.tile[location.X, location.Y] = new Tile();
+            Main.tile[location.X, location.Y] = tile = new Tile();
           
           WorldGen.PlaceTile(location.X, location.Y, (int)blockType, false, true, -1, objectStyle);
           NetMessage.SendData((int)PacketTypes.Tile, -1, player.Index, string.Empty, 1, location.X, location.Y, (int)blockType, objectStyle);

@@ -15,7 +15,7 @@ using Terraria.Plugins.Common;
 using Terraria.Plugins.Common.Hooks;
 
 namespace Terraria.Plugins.CoderCow.Protector {
-  [ApiVersion(1, 26)]
+  [ApiVersion(2, 0)]
   public class ProtectorPlugin: TerrariaPlugin, IDisposable {
     private const string TracePrefix = @"[Protector] ";
 
