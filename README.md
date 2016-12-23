@@ -105,18 +105,3 @@ protection of chests, signs and tombstones are not meant to be handled by Protec
 at all. 
 Do NOT try to use any chest features of Protector together with Infinite Chests 
 as this will cause mixed item data in the world file and the chest database.
-
-###License
-
-The Protector assembly itself and all its containing source code is licensed 
-under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License. 
-To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
-
-The Plugin Common Library is also licensed under the Creative Commons 
-Attribution-NonCommercial-ShareAlike 3.0 Unported License. 
-To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/3.0/.
-
-The JSON library is licensed under the MIT License.
-To view a copy of this license, visit http://json.codeplex.com/license.
-
-Suggestions? Bugs? File issues [here](https://github.com/CoderCow/Protector-Plugin/issues).
