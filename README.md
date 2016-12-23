@@ -17,40 +17,38 @@ Usually Terraria worlds are limited to a maximum of 1000 chests. By using Protec
 
 ###How to Install
 
-Note: This plugin requires Terraria Server API and TShock in order to work. You can not use this with a vanilla Terraria server.
+Note: This plugin requires [TerrariaAPI-Server](https://github.com/NyxStudios/TerrariaAPI-Server) and [TShock](https://github.com/NyxStudios/TShock) in order to work. You can't use this with a vanilla Terraria server.
 
 Grab the latest release from [bin/Release](https://github.com/CoderCow/Protector-Plugin/tree/master/bin/Release) and put the _.dll_ files into your server's _ServerPlugins_ directory. Also put the contents of the _tshock/_ folder into your server's _tshock_ folder. You may change the configuration options to your needs by editing the _tshock/Protector/Config.xml_ file.
 
 ### Commands
 
-* /Protect [+p]
-* /Deprotect [+p]
-* /ProtectionInfo [+p]
-* /Share <player name> [+p]
-* /Unshare <player name> [+p]
-* /ShareGroup <group name> [+p]
-* /UnshareGroup <group name> [+p]
-* /SharePublic [+p]
-* /UnsharePublic [+p]
-* /BankChest <number>
-* /DumpBankChest
-* /RefillChest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
-* /RefillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]
-* /LockChest [+p]
-* /SwapChest [+p]
-* /Protector
-* /Protector Commands
-* /Protector RemoveEmptyChests
-* /Protector Summary
-* /Protector Cleanup [-d]
-* /Protector RemoveAll <region <region>|user <user>> [-d]
-* /Protector ImportInfiniteChests
-* /Protector ImportInfiniteSigns
-* /Protector ReloadConfig|ReloadCfg
+* `/protect [+p]`
+* `/deprotect [+p]`
+* `/protectionInfo [+p]`
+* `/share <player name> [+p]`
+* `/unshare <player name> [+p]`
+* `/shareGroup <group name> [+p]`
+* `/unshareGroup <group name> [+p]`
+* `/sharePublic [+p]`
+* `/unsharePublic [+p]`
+* `/bankChest <number>`
+* `/dumpBankChest`
+* `/refillChest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
+* `/refillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
+* `/lockChest [+p]`
+* `/wwapChest [+p]`
+* `/protector`
+* `/protector Commands`
+* `/protector RemoveEmptyChests`
+* `/protector Summary`
+* `/protector Cleanup [-d]`
+* `/protector RemoveAll <region <region>|user <user>> [-d]`
+* `/protector ImportInfiniteChests`
+* `/protector ImportInfiniteSigns`
+* `/protector ReloadConfig|ReloadCfg`
 
-To get more information about a command type 
-/<command> help
-ingame.
+To get more information about a command type `/<command> help` ingame.
 
 ###Permissions
 
