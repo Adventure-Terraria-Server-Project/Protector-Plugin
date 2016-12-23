@@ -1,7 +1,7 @@
 Protector Plugin
 ================================
  
-###About
+### About
 
 This plugin provides players on TShock driven Terraria servers the possibility of taking ownership of certain objects or blocks, so that other players can not change or use them.
 The content of a protected chest can not be viewed or altered by other players, protected switches can not be hit by other players, signs can not be edited, beds can not be used, doors not opened and even plants in protected clay pots can not be harvested without owning the clay pot.
@@ -25,32 +25,32 @@ Grab the latest release from [bin/Release](https://github.com/CoderCow/Protector
 
 * `/protect [+p]`
 * `/deprotect [+p]`
-* `/protectionInfo [+p]`
+* `/protectioninfo [+p]`
 * `/share <player name> [+p]`
 * `/unshare <player name> [+p]`
-* `/shareGroup <group name> [+p]`
-* `/unshareGroup <group name> [+p]`
-* `/sharePublic [+p]`
-* `/unsharePublic [+p]`
-* `/bankChest <number>`
-* `/dumpBankChest`
-* `/refillChest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
-* `/refillChestMany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
-* `/lockChest [+p]`
-* `/wwapChest [+p]`
+* `/sharegroup <group name> [+p]`
+* `/unsharegroup <group name> [+p]`
+* `/sharepublic [+p]`
+* `/unsharepublic [+p]`
+* `/bankchest <number>`
+* `/dumpbankchest`
+* `/refillchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
+* `/refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
+* `/lockchest [+p]`
+* `/swapchest [+p]`
 * `/protector`
-* `/protector Commands`
-* `/protector RemoveEmptyChests`
-* `/protector Summary`
-* `/protector Cleanup [-d]`
-* `/protector RemoveAll <region <region>|user <user>> [-d]`
-* `/protector ImportInfiniteChests`
-* `/protector ImportInfiniteSigns`
-* `/protector ReloadConfig|ReloadCfg`
+* `/protector commands`
+* `/protector removeemptychests`
+* `/protector summary`
+* `/protector cleanup [-d]`
+* `/protector removeall <region <region>|user <user>> [-d]`
+* `/protector importinfinitechests`
+* `/protector importinfinitesigns`
+* `/protector reloadconfig|reloadcfg`
 
 To get more information about a command type `/<command> help` ingame.
 
-###Permissions
+### Permissions
 
 * **prot.manualprotect**
   Can manually create protections (not required for auto protection).
@@ -94,7 +94,7 @@ To get more information about a command type `/<command> help` ingame.
   Can import Infinite Chests' data or Infinite Signs' database files, can 
   reload Protector's configuration file.
 
-###Data Import and Compatibility
+### Data Import and Compatibility
 
 This plugin can import chest and sign data from the Infinite Chests and Infinite
 Signs plugins. Make SURE you create world backups before using this functionality
