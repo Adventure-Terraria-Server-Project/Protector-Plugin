@@ -184,6 +184,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="LICENSE.txt" />
     <Content Include="tshock\Protector\Config.xml">
       <TransformOnBuild>true</TransformOnBuild>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
