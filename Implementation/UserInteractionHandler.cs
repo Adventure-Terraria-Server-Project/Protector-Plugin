@@ -1554,7 +1554,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("Converts a chest to a special chest which can automatically refill its content.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("time = Examples: 2h, 2h30m, 2h30m10s, 1d6h etc.", Color.LightGray);
-          args.Player.SendMessage("+ot = The chest can only be looted a single time by each player.", Color.LightGray);
+          args.Player.SendMessage("+ot = The chest can only be looted once per player.", Color.LightGray);
           break;
         case 2:
           args.Player.SendMessage("+ll amount = The chest can only be looted the given amount of times in total.", Color.LightGray);
@@ -1744,7 +1744,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("time = Examples: 2h, 2h30m, 2h30m10s, 1d6h etc.", Color.LightGray);
           break;
         case 2:
-          args.Player.SendMessage("+ot = The chest can only be looted a single time by each player.", Color.LightGray);
+          args.Player.SendMessage("+ot = The chest can only be looted once per player.", Color.LightGray);
           args.Player.SendMessage("+ll = The chest can only be looted the given amount of times in total.", Color.LightGray);
           args.Player.SendMessage("+al = After being looted, the chest is automatically locked.", Color.LightGray);
           args.Player.SendMessage("+ae = After being looted, the chest is automatically emptied, regardless of contents.", Color.LightGray);
@@ -2444,7 +2444,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           RefillChestMetadata refillChest = protection.RefillChestData;
           if (this.CheckRefillChestLootability(refillChest, player)) {
             if (refillChest.OneLootPerPlayer)
-              player.SendMessage("You can loot this chest a single time only.", Color.OrangeRed);
+              player.SendMessage("You can loot this chest only once.", Color.OrangeRed);
           } else {
             return true; 
           }
@@ -2527,7 +2527,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
       }
 
-      player.SendMessage($"Click again to purchase {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)}", Color.LightGray);
+      player.SendMessage($"Click again to trade {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)}", Color.LightGray);
 
       CommandInteraction interaction = this.StartOrResetCommandInteraction(player);
       
@@ -2563,7 +2563,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         playerInvUpdates = playerInventory.Remove(payItemData);
         playerInventory.Add(playerInvUpdates, sellItemData);
       } catch (InvalidOperationException) {
-        player.SendErrorMessage($"You either don't have the needed {TShock.Utils.ItemTag(payItem)} to purchase {TShock.Utils.ItemTag(sellItem)} or your inventory is full.");
+        player.SendErrorMessage($"You either don't have the needed {TShock.Utils.ItemTag(payItem)} to trade {TShock.Utils.ItemTag(sellItem)} or your inventory is full.");
         return;
       }
 
@@ -2584,7 +2584,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       try {
         protection.TradeChestData.AddOrUpdateLooter(player.User.ID);
       } catch (InvalidOperationException) {
-        player.SendErrorMessage($"The vendor doesn't allow more than {protection.TradeChestData.LootLimitPerPlayer} purchases per player.");
+        player.SendErrorMessage($"The vendor doesn't allow more than {protection.TradeChestData.LootLimitPerPlayer} trades per player.");
         return;
       }
 
@@ -2592,7 +2592,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       chestInventory.ApplyUpdates(chestInvUpdates);
 
       protection.TradeChestData.AddJournalEntry(player.Name, sellItem, payItem);
-      player.SendSuccessMessage($"You've just purchased {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)} from {TShock.Utils.ColorTag(GetUserName(protection.Owner), Color.Red)}.");
+      player.SendSuccessMessage($"You've just traded {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)} from {TShock.Utils.ColorTag(GetUserName(protection.Owner), Color.Red)}.");
     }
 
     public virtual bool HandleChestModifySlot(TSPlayer player, int chestIndex, int slotIndex, ItemData newItem) {
@@ -3498,7 +3498,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
             if (oneLootPerPlayer != null) {
               if (oneLootPerPlayer.Value)
-                player.SendSuccessMessage("This chest can now be looted one single time by each player.");
+                player.SendSuccessMessage("This chest can now be looted only once per player.");
               else
                 player.SendSuccessMessage("This chest can now be looted freely.");
             }
@@ -3781,7 +3781,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (refillChest.Looters.Contains(player.User.ID)) {
             if (sendReasonMessages)
-              player.SendErrorMessage("This chest can only be looted a single time per player, and you have already looted it once.");
+              player.SendErrorMessage("This chest can only be looted once per player.");
 
             return false;
           }
