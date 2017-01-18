@@ -438,6 +438,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           chestIndex = ChestManager.DummyChestIndex;
         }
 
+        WorldGen.KillTile(chest.Location.X, chest.Location.Y);
         TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 1, chest.Location.X, chest.Location.Y, 0, chestIndex);
       }
     }
