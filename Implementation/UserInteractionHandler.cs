@@ -1960,7 +1960,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       if (args.Parameters.Count < 4) {
-        args.Player.SendErrorMessage("Proper syntax: /tradechest <sell amount> <sell item> <pay amount> <pay item> [limit]");
+        args.Player.SendErrorMessage("Proper syntax: /tradechest <sell amount> <sell item> <pay amount> <pay item or group> [limit]");
         args.Player.SendErrorMessage("Example to sell 200 wood for 5 gold coins: /tradechest 200 Wood 5 \"Gold Coin\"");
         args.Player.SendErrorMessage("Type /tradechest help to get more help to this command.");
         return;
@@ -1974,7 +1974,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       int sellAmount;
       Item sellItem;
       int payAmount;
-      Item payItem;
+      object payItemIdOrGroup;
       int lootLimit = 0;
 
       if (!int.TryParse(sellAmountRaw, out sellAmount) || sellAmount <= 0) {
@@ -2001,20 +2001,25 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
       sellItem = itemsToLookup[0];
 
-      itemsToLookup = TShock.Utils.GetItemByIdOrName(payItemRaw);
-      if (itemsToLookup.Count == 0) {
-        args.Player.SendErrorMessage($"Unable to guess a valid item type from \"{payItemRaw}\".");
-        return;
-      }
-      if (itemsToLookup.Count > 1) {
-        args.Player.SendErrorMessage("Found multiple matches for the given <pay item>: " + string.Join(", ", itemsToLookup));
-        return;
-      }
-      payItem = itemsToLookup[0];
+      bool isItemGroup = this.Config.TradeChestItemGroups.ContainsKey(payItemRaw);
+      if (!isItemGroup) {
+        itemsToLookup = TShock.Utils.GetItemByIdOrName(payItemRaw);
+        if (itemsToLookup.Count == 0) {
+          args.Player.SendErrorMessage($"Unable to guess a valid item type from \"{payItemRaw}\".");
+          return;
+        }
+        if (itemsToLookup.Count > 1) {
+          args.Player.SendErrorMessage("Found multiple matches for the given <pay item>: " + string.Join(", ", itemsToLookup));
+          return;
+        }
+        payItemIdOrGroup = itemsToLookup[0].netID;
 
-      if (sellItem.netID == payItem.netID || (TerrariaUtils.Items.IsCoinType((ItemType)sellItem.netID) && TerrariaUtils.Items.IsCoinType((ItemType)payItem.netID))) {
-        args.Player.SendErrorMessage("The item to be sold should be different from the item to pay with.");
-        return;
+        if (sellItem.netID == (int)payItemIdOrGroup || (TerrariaUtils.Items.IsCoinType((ItemType)sellItem.netID) && TerrariaUtils.Items.IsCoinType((ItemType)payItemIdOrGroup))) {
+          args.Player.SendErrorMessage("The item to be sold should be different from the item to pay with.");
+          return;
+        }
+      } else {
+        payItemIdOrGroup = payItemRaw;
       }
 
       CommandInteraction interaction = this.StartOrResetCommandInteraction(args.Player);
@@ -2025,7 +2030,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           editType != TileEditType.DestroyWall || 
           editType != TileEditType.PlaceActuator
         ) {
-          this.TrySetUpTradeChest(playerLocal, location, sellAmount, sellItem.netID, payAmount, payItem.netID, lootLimit);
+          this.TrySetUpTradeChest(playerLocal, location, sellAmount, sellItem.netID, payAmount, payItemIdOrGroup, lootLimit);
 
           playerLocal.SendTileSquare(location);
           return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
@@ -2035,7 +2040,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return new CommandInteractionResult { IsHandled = false, IsInteractionCompleted = false };
       };
       interaction.ChestOpenCallback += (playerLocal, location) => {
-        this.TrySetUpTradeChest(playerLocal, location, sellAmount, sellItem.netID, payAmount, payItem.netID, lootLimit);
+        this.TrySetUpTradeChest(playerLocal, location, sellAmount, sellItem.netID, payAmount, payItemIdOrGroup, lootLimit);
         return new CommandInteractionResult { IsHandled = true, IsInteractionCompleted = true };
       };
       interaction.TimeExpiredCallback += (playerLocal) => {
@@ -2060,11 +2065,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /tradechest (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/tradechest|/tchest <sell amount> <sell item> <pay amount> <pay item> [limit]", Color.White);
+          args.Player.SendMessage("/tradechest|/tchest <sell amount> <sell item> <pay amount> <pay item or group> [limit]", Color.White);
           args.Player.SendMessage("sell amount = The amount of items to sell to the player per click on the chest.", Color.LightGray);
           args.Player.SendMessage("sell item = The type of item to sell.", Color.LightGray);
           args.Player.SendMessage("pay amount = The amount of <pay item> to take from the player's inventory when they buy.", Color.LightGray);
-          args.Player.SendMessage("pay item = The item type to take from the player when they buy.", Color.LightGray);
+          args.Player.SendMessage("pay item or group = The item type to take from the player when they buy. This may also be an item group name.", Color.LightGray);
           args.Player.SendMessage("limit = Optional. Amount of times a single player is allowed to buy from this chest.", Color.LightGray);
           break;
         case 2:
@@ -2432,11 +2437,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
           Item sellItem = new Item();
           sellItem.netDefaults(protection.TradeChestData.ItemToSellId);
           sellItem.stack = protection.TradeChestData.ItemToSellAmount;
-          Item payItem = new Item();
-          payItem.netDefaults(protection.TradeChestData.ItemToPayId);
-          payItem.stack = protection.TradeChestData.ItemToPayAmount;
 
-          player.SendMessage($"This is a trade chest selling {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)}", Color.OrangeRed);
+          string paymentDescription = this.PaymentItemDescription(protection.TradeChestData);
+          player.SendMessage($"This is a trade chest selling {TShock.Utils.ItemTag(sellItem)} for {paymentDescription}", Color.OrangeRed);
           player.SendMessage("You have access to it, so you can modify it any time.", Color.LightGray);
         }
       
@@ -2499,6 +2502,42 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
+    private string PaymentItemDescription(TradeChestMetadata tradeChestData) {
+      bool isPayGroup = tradeChestData.ItemToPayGroup != null;
+      if (!isPayGroup) {
+        Item payItem = new Item();
+        payItem.netDefaults(tradeChestData.ItemToPayId);
+        payItem.stack = tradeChestData.ItemToPayAmount;
+
+        return TShock.Utils.ItemTag(payItem);
+      } else {
+        string groupName = tradeChestData.ItemToPayGroup;
+        HashSet<int> groupItemIds;
+        if (this.Config.TradeChestItemGroups.TryGetValue(groupName.ToLowerInvariant(), out groupItemIds)) {
+          StringBuilder builder = new StringBuilder();
+          builder.Append(tradeChestData.ItemToPayGroup).Append(' ').Append('(');
+
+          bool isFirst = true;
+          foreach (int itemId in groupItemIds) {
+            if (!isFirst)
+              builder.Append(' ');
+
+            Item item = new Item();
+            item.netDefaults(itemId);
+            item.stack = tradeChestData.ItemToPayAmount;
+
+            builder.Append(TShock.Utils.ItemTag(item));
+            isFirst = false;
+          }
+
+          builder.Append(')');
+          return builder.ToString();
+        } else {
+          return $"{{non existing group: {groupName}}}";
+        }
+      }
+    }
+
     private bool IsChestInUse(TSPlayer player, IChest chest) {
       int usingPlayerIndex = -1;
       if (chest.IsWorldChest)
@@ -2514,35 +2553,56 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Item sellItem = new Item();
       sellItem.netDefaults(tradeChestData.ItemToSellId);
       sellItem.stack = tradeChestData.ItemToSellAmount;
-      Item payItem = new Item();
-      payItem.netDefaults(tradeChestData.ItemToPayId);
-      payItem.stack = tradeChestData.ItemToPayAmount;
+
+      string paymentDescription = this.PaymentItemDescription(tradeChestData);
 
       player.SendMessage($"This is a trade chest owned by {TShock.Utils.ColorTag(GetUserName(protection.Owner), Color.Red)}.", Color.LightGray);
 
       Inventory chestInventory = new Inventory(chest.Items, specificPrefixes: false);
       int stock = chestInventory.Amount(sellItem.netID);
       if (stock < sellItem.stack) {
-        player.SendMessage($"It was trading {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)} but it is out of stock.", Color.LightGray);
+        player.SendMessage($"It was trading {TShock.Utils.ItemTag(sellItem)} for {paymentDescription} but it is out of stock.", Color.LightGray);
         return;
       }
 
-      player.SendMessage($"Click again to trade {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)}", Color.LightGray);
+      player.SendMessage($"Click again to trade {TShock.Utils.ItemTag(sellItem)} for {paymentDescription}", Color.LightGray);
 
       CommandInteraction interaction = this.StartOrResetCommandInteraction(player);
-      
       interaction.ChestOpenCallback += (playerLocal, chestLocation) => {
-        bool complete;
+        bool complete = false;
 
         bool wasThisChestHit = (chestLocation == chest.Location);
         if (wasThisChestHit) {
+          Item payItem = new Item();
           // this is important to check, otherwise players could use trade chests to easily duplicate items
-          if (!this.IsChestInUse(playerLocal, chest))
-            this.PerformTrade(player, protection, chestInventory, sellItem, payItem);
-          else
-            player.SendErrorMessage("Another player is currently viewing the content of this chest.");
+          if (!this.IsChestInUse(playerLocal, chest)) {
+            if (tradeChestData.ItemToPayGroup == null) {
+              
+              payItem.netDefaults(tradeChestData.ItemToPayId);
+              payItem.stack = tradeChestData.ItemToPayAmount;
 
-          complete = false;
+              this.PerformTrade(player, protection, chestInventory, sellItem, payItem);
+            } else {
+              Inventory playerInventory = new Inventory(new PlayerItemsAdapter(player.Index, player.TPlayer.inventory, 0, 53), specificPrefixes: false);
+              bool performedTrade = false;
+              foreach (int payItemId in this.Config.TradeChestItemGroups[tradeChestData.ItemToPayGroup]) {
+                int amountInInventory = playerInventory.Amount(payItemId);
+                if (amountInInventory >= tradeChestData.ItemToPayAmount) {
+                  payItem.netDefaults(payItemId);
+                  payItem.stack = tradeChestData.ItemToPayAmount;
+
+                  this.PerformTrade(player, protection, chestInventory, sellItem, payItem);
+                  performedTrade = true;
+                  break;
+                }
+              }
+
+              if (!performedTrade)
+                playerLocal.SendErrorMessage($"You don't have enought of any of the {paymentDescription}");
+            }
+          } else {
+            player.SendErrorMessage("Another player is currently viewing the content of this chest.");
+          }
         } else {
           this.HandleChestGetContents(playerLocal, chestLocation, skipInteractions: true);
           complete = true;
@@ -3655,7 +3715,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
     }
 
-    public bool TrySetUpTradeChest(TSPlayer player, DPoint tileLocation, int sellAmount, int sellItemId, int payAmount, int payItemId, int lootLimit = 0, bool sendMessages = true) {
+    public bool TrySetUpTradeChest(TSPlayer player, DPoint tileLocation, int sellAmount, int sellItemId, int payAmount, object payItemIdOrGroup, int lootLimit = 0, bool sendMessages = true) {
       if (!player.IsLoggedIn) {
         if (sendMessages)
           player.SendErrorMessage("You have to be logged in in order to set up trade chests.");
@@ -3669,7 +3729,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
       
       try {
-        this.ChestManager.SetUpTradeChest(player, tileLocation, sellAmount, sellItemId, payAmount, payItemId, lootLimit, true);
+        this.ChestManager.SetUpTradeChest(player, tileLocation, sellAmount, sellItemId, payAmount, payItemIdOrGroup, lootLimit, true);
 
         player.SendSuccessMessage("Trade chest was successfully created / updated.");
         return true;

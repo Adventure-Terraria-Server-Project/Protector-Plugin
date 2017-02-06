@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Schema;
 
@@ -10,7 +11,7 @@ using Terraria.Plugins.Common;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class Configuration {
-    public const string CurrentVersion = "1.3";
+    public const string CurrentVersion = "1.4";
 
     public bool[] ManuallyProtectableTiles { get; set; }
     public bool[] AutoProtectedTiles { get; set; }
@@ -32,6 +33,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public Dictionary<string,int> MaxBankChests { get; set; }
     public int MaxProtectorChests { get; set; }
     public int TradeChestPayment { get; set; }
+    public Dictionary<string,HashSet<int>> TradeChestItemGroups { get; set; }
 
     public static Configuration Read(string filePath) {
       XmlReaderSettings configReaderSettings = new XmlReaderSettings {
@@ -90,8 +92,22 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       XmlElement maxBankChestsElement = rootElement["MaxBankChests"];
       resultingConfig.MaxBankChests = new Dictionary<string,int>();
-      foreach (XmlElement limitElement in maxBankChestsElement)
-        resultingConfig.MaxBankChests.Add(limitElement.GetAttribute("Group"), int.Parse(limitElement.InnerXml));
+      foreach (XmlNode node in maxBankChestsElement) {
+        XmlElement limitElement = node as XmlElement;
+        if (limitElement != null)
+          resultingConfig.MaxBankChests.Add(limitElement.GetAttribute("Group"), int.Parse(limitElement.InnerXml));
+      }
+
+      XmlElement tradeChestItemGroupsElement = rootElement["TradeChestItemGroups"];
+      resultingConfig.TradeChestItemGroups = new Dictionary<string,HashSet<int>>();
+      foreach (XmlNode node in tradeChestItemGroupsElement) {
+        XmlElement itemGroupElement = node as XmlElement;
+        if (itemGroupElement != null) {
+          string groupName = itemGroupElement.GetAttribute("Name").ToLowerInvariant();
+          var itemIds = new HashSet<int>(itemGroupElement.InnerText.Split(',').Select(idRaw => int.Parse(idRaw)));
+          resultingConfig.TradeChestItemGroups.Add(groupName, itemIds);
+        }
+      }
 
       return resultingConfig;
     }

@@ -231,7 +231,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       protection.BankChestKey = bankChestKey;
     }
 
-    public void SetUpTradeChest(TSPlayer player, DPoint tileLocation, int sellAmount, int sellItemId, int payAmount, int payItemId, int lootLimit = 0, bool checkPermissions = false) {
+    public void SetUpTradeChest(TSPlayer player, DPoint tileLocation, int sellAmount, int sellItemId, int payAmount, object payItemIdOrGroup, int lootLimit = 0, bool checkPermissions = false) {
       Contract.Requires<ArgumentNullException>(player != null);
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
@@ -242,9 +242,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       itemInfo.netDefaults(sellItemId);
       if (sellAmount > itemInfo.maxStack)
         throw new ArgumentOutOfRangeException("sellAmount");
-      itemInfo.netDefaults(payItemId);
-      if (payAmount > itemInfo.maxStack)
-        throw new ArgumentOutOfRangeException("payAmount");
+
+      bool isPayItemGroup = payItemIdOrGroup is string;
+      if (!isPayItemGroup) {
+        itemInfo.netDefaults((int)payItemIdOrGroup);
+        if (payAmount > itemInfo.maxStack)
+          throw new ArgumentOutOfRangeException("payAmount");
+      }
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       BlockType blockType = (BlockType)tile.type;
@@ -282,10 +286,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       protection.TradeChestData.ItemToSellId = sellItemId;
       protection.TradeChestData.ItemToPayAmount = payAmount;
-      protection.TradeChestData.ItemToPayId = payItemId;
+      if (isPayItemGroup)
+        protection.TradeChestData.ItemToPayGroup = (payItemIdOrGroup as string).ToLowerInvariant();
+      else
+        protection.TradeChestData.ItemToPayId = (int)payItemIdOrGroup;
       protection.TradeChestData.LootLimitPerPlayer = lootLimit;
       
-      this.PluginTrace.WriteLineVerbose($"{player.Name} just setup a trade chest selling {sellAmount}x {sellItemId} for {payAmount}x {payItemId} with a limit of {lootLimit} at {tileLocation}");
+      // TODO: uncomment
+      //this.PluginTrace.WriteLineVerbose($"{player.Name} just setup a trade chest selling {sellAmount}x {sellItemId} for {payAmount}x {payItemId} with a limit of {lootLimit} at {tileLocation}");
     }
 
     public bool TryRefillChest(DPoint chestLocation, RefillChestMetadata refillChestData) {

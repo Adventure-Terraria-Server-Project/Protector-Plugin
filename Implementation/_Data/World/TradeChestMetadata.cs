@@ -19,6 +19,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public int ItemToSellId { get; set; }
     public int ItemToPayAmount { get; set; }
     public int ItemToPayId { get; set; }
+    public string ItemToPayGroup { get; set; }
     public int LootLimitPerPlayer { get; set; }
     public Dictionary<int,int> LootersTable { get; } 
     public LinkedList<JournalEntry> TransactionJournal;

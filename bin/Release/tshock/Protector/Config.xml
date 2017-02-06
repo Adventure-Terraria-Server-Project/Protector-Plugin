@@ -24,7 +24,7 @@
 <ProtectorConfiguration
   xmlns="http://github.com/CoderCow/Protector-Plugin"
   
-  Version="1.3"
+  Version="1.4"
 >
   <!-- 
     Tile types which can be manually protected by players.
@@ -212,4 +212,17 @@
     NOTE: Free for everyone with the "prot.freetradechests" permission.
   -->
   <TradeChestPayment>25</TradeChestPayment>
+
+  <!--
+    Groups of items which are considered equal as payment in trade chest trades.
+
+    NOTE: You can lookup item ids here: http://terraria.gamepedia.com/Item_IDs
+  -->
+  <TradeChestItemGroups>
+    <!-- 
+      As for this example, if "Gems" is specified as the payment item for a trade chest, then this trade chest will accept all of those item 
+      types specified here for the trade.
+    -->
+    <ItemGroup Name="Gems">177, 178, 179, 180, 181, 182, 999</ItemGroup>
+  </TradeChestItemGroups>
 </ProtectorConfiguration>
