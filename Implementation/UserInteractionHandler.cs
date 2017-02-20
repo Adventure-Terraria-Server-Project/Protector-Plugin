@@ -2014,7 +2014,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
         payItemIdOrGroup = itemsToLookup[0].netID;
 
-        if (sellItem.netID == (int)payItemIdOrGroup || (TerrariaUtils.Items.IsCoinType((ItemType)sellItem.netID) && TerrariaUtils.Items.IsCoinType((ItemType)payItemIdOrGroup))) {
+        if (sellItem.netID == (int)payItemIdOrGroup || (TerrariaUtils.Items.IsCoinType((ItemType)sellItem.netID) && TerrariaUtils.Items.IsCoinType((ItemType)(int)payItemIdOrGroup))) {
           args.Player.SendErrorMessage("The item to be sold should be different from the item to pay with.");
           return;
         }
