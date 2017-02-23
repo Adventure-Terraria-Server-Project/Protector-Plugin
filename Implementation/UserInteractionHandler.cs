@@ -2628,11 +2628,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       bool isRefillChest = (protection.RefillChestData != null);
-      ItemData?[] chestInvUpdates;
+      ItemData?[] chestInvUpdates = null;
       try {
-        if (isRefillChest) {
-          chestInvUpdates = chestInventory.Add(payItemData);
-        } else {
+        if (!isRefillChest) {
           chestInvUpdates = chestInventory.Remove(sellItemData);
           chestInventory.Add(chestInvUpdates, payItemData);
         }
@@ -2649,7 +2647,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       playerInventory.ApplyUpdates(playerInvUpdates);
-      chestInventory.ApplyUpdates(chestInvUpdates);
+      if (!isRefillChest)
+        chestInventory.ApplyUpdates(chestInvUpdates);
 
       protection.TradeChestData.AddJournalEntry(player.Name, sellItem, payItem);
       player.SendSuccessMessage($"You've just traded {TShock.Utils.ItemTag(sellItem)} for {TShock.Utils.ItemTag(payItem)} from {TShock.Utils.ColorTag(GetUserName(protection.Owner), Color.Red)}.");
