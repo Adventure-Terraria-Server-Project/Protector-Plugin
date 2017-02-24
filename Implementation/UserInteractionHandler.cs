@@ -2561,11 +2561,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Inventory chestInventory = new Inventory(chest.Items, specificPrefixes: false);
       int stock = chestInventory.Amount(sellItem.netID);
       if (stock < sellItem.stack) {
-        player.SendMessage($"It was trading {TShock.Utils.ItemTag(sellItem)} for {paymentDescription} but it is out of stock.", Color.LightGray);
+        player.SendMessage($"It was selling {TShock.Utils.ItemTag(sellItem)} for {paymentDescription} but it is out of stock.", Color.LightGray);
         return;
       }
 
-      player.SendMessage($"Click again to trade {TShock.Utils.ItemTag(sellItem)} for {paymentDescription}", Color.LightGray);
+      player.SendMessage($"Click again to buy {TShock.Utils.ItemTag(sellItem)} for {paymentDescription}", Color.LightGray);
 
       CommandInteraction interaction = this.StartOrResetCommandInteraction(player);
       interaction.ChestOpenCallback += (playerLocal, chestLocation) => {
@@ -2743,7 +2743,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
       if (protection == null)
         return false;
-
+      
       bool undoUnlock = false;
       if (!this.ProtectionManager.CheckProtectionAccess(protection, player, false)) {
         player.SendErrorMessage("This chest is protected, you can't unlock it.");
@@ -2754,11 +2754,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       if (undoUnlock) {
         bool dummy;
-        if (TerrariaUtils.Tiles.GetChestStyle(TerrariaUtils.Tiles[chestLocation], out dummy) == ChestStyle.GoldChest) {
-          int itemIndex = Item.NewItem( 
-            chestLocation.X * TerrariaUtils.TileSize, chestLocation.Y * TerrariaUtils.TileSize, 0, 0, (int)ItemType.GoldenKey
-          );
-          player.SendData(PacketTypes.ItemDrop, string.Empty, itemIndex);
+        ChestStyle style = TerrariaUtils.Tiles.GetChestStyle(TerrariaUtils.Tiles[chestLocation], out dummy);
+        if (style != ChestStyle.ShadowChest) {
+          int keyType = TerrariaUtils.Tiles.KeyItemTypeFromChestStyle(style);
+          if (keyType != 0) {
+            int itemIndex = Item.NewItem(chestLocation.X * TerrariaUtils.TileSize, chestLocation.Y * TerrariaUtils.TileSize, 0, 0, keyType);
+            player.SendData(PacketTypes.ItemDrop, string.Empty, itemIndex);
+          }
         }
 
         player.SendTileSquare(chestLocation, 3);
@@ -2998,7 +3000,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private bool TryCreateProtection(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {
       if (!player.IsLoggedIn) {
         if (sendFailureMessages)
-          player.SendErrorMessage("You have to be logged in in order protect blocks or objects.");
+          player.SendErrorMessage("You're not logged in.");
 
         return false;
       }
@@ -3007,7 +3009,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.ProtectionManager.CreateProtection(player, tileLocation);
 
         BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
-        player.SendSuccessMessage(string.Format("This {0} is now protected.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)));
+        player.SendSuccessMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is now protected.");
 
         return true;
       } catch (ArgumentException ex) {
@@ -3028,19 +3030,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
       } catch (LimitEnforcementException) {
         if (sendFailureMessages) {
           player.SendErrorMessage(
-            string.Format("You can't create new protections because you've reached the maximum number of protections: {0}.", 
-            this.Config.MaxProtectionsPerPlayerPerWorld)
-          );
+            $"Maximum amount of protections reached ({this.Config.MaxProtectionsPerPlayerPerWorld}).");
         }
       } catch (AlreadyProtectedException) {
         if (sendFailureMessages) {
           BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
-          player.SendErrorMessage(string.Format("This {0} is already protected.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)));
+          player.SendErrorMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is already protected.");
         }
       } catch (TileProtectedException) {
         if (sendFailureMessages) {
           BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
-          player.SendErrorMessage(string.Format("This {0} is protected by someone else or is inside of a protected region.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)));
+          player.SendErrorMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is protected by someone else or is inside of a protected region.");
         }
       } catch (Exception ex) {
         player.SendErrorMessage("An unexpected internal error occured.");
@@ -3057,7 +3057,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     ) {
       if (!player.IsLoggedIn) {
         if (sendFailureMessages)
-          player.SendErrorMessage("You have to be logged in to alter protections.");
+          player.SendErrorMessage("You're not logged in.");
 
         return false;
       }
@@ -3068,41 +3068,25 @@ namespace Terraria.Plugins.CoderCow.Protector {
           this.ProtectionManager.ProtectionShareAll(player, tileLocation, isShareOrUnshare, true);
 
           if (isShareOrUnshare) {
-            player.SendSuccessMessage(string.Format(
-              "This {0} is now shared with everyone.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-            ));
+            player.SendSuccessMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is now shared with everyone.");
           } else {
-            player.SendSuccessMessage(string.Format(
-              "This {0} is not shared with everyone anymore.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-            ));
+            player.SendSuccessMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not shared with everyone anymore.");
           }
         } else if (!isGroup) {
           this.ProtectionManager.ProtectionShareUser(player, tileLocation, (int)shareTarget, isShareOrUnshare, true);
 
           if (isShareOrUnshare) {
-            player.SendSuccessMessage(string.Format(
-              "This {0} is now shared with player \"{1}\".", 
-              TerrariaUtils.Tiles.GetBlockTypeName(blockType), shareTargetName
-            ));
+            player.SendSuccessMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is now shared with player \"{shareTargetName}\".");
           } else {
-            player.SendSuccessMessage(string.Format(
-              "This {0} is not shared with player \"{1}\" anymore.", 
-              TerrariaUtils.Tiles.GetBlockTypeName(blockType), shareTargetName
-            ));
+            player.SendSuccessMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not shared with player \"{shareTargetName}\" anymore.");
           }
         } else {
           this.ProtectionManager.ProtectionShareGroup(player, tileLocation, (string)shareTarget, isShareOrUnshare, true);
 
           if (isShareOrUnshare) {
-            player.SendSuccessMessage(string.Format(
-              "This {0} is now shared with group \"{1}\".", 
-              TerrariaUtils.Tiles.GetBlockTypeName(blockType), shareTargetName
-            ));
+            player.SendSuccessMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is now shared with group \"{shareTargetName}\".");
           } else {
-            player.SendSuccessMessage(string.Format(
-              "This {0} is not shared with group \"{1}\" anymore.", 
-              TerrariaUtils.Tiles.GetBlockTypeName(blockType), shareTargetName
-            ));
+            player.SendSuccessMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not shared with group \"{shareTargetName}\" anymore.");
           }
         }
 
@@ -3111,13 +3095,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
         string blockName = TerrariaUtils.Tiles.GetBlockTypeName((BlockType)TerrariaUtils.Tiles[tileLocation].type);
 
         if (isShareAll) {
-          player.SendErrorMessage(string.Format("This {0} is already shared with everyone.", blockName));
+          player.SendErrorMessage($"This {blockName} is already shared with everyone.");
         } else if (!isGroup) {
-          player.SendErrorMessage(string.Format("This {0} is already shared with {1}.", blockName, shareTargetName));
+          player.SendErrorMessage($"This {blockName} is already shared with {shareTargetName}.");
         } else {
-          player.SendErrorMessage(string.Format(
-            "This {0} is already shared with group {1}.", blockName, shareTargetName
-          ));
+          player.SendErrorMessage($"This {blockName} is already shared with group {shareTargetName}.");
         }
 
         return false;
@@ -3125,13 +3107,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
         string blockName = TerrariaUtils.Tiles.GetBlockTypeName((BlockType)TerrariaUtils.Tiles[tileLocation].type);
 
         if (isShareAll) {
-          player.SendErrorMessage(string.Format("This {0} isn't shared with everyone.", blockName));
+          player.SendErrorMessage($"This {blockName} isn't shared with everyone.");
         } else if (!isGroup) {
-          player.SendErrorMessage(string.Format("This {0} isn't shared with {1}.", blockName, shareTargetName));
+          player.SendErrorMessage($"This {blockName} isn't shared with {shareTargetName}.");
         } else {
-          player.SendErrorMessage(string.Format(
-            "This {0} isn't shared with group {1}.", blockName, shareTargetName
-          ));
+          player.SendErrorMessage($"This {blockName} isn't shared with group {shareTargetName}.");
         }
 
         return false;
@@ -3153,9 +3133,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           if (ex.Permission == ProtectorPlugin.BankChestShare_Permission) {
             player.SendErrorMessage("You're not allowed to share bank chests.");
           } else {
-            player.SendErrorMessage(string.Format(
-              "You're not allowed to share {0} objects.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-            ));
+            player.SendErrorMessage($"You're not allowed to share objects of type {TerrariaUtils.Tiles.GetBlockTypeName(blockType)}.");
           }
         }
         
@@ -3163,15 +3141,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       } catch (NoProtectionException) {
         BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
         if (sendFailureMessages) {
-          player.SendErrorMessage(string.Format(
-            "This {0} is not protected by Protector at all.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-          ));
+          player.SendErrorMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not protected and thus can't be shared.");
         }
         
         return false;
       } catch (TileProtectedException) {
         if (sendFailureMessages)
-          player.SendErrorMessage("You have to be the owner in order to alter shares of the protection.");
+          player.SendErrorMessage("You have to be the owner this object to share it.");
 
         return false;
       }
@@ -3180,7 +3156,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private bool TryRemoveProtection(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {
       if (!player.IsLoggedIn) {
         if (sendFailureMessages)
-          player.SendErrorMessage("You have to be logged in to alter protections.");
+          player.SendErrorMessage("You're not logged in.");
 
         return false;
       }
@@ -3189,9 +3165,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.ProtectionManager.RemoveProtection(player, tileLocation);
 
         BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
-        player.SendSuccessMessage(
-          string.Format("This {0} is not protected anymore.", TerrariaUtils.Tiles.GetBlockTypeName(blockType))
-        );
+        player.SendSuccessMessage($"{TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not protected anymore.");
 
         return true;
       } catch (InvalidBlockTypeException ex) {
@@ -3209,17 +3183,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       } catch (NoProtectionException) {
         BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
         if (sendFailureMessages) {
-          player.SendErrorMessage(string.Format(
-            "This {0} is not protected by Protector at all.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-          ));
+          player.SendErrorMessage($"{TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not protected.");
         }
         
         return false;
       } catch (TileProtectedException) {
         BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
-        player.SendErrorMessage(string.Format(
-          "This {0} is owned by someone else, you can't deprotect it.", TerrariaUtils.Tiles.GetBlockTypeName(blockType)
-        ));
+        player.SendErrorMessage($"{TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is owned by someone else, you can't deprotect it.");
 
         return false;
       }
@@ -3240,7 +3210,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       BlockType blockType = (BlockType)TerrariaUtils.Tiles[tileLocation].type;
       if (protection == null) {
         if (sendFailureMessages)
-          player.SendErrorMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not protected by Protector at all.");
+          player.SendErrorMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName(blockType)} is not protected.");
         
         return false;
       }
@@ -3287,12 +3257,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
           else
             player.SendMessage("This is a refill chest without a timer.", Color.LightGray);
 
+          StringBuilder messageBuilder = new StringBuilder();
           if (refillChest.OneLootPerPlayer || refillChest.RemainingLoots != -1) {
-            StringBuilder messageBuilder = new StringBuilder();
-            messageBuilder.Append("It can only be looted ");
-
+            messageBuilder.Append("It can be looted ");
             if (refillChest.OneLootPerPlayer)
-              messageBuilder.Append("one time by each player");
+              messageBuilder.Append("once per player only");
             if (refillChest.RemainingLoots != -1) {
               if (messageBuilder.Length > 0)
                 messageBuilder.Append(" and ");
@@ -3300,15 +3269,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
               messageBuilder.Append(TShock.Utils.ColorTag(refillChest.RemainingLoots.ToString(), Color.Red));
               messageBuilder.Append(" more times in total");
             }
-            if (refillChest.Looters != null) {
-              messageBuilder.Append(" and was looted ");
-              messageBuilder.Append(TShock.Utils.ColorTag(refillChest.Looters.Count.ToString(), Color.Red));
-              messageBuilder.Append(" times until now");
-            }
             messageBuilder.Append('.');
-
-            player.SendMessage(messageBuilder.ToString(), Color.LightGray);
           }
+
+          if (refillChest.Looters != null) {
+            messageBuilder.Append("It was looted ");
+            messageBuilder.Append(TShock.Utils.ColorTag(refillChest.Looters.Count.ToString(), Color.Red));
+            messageBuilder.Append(" times yet.");
+          }
+
+          if (messageBuilder.Length > 0)
+            player.SendMessage(messageBuilder.ToString(), Color.LightGray);
         } else if (protection.BankChestKey != BankChestDataKey.Invalid) {
           BankChestDataKey bankChestKey = protection.BankChestKey;
           player.SendMessage($"This is a bank chest instance with the number {bankChestKey.BankChestIndex}.", Color.LightGray);
@@ -3393,9 +3364,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
 
       Tile protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
-      player.SendErrorMessage(string.Format(
-        "This {0} is protected.", TerrariaUtils.Tiles.GetBlockTypeName((BlockType)protectedTile.type)
-      ));
+      player.SendErrorMessage($"This {TerrariaUtils.Tiles.GetBlockTypeName((BlockType)protectedTile.type)} is protected.");
 
       return true;
     }
@@ -3545,7 +3514,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             player.SendSuccessMessage("Refill chest successfully set up.");
 
             if (this.Config.AllowRefillChestContentChanges)
-              player.SendSuccessMessage("As you are the owner of it, you may still freely modify its contents.");
+              player.SendSuccessMessage("As you are the owner of it you may still freely modify its contents.");
           }
         } else {
           if (sendMessages) {
@@ -3557,13 +3526,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
             if (oneLootPerPlayer != null) {
               if (oneLootPerPlayer.Value)
-                player.SendSuccessMessage("This chest can now be looted only once per player.");
+                player.SendSuccessMessage("This chest can now be looted once per player only.");
               else
                 player.SendSuccessMessage("This chest can now be looted freely.");
             }
             if (lootLimit != null) {
               if (lootLimit.Value != -1)
-                player.SendSuccessMessage($"This chest can now be looted only {lootLimit} more times.");
+                player.SendSuccessMessage($"This chest can now be looted {lootLimit} more times.");
               else
                 player.SendSuccessMessage("This chest can now be looted endlessly.");
             }
@@ -3606,7 +3575,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       } catch (NoProtectionException) {
         if (sendMessages)
-          player.SendErrorMessage("The chest needs to be protected to be converted to a refill chest.");
+          player.SendErrorMessage("The chest must be protected first.");
 
         return false;
       } catch (ChestIncompatibilityException) {
@@ -3623,7 +3592,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
     }
-    
+
     public bool TrySetUpBankChest(TSPlayer player, DPoint tileLocation, int bankChestIndex, bool sendMessages = true) {
       if (!player.IsLoggedIn) {
         if (sendMessages)
@@ -3679,7 +3648,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       } catch (NoProtectionException) {
         if (sendMessages)
-          player.SendErrorMessage("The chest needs to be protected to be converted to a bank chest.");
+          player.SendErrorMessage("The chest must be protected first.");
 
         return false;
       } catch (ChestNotEmptyException) {
@@ -3706,7 +3675,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       } catch (BankChestAlreadyInstancedException) {
         if (sendMessages) {
-          player.SendErrorMessage(string.Format("There is already an instance of your bank chest with the index {0} in", bankChestIndex));
+          player.SendErrorMessage($"There is already an instance of your bank chest with the index {bankChestIndex} in");
           player.SendErrorMessage("this world.");
         }
 
@@ -3757,7 +3726,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           player.SendErrorMessage("Only chests can be converted to trade chests.");
       } catch (NoProtectionException) {
         if (sendMessages)
-          player.SendErrorMessage("The chest needs to be protected to be converted to a trade chest.");
+          player.SendErrorMessage("The chest must be protected first.");
       } catch (ChestTypeAlreadyDefinedException) {
         if (sendMessages)
           player.SendErrorMessage("The chest is already a trade chest.");
@@ -3828,7 +3797,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       ) {
         if (refillChest.RemainingLoots == 0) {
           if (sendReasonMessages)
-            player.SendErrorMessage("This chest has a loot limit attached to it and can not be looted anymore.");
+            player.SendErrorMessage("This chest has a loot limit attached to it and can't be looted anymore.");
 
           return false;
         }
@@ -3840,7 +3809,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (refillChest.Looters.Contains(player.User.ID)) {
             if (sendReasonMessages)
-              player.SendErrorMessage("This chest can only be looted once per player.");
+              player.SendErrorMessage("This chest can be looted only once per player.");
 
             return false;
           }
