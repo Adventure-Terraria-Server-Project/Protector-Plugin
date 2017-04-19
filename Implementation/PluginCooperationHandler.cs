@@ -5,7 +5,7 @@ using DPoint = System.Drawing.Point;
 
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
-
+using Terraria.ID;
 using Terraria.Plugins.Common;
 
 using TShockAPI;
@@ -87,11 +87,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
               continue;
 
             DPoint chestLocation = new DPoint(rawX, rawY);
-            if (!TerrariaUtils.Tiles[chestLocation].active() || TerrariaUtils.Tiles[chestLocation].type != (int)BlockType.Chest) {
-              this.PluginTrace.WriteLineWarning(string.Format(
-                "The chest data on the location {0} could not be imported because no corresponding chest does exist in the world.", 
-                chestLocation
-              ));
+            Tile chestTile = TerrariaUtils.Tiles[chestLocation];
+            if (!chestTile.active() || chestTile.type != TileID.Containers || chestTile.type != TileID.Containers2) {
+              this.PluginTrace.WriteLineWarning($"The chest data on the location {chestLocation} could not be imported because no corresponding chest does exist in the world.");
               continue;
             }
 

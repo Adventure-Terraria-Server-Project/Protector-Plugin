@@ -67,9 +67,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentOutOfRangeException>(lootLimit == null || lootLimit >= -1);
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      BlockType blockType = (BlockType)tile.type;
-      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
-        throw new InvalidBlockTypeException(blockType);
+      if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
+        throw new InvalidBlockTypeException((BlockType)tile.type);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetRefillChests_Permission))
         throw new MissingPermissionException(ProtectorPlugin.SetRefillChests_Permission);
@@ -165,9 +164,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentOutOfRangeException>(bankChestIndex >= 1, "bankChestIndex");
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      BlockType blockType = (BlockType)tile.type;
-      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
-        throw new InvalidBlockTypeException(blockType);
+      if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
+        throw new InvalidBlockTypeException((BlockType)tile.type);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetBankChests_Permission))
         throw new MissingPermissionException(ProtectorPlugin.SetBankChests_Permission);
@@ -251,9 +249,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      BlockType blockType = (BlockType)tile.type;
-      if (blockType != BlockType.Chest && blockType != BlockType.Dresser)
-        throw new InvalidBlockTypeException(blockType);
+      if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
+        throw new InvalidBlockTypeException((BlockType)tile.type);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetTradeChests_Permission))
         throw new MissingPermissionException(ProtectorPlugin.SetTradeChests_Permission);
@@ -319,7 +316,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public IChest PlaceChest(ushort tileType, int style, DPoint placeLocation) {
-      Contract.Requires<ArgumentException>(tileType == TileID.Containers || tileType == TileID.Dressers);
+      Contract.Requires<ArgumentException>(tileType == TileID.Containers || tileType == TileID.Containers2 || tileType == TileID.Dressers);
 
       IChest chest;
       bool isDresser = (tileType == TileID.Dressers);
@@ -350,6 +347,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       int storageType = 0;
       if (isDresser)
         storageType = 2;
+      if (tileType == TileID.Containers2)
+        storageType = 4;
 
       TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, storageType, placeLocation.X, placeLocation.Y, style, chestIndex);
       // The client will always show open / close animations for the latest chest index. But when there are multiple chests with id 999
@@ -381,7 +380,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public IChest ChestFromLocation(DPoint chestLocation, TSPlayer reportToPlayer = null) {
       Tile tile = TerrariaUtils.Tiles[chestLocation];
-      if (!tile.active() || (tile.type != (int)BlockType.Chest && tile.type != (int)BlockType.Dresser)) {
+      if (!tile.active() || (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)) {
         reportToPlayer?.SendErrorMessage("There is no chest at this position.");
         return null;
       }

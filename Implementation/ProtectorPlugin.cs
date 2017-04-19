@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
@@ -15,7 +16,7 @@ using Terraria.Plugins.Common;
 using Terraria.Plugins.Common.Hooks;
 
 namespace Terraria.Plugins.CoderCow.Protector {
-  [ApiVersion(2, 0)]
+  [ApiVersion(2, 1)]
   public class ProtectorPlugin: TerrariaPlugin, IDisposable {
     private const string TracePrefix = @"[Protector] ";
 

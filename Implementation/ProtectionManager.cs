@@ -35,6 +35,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public static bool IsShareableBlockType(BlockType blockType) {
       return (
         blockType == BlockType.Chest ||
+        blockType == BlockType.Containers2 ||
         blockType == BlockType.Dresser ||
         blockType == BlockType.Sign ||
         blockType == BlockType.Tombstone ||
@@ -81,7 +82,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           TileObjectData bottomTileData = TileObjectData.GetTileData(bottomTile);
 
           // Top tile is object and is object placed on top of this tile?
-          if (topTileData != null && topTileData.AnchorBottom.type != AnchorType.None && topTile.type != TileID.Containers && topTile.type != TileID.Dressers) {
+          if (topTileData != null && topTileData.AnchorBottom.type != AnchorType.None && topTile.type != TileID.Containers && topTile.type != TileID.Containers2 && topTile.type != TileID.Dressers) {
             ObjectMeasureData topObjectMeasureData = TerrariaUtils.Tiles.MeasureObject(topTileLocation);
             bool isObjectAllowingWallPlacement = (
               topTile.type == TileID.Signs ||
@@ -418,7 +419,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       if (checkPermissions) {
         if (
-          (tile.type == (int)BlockType.Chest || tile.type == (int)BlockType.Dresser) &&
+          (tile.type == TileID.Containers || tile.type == TileID.Containers2 || tile.type == TileID.Dressers) &&
           !player.Group.HasPermission(ProtectorPlugin.ChestSharing_Permission)
         ) {
           throw new MissingPermissionException(ProtectorPlugin.ChestSharing_Permission);
