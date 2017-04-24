@@ -25,19 +25,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public int Owner { get; set; }
     public DPoint TileLocation { get; set; }
-    public BlockType BlockType { get; set; }
+    public int BlockType { get; set; }
     public DateTime TimeOfCreation { get; set; }
 
     [JsonIgnore]
-    public bool IsShared {
-      get {
-        return (
-          this.IsSharedWithEveryone ||
-          this.SharedUsers != null ||
-          this.SharedGroups != null
-        );
-      }
-    }
+    public bool IsShared => (
+      this.IsSharedWithEveryone ||
+      this.SharedUsers != null ||
+      this.SharedGroups != null
+    );
 
     public bool IsSharedWithEveryone { get; set; }
     public Collection<int> SharedUsers { get; set; }
@@ -47,7 +43,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public TradeChestMetadata TradeChestData { get; set; }
 
 
-    public ProtectionEntry(int owner, DPoint tileLocation, BlockType blockType, DateTime timeOfCreation = default(DateTime)) {
+    public ProtectionEntry(int owner, DPoint tileLocation, int blockType, DateTime timeOfCreation = default(DateTime)) {
       this.Owner = owner;
       this.TileLocation = tileLocation;
       this.BlockType = blockType;
@@ -60,7 +56,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private ProtectionEntry() {}
 
     private static ProtectionEntry DeserializationCreate() {
-      return new ProtectionEntry { BlockType = BlockType.Invalid };
+      return new ProtectionEntry { BlockType = -1 };
     }
 
     public bool IsSharedWithPlayer(TSPlayer player) {

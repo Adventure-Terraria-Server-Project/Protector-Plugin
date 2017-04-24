@@ -32,17 +32,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public ServerMetadataHandler ServerMetadataHandler { get; private set; }
     public WorldMetadata WorldMetadata { get; private set; }
 
-    public static bool IsShareableBlockType(BlockType blockType) {
+    public static bool IsShareableBlockType(int blockType) {
       return (
-        blockType == BlockType.Chest ||
-        blockType == BlockType.Containers2 ||
-        blockType == BlockType.Dresser ||
-        blockType == BlockType.Sign ||
-        blockType == BlockType.Tombstone ||
-        blockType == BlockType.Bed ||
-        blockType == BlockType.DoorOpened ||
-        blockType == BlockType.DoorClosed ||
-        TerrariaUtils.Tiles.IsSwitchableBlockType(blockType)
+        blockType == TileID.Containers ||
+        blockType == TileID.Containers2 ||
+        blockType == TileID.Dressers ||
+        blockType == TileID.Signs ||
+        blockType == TileID.Tombstones ||
+        blockType == TileID.Beds ||
+        blockType == TileID.OpenDoor ||
+        blockType == TileID.ClosedDoor ||
+        TerrariaUtils.Tiles.IsSwitchableObject(blockType)
       );
     }
 
@@ -63,7 +63,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       lock (this.WorldMetadata.Protections) {
         ProtectionEntry protection;
-        if (TerrariaUtils.Tiles.IsSolidBlockType((BlockType)tile.type, true) || tile.type == TileID.WoodenBeam) {
+        if (TerrariaUtils.Tiles.IsSolidBlockType(tile.type, true) || tile.type == TileID.WoodenBeam) {
           if (this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection))
             yield return protection;
 
@@ -245,7 +245,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      BlockType blockType = (BlockType)tile.type;
+      int blockType = tile.type;
       tileLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
 
       if (checkIfBlockTypeProtectableByConfig && !this.Config.ManuallyProtectableTiles[tile.type])
@@ -272,7 +272,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           throw new TileProtectedException(tileLocation);
         }
 
-        protection = new ProtectionEntry(player.User.ID, tileLocation, (BlockType)tile.type);
+        protection = new ProtectionEntry(player.User.ID, tileLocation, tile.type);
         this.WorldMetadata.Protections.Add(tileLocation, protection);
 
         return protection;
@@ -287,7 +287,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         Tile tile = TerrariaUtils.Tiles[tileLocation];
         if (tile.active()) {
           if (!canDeprotectEverything && checkIfBlockTypeDeprotectableByConfig && this.Config.NotDeprotectableTiles[tile.type])
-            throw new InvalidBlockTypeException((BlockType)tile.type);
+            throw new InvalidBlockTypeException(tile.type);
         
           tileLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
         }
@@ -413,7 +413,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       TSPlayer player, DPoint tileLocation, bool shareOrUnshare, bool checkPermissions, out ProtectionEntry protection
     ) {
       Tile tile = TerrariaUtils.Tiles[tileLocation];
-      BlockType blockType = (BlockType)tile.type;
+      int blockType = tile.type;
       if (!ProtectionManager.IsShareableBlockType(blockType))
         throw new InvalidBlockTypeException(blockType);
 
@@ -426,7 +426,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         if (
-          TerrariaUtils.Tiles.IsSwitchableBlockType((BlockType)tile.type) && 
+          TerrariaUtils.Tiles.IsSwitchableObject(tile.type) && 
           !player.Group.HasPermission(ProtectorPlugin.SwitchSharing_Permission)
         ) {
           throw new MissingPermissionException(ProtectorPlugin.SwitchSharing_Permission);
@@ -434,11 +434,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
         if (
           (
-            tile.type == (int)BlockType.Sign || 
-            tile.type == (int)BlockType.Tombstone ||
-            tile.type == (int)BlockType.Bed ||
-            tile.type == (int)BlockType.DoorOpened ||
-            tile.type == (int)BlockType.DoorClosed
+            tile.type == TileID.Signs || 
+            tile.type == TileID.Tombstones ||
+            tile.type == TileID.Beds ||
+            tile.type == TileID.OpenDoor ||
+            tile.type == TileID.ClosedDoor
           ) &&
           !player.Group.HasPermission(ProtectorPlugin.OtherSharing_Permission)
         ) {
@@ -487,7 +487,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           ProtectionEntry protection = protectionPair.Value;
           Tile tile = TerrariaUtils.Tiles[location];
 
-          if (!tile.active() || (BlockType)tile.type != protection.BlockType) {
+          if (!tile.active() || tile.type != protection.BlockType) {
             invalidProtectionLocations.Add(location);
             continue;
           }

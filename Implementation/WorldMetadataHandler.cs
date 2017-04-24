@@ -33,10 +33,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
           DPoint location = protectionPair.Key;
           ProtectionEntry protection = protectionPair.Value;
 
-          if (protection.BlockType == BlockType.Invalid) {
+          if (protection.BlockType == -1) {
             Tile tile = TerrariaUtils.Tiles[location];
             if (tile.active())
-              protection.BlockType = (BlockType)tile.type;
+              protection.BlockType = tile.type;
           }
         }
       }

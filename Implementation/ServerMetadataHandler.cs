@@ -158,8 +158,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
       for (int i = 0; i < itemsRaw.Length; i++) {
         string[] itemDataRaw = itemsRaw[i].Split(',');
         items[i] = new ItemData(
-          (ItemPrefix)int.Parse(itemDataRaw[0]),
-          (ItemType)int.Parse(itemDataRaw[1]),
+          int.Parse(itemDataRaw[0]),
+          int.Parse(itemDataRaw[1]),
           int.Parse(itemDataRaw[2])
         );
       }

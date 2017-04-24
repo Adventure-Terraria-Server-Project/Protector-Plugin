@@ -225,11 +225,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             if (signIndex == -1) {
               Tile signTile = TerrariaUtils.Tiles[signLocation];
-              if (!signTile.active() || (signTile.type != (int)BlockType.Sign && signTile.type != (int)BlockType.Tombstone)) {
-                this.PluginTrace.WriteLineWarning(string.Format(
-                  "The sign data on the location {0} could not be imported because no corresponding sign does exist in the world.", 
-                  signLocation
-                ));
+              if (!signTile.active() || (signTile.type != TileID.Signs && signTile.type != TileID.Tombstones)) {
+                this.PluginTrace.WriteLineWarning(
+                  $"The sign data on the location {signLocation} could not be imported because no corresponding sign does exist in the world.");
                 continue;
               }
 

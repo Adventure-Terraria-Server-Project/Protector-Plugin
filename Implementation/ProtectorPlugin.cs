@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Terraria.ID;
 using DPoint = System.Drawing.Point;
 
 using TerrariaApi.Server;
@@ -128,12 +129,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.Config = new Configuration();
       }
 
-      // Invalidate Configuration
-      if (this.Config.ManuallyProtectableTiles[(int)BlockType.SandBlock] || this.Config.AutoProtectedTiles[(int)BlockType.SandBlock])
+      // Warn about possible unwanted configuration settings
+      if (this.Config.ManuallyProtectableTiles[TileID.Sand] || this.Config.AutoProtectedTiles[TileID.Sand])
         this.Trace.WriteLineWarning("Protector is configured to protect sand blocks, this is generally not recommended as protections will not move with falling sand and thus cause invalid protections.");
-      if (this.Config.ManuallyProtectableTiles[(int)BlockType.SiltBlock] || this.Config.AutoProtectedTiles[(int)BlockType.SiltBlock])
+      if (this.Config.ManuallyProtectableTiles[TileID.Silt] || this.Config.AutoProtectedTiles[TileID.Silt])
         this.Trace.WriteLineWarning("Protector is configured to protect silt blocks, this is generally not recommended as protections will not move with falling silt and thus cause invalid protections.");
-      if (this.Config.ManuallyProtectableTiles[(int)BlockType.IceBlock] || this.Config.AutoProtectedTiles[(int)BlockType.IceBlock])
+      if (this.Config.ManuallyProtectableTiles[TileID.MagicalIceBlock] || this.Config.AutoProtectedTiles[TileID.MagicalIceBlock])
         this.Trace.WriteLineWarning("Protector is configured to protect ice blocks, this is generally not recommended as protections will not be automatically removed when the ice block disappears.");
 
       return true;

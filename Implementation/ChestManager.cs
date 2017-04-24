@@ -68,7 +68,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
-        throw new InvalidBlockTypeException((BlockType)tile.type);
+        throw new InvalidBlockTypeException(tile.type);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetRefillChests_Permission))
         throw new MissingPermissionException(ProtectorPlugin.SetRefillChests_Permission);
@@ -140,10 +140,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (item.StackSize == 0 && fairLootPutItem) {
           try {
             bool isLocked;
-            item.Type = TerrariaUtils.Tiles.GetItemTypeFromChestStyle(TerrariaUtils.Tiles.GetChestStyle(tile, out isLocked));
-
-            item.StackSize = 1;
-            chest.Items[i] = item;
+            int keyItemType = TerrariaUtils.Tiles.GetItemTypeFromChestStyle(TerrariaUtils.Tiles.GetChestStyle(tile, out isLocked));
+            chest.Items[i] = new ItemData(keyItemType);
           } catch (ArgumentException) {}
 
           fairLootPutItem = false;
@@ -165,7 +163,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
-        throw new InvalidBlockTypeException((BlockType)tile.type);
+        throw new InvalidBlockTypeException(tile.type);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetBankChests_Permission))
         throw new MissingPermissionException(ProtectorPlugin.SetBankChests_Permission);
@@ -239,18 +237,18 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Item itemInfo = new Item();
       itemInfo.netDefaults(sellItemId);
       if (sellAmount > itemInfo.maxStack)
-        throw new ArgumentOutOfRangeException("sellAmount");
+        throw new ArgumentOutOfRangeException(nameof(sellAmount));
 
       bool isPayItemGroup = payItemIdOrGroup is string;
       if (!isPayItemGroup) {
         itemInfo.netDefaults((int)payItemIdOrGroup);
         if (payAmount > itemInfo.maxStack)
-          throw new ArgumentOutOfRangeException("payAmount");
+          throw new ArgumentOutOfRangeException(nameof(payAmount));
       }
 
       Tile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
-        throw new InvalidBlockTypeException((BlockType)tile.type);
+        throw new InvalidBlockTypeException(tile.type);
 
       if (checkPermissions && !player.Group.HasPermission(ProtectorPlugin.SetTradeChests_Permission))
         throw new MissingPermissionException(ProtectorPlugin.SetTradeChests_Permission);
