@@ -15,7 +15,7 @@ Also, if your server happens to change worlds frequently or if you just want to 
 
 Usually Terraria worlds are limited to a maximum of 1000 chests. By using Protector you may bypass this limitation, check out the comments in the configuration file to see how this is done.
 
-###How to Install
+### How to Install
 
 Note: This plugin requires [TerrariaAPI-Server](https://github.com/NyxStudios/TerrariaAPI-Server) and [TShock](https://github.com/NyxStudios/TShock) in order to work. You can't use this with a vanilla Terraria server.
 
@@ -105,3 +105,7 @@ protection of chests, signs and tombstones are not meant to be handled by Protec
 at all. 
 Do NOT try to use any chest features of Protector together with Infinite Chests 
 as this will cause mixed item data in the world file and the chest database.
+
+### Credits
+
+Icon made by [freepik](http://www.freepik.com/)
