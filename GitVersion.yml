@@ -1,0 +1,9 @@
+mode: ContinuousDelivery
+branches: 
+  pre:
+    tag: 'pre'
+major-version-bump-message: 'BREAKING CHANGE'
+minor-version-bump-message: '^feat[(:]'
+patch-version-bump-message: '^fix[(:]'
+ignore:
+  sha: []

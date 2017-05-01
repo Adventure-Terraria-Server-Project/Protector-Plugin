@@ -15,6 +15,8 @@ Also, if your server happens to change worlds frequently or if you just want to 
 
 Usually Terraria worlds are limited to a maximum of 1000 chests. By using Protector you may bypass this limitation, check out the comments in the configuration file to see how this is done.
 
+Releases of this plugin use [Semantic Versioning](http://semver.org/).
+
 ### How to Install
 
 Note: This plugin requires [TerrariaAPI-Server](https://github.com/NyxStudios/TerrariaAPI-Server) and [TShock](https://github.com/NyxStudios/TShock) in order to work. You can't use this with a vanilla Terraria server.

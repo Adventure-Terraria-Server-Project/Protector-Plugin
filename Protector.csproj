@@ -133,19 +133,19 @@
   <ItemGroup>
     <Reference Include="Mono.Data.Sqlite">
       <HintPath>References\Mono.Data.Sqlite.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MySql.Data, Version=6.9.8.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>..\packages\MySql.Data.6.9.8\lib\net45\MySql.Data.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="OTAPI">
       <HintPath>..\TShock\TerrariaServerAPI\TerrariaServerAPI\bin\Debug\OTAPI.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -197,6 +197,7 @@
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Properties\SlowCheetah\SlowCheetah.Transforms.targets" />
+    <None Include="publish.ps1" />
     <None Include="README.md" />
     <None Include="CONTRIBUTING.md" />
     <None Include="tshock\Protector\Config.xsd">
@@ -212,17 +213,17 @@
     <ProjectReference Include="..\SEconomy\SEconomyPlugin\SEconomyPlugin.csproj">
       <Project>{a3dfc107-09d3-4bc4-be73-ce7d1cc98495}</Project>
       <Name>SEconomyPlugin</Name>
-      <Private>False</Private>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\TShock\TerrariaServerAPI\TerrariaServerAPI\TerrariaServerAPI.csproj">
       <Project>{6877506e-adc6-4142-98a6-79e4fa02855a}</Project>
       <Name>TerrariaServerAPI</Name>
-      <Private>False</Private>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\TShock\TShockAPI\TShockAPI.csproj">
       <Project>{49606449-072b-4cf5-8088-aa49da586694}</Project>
       <Name>TShockAPI</Name>
-      <Private>False</Private>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
