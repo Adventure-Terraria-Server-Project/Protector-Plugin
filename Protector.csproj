@@ -198,6 +198,7 @@
     <None Include="packages.config" />
     <None Include="Properties\SlowCheetah\SlowCheetah.Transforms.targets" />
     <None Include="README.md" />
+    <None Include="CONTRIBUTING.md" />
     <None Include="tshock\Protector\Config.xsd">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
