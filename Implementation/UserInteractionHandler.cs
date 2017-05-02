@@ -2062,7 +2062,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       switch (pageNumber) {
         default:
-          args.Player.SendMessage("Command reference for /tradechest (Page 1 of 2)", Color.Lime);
+          args.Player.SendMessage("Command reference for /tradechest (Page 1 of 3)", Color.Lime);
           args.Player.SendMessage("/tradechest|/tchest <sell amount> <sell item> <pay amount> <pay item or group> [limit]", Color.White);
           args.Player.SendMessage("sell amount = The amount of items to sell to the player per click on the chest.", Color.LightGray);
           args.Player.SendMessage("sell item = The type of item to sell.", Color.LightGray);
