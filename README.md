@@ -88,6 +88,10 @@ To get more information about a command type `/<command> help` ingame.
   "prot_setrefillchest" is also given.
 * **prot.setrefillchest**
   Can set up a chest to automatically refill its content.
+  **prot.settradechest**
+  Can set up a trade chest to trade items with other players.
+  **prot.freetradechests**
+  Doesn't have to pay SEconomy money to set up a trade chest.
 * **prot.utility**
   Can display a summary about all chests, signs and protections of a world, can 
   lock chests, can convert all dungeon chests, sky island chests, ocean chests, 
