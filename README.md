@@ -40,6 +40,7 @@ Grab the latest release from [bin/Release](https://github.com/CoderCow/Protector
 * `/refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [-p]`
 * `/lockchest [-p]`
 * `/swapchest [-p]`
+* `/tradechest <sell amount> <sell item> <pay amount> <pay item or group> [limit]`
 * `/protector`
 * `/protector commands`
 * `/protector removeemptychests`
