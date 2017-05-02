@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("Protector Plugin")]
@@ -13,5 +13,7 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("0d1df7a2-004f-4e62-830a-49477ea0b9be")]
 
-[assembly: AssemblyVersion("1.4.0.0")]
-[assembly: AssemblyFileVersion("1.4.0.0")]
+[assembly: AssemblyVersion("1.5.0.0")]
+[assembly: AssemblyFileVersion("1.5.0.0")]
+
+[assembly: AssemblyInformationalVersion("1.5.0+6.Branch.master.Sha.c363e09dd91c555157fe85cf8bd0d6888bb145dd")]
