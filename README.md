@@ -25,21 +25,21 @@ Grab the latest release from [bin/Release](https://github.com/CoderCow/Protector
 
 ### Commands
 
-* `/protect [+p]`
-* `/deprotect [+p]`
-* `/protectioninfo [+p]`
-* `/share <player name> [+p]`
-* `/unshare <player name> [+p]`
-* `/sharegroup <group name> [+p]`
-* `/unsharegroup <group name> [+p]`
-* `/sharepublic [+p]`
-* `/unsharepublic [+p]`
+* `/protect [-p]`
+* `/deprotect [-p]`
+* `/protectioninfo [-p]`
+* `/share <player name> [-p]`
+* `/unshare <player name> [-p]`
+* `/sharegroup <group name> [-p]`
+* `/unsharegroup <group name> [-p]`
+* `/sharepublic [-p]`
+* `/unsharepublic [-p]`
 * `/bankchest <number>`
 * `/dumpbankchest`
-* `/refillchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
-* `/refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+p]`
-* `/lockchest [+p]`
-* `/swapchest [+p]`
+* `/refillchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [-p]`
+* `/refillchestmany <selector> [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [-p]`
+* `/lockchest [-p]`
+* `/swapchest [-p]`
 * `/protector`
 * `/protector commands`
 * `/protector removeemptychests`

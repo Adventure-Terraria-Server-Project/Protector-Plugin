@@ -714,10 +714,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /protect [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /protect [-p]");
           args.Player.SendInfoMessage("Type /protect help to get more help to this command.");
           return;
         }
@@ -776,10 +776,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /protect (Page 1 of 1)", Color.Lime);
-          args.Player.SendMessage("/protect|pt [+p]", Color.White);
+          args.Player.SendMessage("/protect|pt [-p]", Color.White);
           args.Player.SendMessage("Protects the selected object or block.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
@@ -795,10 +795,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /deprotect [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /deprotect [-p]");
           args.Player.SendInfoMessage("Type /deprotect help to get more help to this command.");
           return;
         }
@@ -853,10 +853,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /deprotect (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/deprotect|dp [+p]", Color.White);
+          args.Player.SendMessage("/deprotect|dp [-p]", Color.White);
           args.Player.SendMessage("Deprotects the selected object or block.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
           break;
         case 2:
@@ -877,10 +877,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /protectioninfo [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /protectioninfo [-p]");
           args.Player.SendInfoMessage("Type /protectioninfo help to get more help to this command.");
           return;
         }
@@ -935,10 +935,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /protectioninfo (Page 1 of 1)", Color.Lime);
-          args.Player.SendMessage("/protectioninfo|ptinfo|pi [+p]", Color.White);
+          args.Player.SendMessage("/protectioninfo|ptinfo|pi [-p]", Color.White);
           args.Player.SendMessage("Displays some information about the selected protection.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
           break;
       }
@@ -953,14 +953,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       if (args.Parameters.Count < 1) {
-        args.Player.SendErrorMessage("Proper syntax: /share <player name> [+p]");
+        args.Player.SendErrorMessage("Proper syntax: /share <player name> [-p]");
         args.Player.SendInfoMessage("Type /share help to get more help to this command.");
         return;
       }
 
       bool persistentMode;
       string playerName;
-      if (args.Parameters[args.Parameters.Count - 1].Equals("+p", StringComparison.InvariantCultureIgnoreCase)) {
+      if (args.Parameters[args.Parameters.Count - 1].Equals("-p", StringComparison.InvariantCultureIgnoreCase)) {
         persistentMode = true;
         playerName = args.ParamsToSingleString(0, 1);
       } else {
@@ -986,14 +986,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /share (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/share <player name> [+p]", Color.White);
+          args.Player.SendMessage("/share <player name> [-p]", Color.White);
           args.Player.SendMessage("Adds a player share to the selected protection.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("player name = The name of the player to be added. Can either be an exact user", Color.LightGray);
           args.Player.SendMessage("name or part of the name of a player being currently online.", Color.LightGray);
           break;
         case 2:
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
@@ -1015,7 +1015,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode;
       string playerName;
-      if (args.Parameters[args.Parameters.Count - 1].Equals("+p", StringComparison.InvariantCultureIgnoreCase)) {
+      if (args.Parameters[args.Parameters.Count - 1].Equals("-p", StringComparison.InvariantCultureIgnoreCase)) {
         persistentMode = true;
         playerName = args.ParamsToSingleString(0, 1);
       } else {
@@ -1044,7 +1044,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("/unshare <player name>", Color.White);
           args.Player.SendMessage("Removes a player share from the selected protection.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
           break;
         case 2:
@@ -1064,10 +1064,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /sharepublic [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /sharepublic [-p]");
           args.Player.SendInfoMessage("Type /sharepublic help to get more help to this command.");
           return;
         }
@@ -1087,10 +1087,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /sharepublic (Page 1 of 1)", Color.Lime);
-          args.Player.SendMessage("/sharepublic [+p]", Color.White);
+          args.Player.SendMessage("/sharepublic [-p]", Color.White);
           args.Player.SendMessage("Allows everyone to use the selected object.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
@@ -1106,10 +1106,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /unsharepublic [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /unsharepublic [-p]");
           args.Player.SendInfoMessage("Type /unsharepublic help to get more help to this command.");
           return;
         }
@@ -1129,10 +1129,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /unsharepublic (Page 1 of 1)", Color.Lime);
-          args.Player.SendMessage("/unsharepublic [+p]", Color.White);
+          args.Player.SendMessage("/unsharepublic [-p]", Color.White);
           args.Player.SendMessage("Revokes the permission for everyone to use the selected object.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
@@ -1154,7 +1154,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode;
       string groupName;
-      if (args.Parameters[args.Parameters.Count - 1].Equals("+p", StringComparison.InvariantCultureIgnoreCase)) {
+      if (args.Parameters[args.Parameters.Count - 1].Equals("-p", StringComparison.InvariantCultureIgnoreCase)) {
         persistentMode = true;
         groupName = args.ParamsToSingleString(0, 1);
       } else {
@@ -1182,11 +1182,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /sharegroup (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/sharegroup <group name> [+p]", Color.White);
+          args.Player.SendMessage("/sharegroup <group name> [-p]", Color.White);
           args.Player.SendMessage("Adds a group share to the selected protection.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("group name = The name of the TShock group to be added.", Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           break;
         case 2:
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
@@ -1210,7 +1210,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode;
       string groupName;
-      if (args.Parameters[args.Parameters.Count - 1].Equals("+p", StringComparison.InvariantCultureIgnoreCase)) {
+      if (args.Parameters[args.Parameters.Count - 1].Equals("-p", StringComparison.InvariantCultureIgnoreCase)) {
         persistentMode = true;
         groupName = args.ParamsToSingleString(0, 1);
       } else {
@@ -1232,11 +1232,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /unsharegroup (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/unsharegroup <group name> [+p]", Color.White);
+          args.Player.SendMessage("/unsharegroup <group name> [-p]", Color.White);
           args.Player.SendMessage("Removes a group share from the selected protection.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("group name = The name of the TShock group to be removed.", Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           break;
         case 2:
           args.Player.SendMessage("     out or any other Protector command is entered.", Color.LightGray);
@@ -1305,10 +1305,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /lockchest [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /lockchest [-p]");
           args.Player.SendInfoMessage("Type /lockchest help to get more help to this command.");
           return;
         }
@@ -1356,10 +1356,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /lockchest (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/lockchest|/lchest [+p]", Color.White);
+          args.Player.SendMessage("/lockchest|/lchest [-p]", Color.White);
           args.Player.SendMessage("Locks the selected chest so that a key is needed to open it.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
         case 2:
@@ -1378,10 +1378,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /swapchest [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /swapchest [-p]");
           args.Player.SendInfoMessage("Type /swapchest help to get more help to this command.");
           return;
         }
@@ -1431,11 +1431,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /swapchest (Page 1 of 1)", Color.Lime);
-          args.Player.SendMessage("/swapchest|/schest [+p]", Color.White);
+          args.Player.SendMessage("/swapchest|/schest [-p]", Color.White);
           args.Player.SendMessage("Swaps the data of the selected chest to the world's data or to Protector data.", Color.LightGray);
           args.Player.SendMessage("This will not change the content of the chest or its protection, its name will be removed though.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
@@ -1459,7 +1459,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       bool? autoEmpty = null;
       for (int i = 0; i < args.Parameters.Count; i++) {
         string param = args.Parameters[i];
-        if (param.Equals("+p", StringComparison.InvariantCultureIgnoreCase))
+        if (param.Equals("-p", StringComparison.InvariantCultureIgnoreCase))
           persistentMode = true;
         else if (param.Equals("+ot", StringComparison.InvariantCultureIgnoreCase))
           oneLootPerPlayer = true;
@@ -1502,7 +1502,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       if (invalidSyntax) {
-        args.Player.SendErrorMessage("Proper syntax: /refillchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+ae|-ae] [+p]");
+        args.Player.SendErrorMessage("Proper syntax: /refillchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+ae|-ae] [-p]");
         args.Player.SendErrorMessage("Type /refillchest help to get more help to this command.");
         return;
       }
@@ -1547,7 +1547,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /refillchest (Page 1 of 5)", Color.Lime);
-          args.Player.SendMessage("/refillchest|/rchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+ae|-ae] [+p]", Color.White);
+          args.Player.SendMessage("/refillchest|/rchest [time] [+ot|-ot] [+ll amount|-ll] [+al|-al] [+ae|-ae] [-p]", Color.White);
           args.Player.SendMessage("Converts a chest to a special chest which can automatically refill its content.", Color.LightGray);
           args.Player.SendMessage(string.Empty, Color.LightGray);
           args.Player.SendMessage("time = Examples: 2h, 2h30m, 2h30m10s, 1d6h etc.", Color.LightGray);
@@ -1557,7 +1557,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           args.Player.SendMessage("+ll amount = The chest can only be looted the given amount of times in total.", Color.LightGray);
           args.Player.SendMessage("+al = After being looted, the chest is automatically locked.", Color.LightGray);
           args.Player.SendMessage("+ae = After being looted, the chest is automatically emptied, regardless of content.", Color.LightGray);
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           args.Player.SendMessage("If +ot or +ll is applied, a player must be logged in in order to loot it.", Color.LightGray);
           break;
@@ -1875,10 +1875,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool persistentMode = false;
       if (args.Parameters.Count > 0) {
-        if (args.ContainsParameter("+p", StringComparison.InvariantCultureIgnoreCase)) {
+        if (args.ContainsParameter("-p", StringComparison.InvariantCultureIgnoreCase)) {
           persistentMode = true;
         } else {
-          args.Player.SendErrorMessage("Proper syntax: /dumpbankchest [+p]");
+          args.Player.SendErrorMessage("Proper syntax: /dumpbankchest [-p]");
           args.Player.SendInfoMessage("Type /dumpbankchest help to get more help to this command.");
           return;
         }
@@ -1938,12 +1938,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
       switch (pageNumber) {
         default:
           args.Player.SendMessage("Command reference for /dumpbankchest (Page 1 of 2)", Color.Lime);
-          args.Player.SendMessage("/dumpbankchest|dbchest [+p]", Color.White);
+          args.Player.SendMessage("/dumpbankchest|dbchest [-p]", Color.White);
           args.Player.SendMessage("Removes a bank chest instance but keeps its content in place actually duplicating all items.", Color.LightGray);
           args.Player.SendMessage("This allows you to use bank chests like chest-templates.", Color.LightGray);
           break;
         case 2:
-          args.Player.SendMessage("+p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
+          args.Player.SendMessage("-p = Activates persistent mode. The command will stay persistent until it times", Color.LightGray);  
           args.Player.SendMessage("     out or any other protector command is entered.", Color.LightGray);
           break;
       }
