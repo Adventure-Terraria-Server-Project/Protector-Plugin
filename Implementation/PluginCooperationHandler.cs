@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.Diagnostics.Contracts;
 using System.IO;
 using DPoint = System.Drawing.Point;
 
@@ -15,35 +16,40 @@ using Wolfje.Plugins.SEconomy.Journal;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class PluginCooperationHandler {
-    #region [Nested: InfiniteChestsChestFlags Enum]
     [Flags]
     private enum InfiniteChestsChestFlags {
       PUBLIC = 1,
       REGION = 2,
-      REFILL = 4
+      REFILL = 4,
+      BANK = 8
     }
-    #endregion
 
     private const string SeconomySomeTypeQualifiedName = "Wolfje.Plugins.SEconomy.SEconomy, Wolfje.Plugins.SEconomy";
 
     public PluginTrace PluginTrace { get; }
+    public Configuration Config { get; private set; }
+    public ChestManager ChestManager { get; private set; }
     public bool IsSeconomyAvailable { get; private set; }
 
 
-    public PluginCooperationHandler(PluginTrace pluginTrace) {
+    public PluginCooperationHandler(PluginTrace pluginTrace, Configuration config, ChestManager chestManager) {
+      Contract.Requires<ArgumentNullException>(pluginTrace != null);
+      Contract.Requires<ArgumentNullException>(config != null);
+      Contract.Requires<ArgumentNullException>(chestManager != null);
+
       this.PluginTrace = pluginTrace;
+      this.Config = config;
+      this.ChestManager = chestManager;
       
       this.IsSeconomyAvailable = (Type.GetType(SeconomySomeTypeQualifiedName, false) != null);
     }
 
     #region Infinite Chests
     public void InfiniteChests_ChestDataImport(
-      ChestManager chestManager, ProtectionManager protectionManager, 
-      out int importedChests, out int overwrittenChests, out int protectFailures
+      ChestManager chestManager, ProtectionManager protectionManager, out int importedChests, out int protectFailures
     ) {
-      string sqliteDatabaseFilePath = Path.Combine(TShock.SavePath, "chests.sqlite");
-      if (!File.Exists(sqliteDatabaseFilePath))
-        throw new FileNotFoundException("Sqlite database file not found.", sqliteDatabaseFilePath);
+      importedChests = 0;
+      protectFailures = 0;
 
       IDbConnection dbConnection = null;
       try {
@@ -61,20 +67,19 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             break;
           case "sqlite":
-            dbConnection = new SqliteConnection(
-              string.Format("uri=file://{0},Version=3", sqliteDatabaseFilePath)
-            );
+            string sqliteDatabaseFilePath = Path.Combine(TShock.SavePath, "chests.sqlite");
+            if (!File.Exists(sqliteDatabaseFilePath))
+              throw new FileNotFoundException("Sqlite database file not found.", sqliteDatabaseFilePath);
+
+            dbConnection = new SqliteConnection($"uri=file://{sqliteDatabaseFilePath},Version=3");
 
             break;
           default:
             throw new NotImplementedException("Unsupported database.");
         }
 
-        importedChests = 0;
-        overwrittenChests = 0;
-        protectFailures = 0;
         using (QueryResult reader = dbConnection.QueryReader(
-          "SELECT X, Y, Account, Flags, Items FROM Chests WHERE WorldID = @0", Main.worldID)
+          "SELECT X, Y, Account, Flags, Items, RefillTime FROM Chests WHERE WorldID = @0", Main.worldID)
         ) {
           while (reader.Read()) {
             int rawX = reader.Get<int>("X");
@@ -82,18 +87,19 @@ namespace Terraria.Plugins.CoderCow.Protector {
             string rawAccount = reader.Get<string>("Account");
             InfiniteChestsChestFlags rawFlags = (InfiniteChestsChestFlags)reader.Get<int>("Flags");
             string rawItems = reader.Get<string>("Items");
+            int refillTime = reader.Get<int>("RefillTime");
 
             if (!TerrariaUtils.Tiles.IsValidCoord(rawX, rawY))
               continue;
 
             DPoint chestLocation = new DPoint(rawX, rawY);
             Tile chestTile = TerrariaUtils.Tiles[chestLocation];
-            if (!chestTile.active() || chestTile.type != TileID.Containers || chestTile.type != TileID.Containers2) {
-              this.PluginTrace.WriteLineWarning($"The chest data on the location {chestLocation} could not be imported because no corresponding chest does exist in the world.");
+            if (!chestTile.active() || (chestTile.type != TileID.Containers && chestTile.type != TileID.Containers2 && chestTile.type != TileID.Dressers)) {
+              this.PluginTrace.WriteLineWarning($"Chest data at {chestLocation} could not be imported because no corresponding chest tiles exist in the world.");
               continue;
             }
 
-            // TSPlayer.All means that the chest must not be protected at all.
+            // TSPlayer.All = chest will not be protected
             TSPlayer owner = TSPlayer.All;
             if (!string.IsNullOrEmpty(rawAccount)) {
               User tUser = TShock.Users.GetUserByName(rawAccount);
@@ -108,38 +114,39 @@ namespace Terraria.Plugins.CoderCow.Protector {
               }
             }
 
-            int chestIndex = Chest.FindChest(rawX, rawY);
-            if (chestIndex == -1) {
-              chestIndex = Chest.CreateChest(rawX, rawY);
-            } else {
-              this.PluginTrace.WriteLineWarning(string.Format("The items of the chest {0} were overwritten.", chestLocation));
-              overwrittenChests++;
+            IChest importedChest;
+            try {
+              importedChest = this.ChestManager.ChestFromLocation(chestLocation);
+              if (importedChest == null)
+                importedChest = this.ChestManager.CreateChestData(chestLocation);
+            } catch (LimitEnforcementException) {
+              this.PluginTrace.WriteLineWarning($"Chest limit of {Main.chest.Length + this.Config.MaxProtectorChests - 1} has been reached!");
+              break;
             }
-
-            Chest tChest = Main.chest[chestIndex];
-            int[] itemArgs = new int[60];
+            
             string[] itemData = rawItems.Split(',');
-            for (int i = 0; i < 120; i++)
+            int[] itemArgs = new int[itemData.Length];
+            for (int i = 0; i < itemData.Length; i++)
               itemArgs[i] = int.Parse(itemData[i]);
 
             for (int i = 0; i < 40; i++) {
-              tChest.item[i] = new Item();
-              tChest.item[i].netDefaults(itemArgs[i * 3]);
-              tChest.item[i].prefix = (byte)itemArgs[i * 3 + 2];
-              tChest.item[i].stack = itemArgs[i * 3 + 1];
+              int type = itemArgs[i * 3];
+              int stack = itemArgs[i * 3 + 1];
+              int prefix = (byte)itemArgs[i * 3 + 2];
+
+              importedChest.Items[i] = new ItemData(prefix, type, stack);
             }
             importedChests++;
 
             if (owner != TSPlayer.All) {
               try {
-                ProtectionEntry protection = protectionManager.CreateProtection(owner, chestLocation, true, false, false);
+                ProtectionEntry protection = protectionManager.CreateProtection(owner, chestLocation, false, false, false);
                 protection.IsSharedWithEveryone = (rawFlags & InfiniteChestsChestFlags.PUBLIC) != 0;
+
                 if ((rawFlags & InfiniteChestsChestFlags.REFILL) != 0)
-                  chestManager.SetUpRefillChest(owner, chestLocation, TimeSpan.Zero);
+                  chestManager.SetUpRefillChest(owner, chestLocation, TimeSpan.FromSeconds(refillTime));
               } catch (Exception ex) {
-                this.PluginTrace.WriteLineWarning(
-                  "Failed to create protection or define refill chest at {0}:\n{1}", chestLocation, ex
-                );
+                this.PluginTrace.WriteLineWarning($"Failed to create protection or define refill chest at {chestLocation}:\n{ex}");
                 protectFailures++;
               }
             }

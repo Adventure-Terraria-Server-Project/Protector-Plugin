@@ -101,11 +101,15 @@ To get more information about a command type `/<command> help` ingame.
 
 This plugin can import chest and sign data from the Infinite Chests and Infinite
 Signs plugins. Make SURE you create world backups before using this functionality
-as those changes can otherwise not be revoked.
+as those changes can otherwise not be revoked. 
+Note that the import features aren't very well tested, especially not with more
+recent versions of the plugins.
 
-Protector might be operated together with Infinite Chests / Infinite Signs if 
-protection of chests, signs and tombstones are not meant to be handled by Protector 
-at all. 
+It's also limited to regular- and refill chests. Bank chests will not be imported. 
+Also, region chest protection and chest passwords are not supported by Protector.
+If your infinite chests database holds more than 999 chests, all exceeding chests
+**should** become protector chests.
+
 Do NOT try to use any chest features of Protector together with Infinite Chests 
 as this will cause mixed item data in the world file and the chest database.
 

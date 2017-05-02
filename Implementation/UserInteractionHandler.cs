@@ -584,24 +584,17 @@ namespace Terraria.Plugins.CoderCow.Protector {
           this.PluginTrace.WriteLineInfo("Importing InfiniteChests data...");
 
           int importedChests;
-          int overwrittenChests;
           int protectFailures;
           try {
             this.PluginCooperationHandler.InfiniteChests_ChestDataImport(
-              this.ChestManager, this.ProtectionManager, out importedChests, out overwrittenChests, out protectFailures
+              this.ChestManager, this.ProtectionManager, out importedChests, out protectFailures
             );
           } catch (FileNotFoundException ex) {
-            args.Player.SendErrorMessage(string.Format("The \"{0}\" database file was not found.", ex.FileName));
+            args.Player.SendErrorMessage($"The \"{ex.FileName}\" database file was not found.");
             return true;
           }
 
-          args.Player.SendSuccessMessage(string.Format(
-            "Imported {0} chests. {1} chests were overwritten. Failed to protect {2} chests.", 
-            importedChests, overwrittenChests, protectFailures
-          ));
-          args.Player.SendInfoMessage("If refill chests were imported they will have their timer removed and refill instantly now.");
-          args.Player.SendInfoMessage("You might want to change that by using the /refillchest command.");
-          args.Player.SendInfoMessage("Note that Protector can not take over the chest handling as long as Infinite Chests is installed.");
+          args.Player.SendSuccessMessage($"Imported {importedChests} chests. Failed to protect {protectFailures} chests.");
 
           return true;
         }

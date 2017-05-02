@@ -100,11 +100,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (!this.InitWorldMetdataHandler())
         return;
 
-      this.PluginCooperationHandler = new PluginCooperationHandler(this.Trace);
       this.ChestManager = new ChestManager(
         this.Trace, this.Config, this.ServerMetadataHandler, this.WorldMetadata, this.PluginCooperationHandler);
       this.ProtectionManager = new ProtectionManager(
         this.Trace, this.Config, this.ChestManager, this.ServerMetadataHandler, this.WorldMetadata);
+
+      this.PluginCooperationHandler = new PluginCooperationHandler(this.Trace, this.Config, this.ChestManager);
 
       this.InitUserInteractionHandler();
       this.UserInteractionHandler.EnsureProtectionData(TSPlayer.Server);
