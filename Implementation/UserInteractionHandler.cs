@@ -1685,7 +1685,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           DPoint chestLocation = new DPoint(chest.x, chest.y);
           Tile chestTile = TerrariaUtils.Tiles[chestLocation];
-          if (!chestTile.active() || chestTile.type != TileID.Containers || chestTile.type != TileID.Containers2)
+          if (!chestTile.active() || (chestTile.type != TileID.Containers && chestTile.type != TileID.Containers2))
             continue;
 
           if (TerrariaUtils.Tiles.GuessChestKind(chestLocation) != chestKindToSelect)
