@@ -247,14 +247,7 @@ function Update-TShockResource($releaseVersion, $terrariaVersion, $pluginApiVers
   $fields["version_string"] = $releaseVersion
 
   $readmeMarkdown = Get-Content $readmeFile
-  $readmeMarkdown = ($readmeMarkdown -join "`n")
-  $readmeMarkdown = $readmeMarkdown -replace "<","&lt;"
-  $readmeMarkdown = $readmeMarkdown -replace ">","&gt;"
-  $readmeHtml = ConvertFrom-Markdown -MarkdownContent ($readmeMarkdown -join "`n")
-  # make things a bit prettier because XenForo does some weird transformations to the html
-  $readmeHtml = $readmeHtml -replace "<h3>","<br><h3>"
-  $readmeHtml = $readmeHtml -replace "</p>[\s\n\r]*<p>","<br><br>"
-  $fields["message_html"] = $readmeHtml
+  $fields["message_html"] = Convert-MarkdownToHtml $readmeMarkdown
 
   # save the resource
   $response = Invoke-WebRequest -Uri "$tshockResourceUri/save" -Method Post -Body $fields -WebSession $session
@@ -267,19 +260,32 @@ function Update-TShockResource($releaseVersion, $terrariaVersion, $pluginApiVers
   $fields["download-url"] = "https://github.com/$gitHubUser/$gitHubRepoName/releases/tag/$releaseVersion"
   $fields["version-string"] = $releaseVersion
   $fields["title"] = "$releaseVersion Update"
-  $fields["message_html"] = "$releaseVersion Update"
 
   $changelogMarkdown = Get-Content $changelogFile
   # remove commit hashes
   $changelogMarkdown = $changelogMarkdown -replace "\(\[[A-Za-z0-9]+\]\([A-Za-z0-9]+\)\)",""
-
-  $changelogHtml = ConvertFrom-Markdown -MarkdownContent ($changelogMarkdown -join "`n")
-  # make things a bit prettier because XenForo does some weird transformations to the html
-  $changelogHtml = $changelogHtml -replace "<h4>","<br><h4>"
-  $fields["message_html"] = $changelogHtml
+  $fields["message_html"] = Convert-MarkdownToHtml $changelogMarkdown
 
   # post update
   $response = Invoke-WebRequest -Uri "$tshockResourceUri/save-version" -Method Post -Body $fields -WebSession $session
+}
+
+function Convert-MarkdownToHtml($markdown) {
+  $html = ConvertFrom-Markdown -MarkdownContent ($markdown -join "`n")
+
+  # make things a bit prettier because XenForo does some weird transformations to the html
+  $html = $html -replace '<p><a name=".*"></a></p>[\s\n\r]*',""
+  $html = $html -replace "</p>[\s\n\r]*<p>","<br><br>"
+  $html = $html -replace "<h3>","<br><h3>"
+  $html = $html -replace '<p><a name=".*"></a></p>[\s\n\r]*',""
+  $html = $html -replace "<h4>","<br><h4>"
+  $html = $html -replace "<h2>(.*)</h2>",'<span style="font-size: 18px"><b>$1</b></span><br>'
+  $html = $html -replace "<h3>(.*)</h3>",'<span style="font-size: 15px"><b>$1</b></span><br>'
+  $html = $html -replace "<h4>(.*)</h4>",'<span style="font-size: 14px"><b>$1</b></span><br>'
+  $html = $html -replace "</h2>[\s\n\r]*<br>","</h2><br>"
+  $html = $html -replace "</span><br>[\s\n\r]*<p>","</span><br><br><p>"
+
+  return $html
 }
 
 function Construct-FormFields($request, $formHtmlElement) {
