@@ -104,7 +104,8 @@ function Main {
   Write-Host "Release version will be $releaseVersion"
 
   $outChangelogFile = "$outDir\changelog.md"
-  Generate-Changelog $pluginApiVersion $tshockVersion $terrariaVersion $outChangelogFile
+  $gitHubUrl = "https://github.com/$gitHubUser/$gitHubRepoName"
+  Generate-Changelog $pluginApiVersion $tshockVersion $terrariaVersion $outChangelogFile $gitHubUrl
 
   $outZipFile = "$outDir\" + ($outZipFileNameFormat -f $releaseVersion,$terrariaVersion,$pluginApiVersion)
   Package-Files $outZipFile
@@ -113,10 +114,10 @@ function Main {
 
   Write-Host "Publishing to GitHub..."
   Create-GitHubRelease $releaseVersion $outChangelogFile $outZipFile
-  Start-Process "https://github.com/$gitHubUser/$gitHubRepoName/releases"
+  Start-Process "$gitHubUrl/releases"
 
   Write-Host "Updating TShock resource..."
-  Update-TShockResource $releaseVersion $terrariaVersion $pluginApiVersion $outChangelogFile
+  Update-TShockResource $releaseVersion $terrariaVersion $pluginApiVersion $outChangelogFile $gitHubUrl
   Start-Process "$tshockResourceUri/updates"
 }
 
@@ -149,13 +150,13 @@ function Update-AssemblyVersion {
   GitVersion.exe /updateassemblyinfo $assemblyInfoPath | ConvertFrom-Json
 }
 
-function Generate-Changelog($pluginApiVersion, $tshockVersion, $terrariaVersion, $outChangelogFile) {
+function Generate-Changelog($pluginApiVersion, $tshockVersion, $terrariaVersion, $outChangelogFile, $gitHubUrl) {
   if (Test-Path $outChangelogFile) {
     Remove-Item -Force $outChangelogFile
   }
 
   # clog builds a markdown changelog from all commits since the last tag
-  clog.exe --from-latest-tag --setversion $releaseVersion --outfile $outChangelogFile
+  clog.exe --from-latest-tag --setversion $releaseVersion --outfile $outChangelogFile --repository $gitHubUrl
 
   # add some custom lines to the changelog
   if ($isPrerelease) {
@@ -208,7 +209,7 @@ function Create-GitHubRelease($releaseVersion, $outChangelogFile, $outZipFile) {
   GitReleaseManager.exe publish -u $gitHubUser -p $gitHubPassword -o $gitHubRepoOwner -r $gitHubRepoName -t $releaseVersion
 }
 
-function Update-TShockResource($releaseVersion, $terrariaVersion, $pluginApiVersion, $changelogFile) {
+function Update-TShockResource($releaseVersion, $terrariaVersion, $pluginApiVersion, $changelogFile, $gitHubUrl) {
   $tshockPassword = Read-Host "Enter password for TShock XenForo user $tshockUser"
 
   # Invoke-WebRequest: https://msdn.microsoft.com/powershell/reference/5.1/microsoft.powershell.utility/Invoke-WebRequest
@@ -257,13 +258,12 @@ function Update-TShockResource($releaseVersion, $terrariaVersion, $pluginApiVers
   $formHtmlElement = $response.ParsedHtml.IHTMLDocument3_getElementsByTagName("form") | Where { $_.action.EndsWith("/save-version") }
   
   $fields = Construct-FormFields $response $formHtmlElement
-  $fields["download-url"] = "https://github.com/$gitHubUser/$gitHubRepoName/releases/tag/$releaseVersion"
+  $fields["download-url"] = "$gitHubUrl/releases/tag/$releaseVersion"
   $fields["version-string"] = $releaseVersion
   $fields["title"] = "$releaseVersion Update"
 
   $changelogMarkdown = Get-Content $changelogFile
   # remove commit hashes
-  $changelogMarkdown = $changelogMarkdown -replace "\(\[[A-Za-z0-9]+\]\([A-Za-z0-9]+\)\)",""
   $fields["message_html"] = Convert-MarkdownToHtml $changelogMarkdown
 
   # post update
