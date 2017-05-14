@@ -2335,26 +2335,48 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
 
       ProtectionEntry protection = null;
-      // Only need the first enumerated entry as we don't need the protections of adjacent blocks.
-      foreach (ProtectionEntry enumProtection in this.ProtectionManager.EnumerateProtectionEntries(chestLocation)) {
+      foreach (ProtectionEntry enumProtection in this.ProtectionManager.EnumerateProtectionEntries(chest.Location)) {
         protection = enumProtection;
         break;
       }
 
-      if (protection == null || protection.RefillChestData == null)
-        return false;
+      // Convert this chest to a world chest if it contains a key of night/light only, so that Terraria can do its
+      // thing with it.
+      if (!chest.IsWorldChest) {
+        int containedLightNightKeys = 0;
+        bool isOtherwiseEmpty = true;
+        for (int i = 0; i < Chest.maxItems; i++) {
+          ItemData chestItem = chest.Items[i];
+          if (chestItem.StackSize == 1 && (chestItem.Type == ItemID.NightKey || chestItem.Type == ItemID.LightKey)) {
+            containedLightNightKeys++;
+          } else if (chestItem.StackSize > 0) {
+            isOtherwiseEmpty = false;
+            break;
+          }
+        }
 
-      if (protection.RefillChestData.AutoEmpty && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
-        for (int i = 0; i < Chest.maxItems; i++)
-          chest.Items[i] = ItemData.None;
+        if (containedLightNightKeys == 1 && isOtherwiseEmpty) {
+          this.TrySwapChestData(null, chest.Location, out chest);
+          player.TPlayer.lastChest = chest.Index;
+        }
       }
 
-      if (
-        protection.RefillChestData.AutoLock && 
-        TerrariaUtils.Tiles.IsChestStyleLockable(chestStyle) && 
-        protection.RefillChestData.RefillTime == TimeSpan.Zero
-      )
-        TerrariaUtils.Tiles.LockChest(chestLocation);
+      if (protection == null)
+        return false;
+
+      if (protection.RefillChestData != null) {
+        if (protection.RefillChestData.AutoEmpty && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+          for (int i = 0; i < Chest.maxItems; i++)
+            chest.Items[i] = ItemData.None;
+        }
+
+        if (
+          protection.RefillChestData.AutoLock && 
+          TerrariaUtils.Tiles.IsChestStyleLockable(chestStyle) && 
+          protection.RefillChestData.RefillTime == TimeSpan.Zero
+        )
+          TerrariaUtils.Tiles.LockChest(chest.Location);
+      }
 
       return false;
     }
@@ -3344,7 +3366,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       int tileID = TerrariaUtils.Tiles[anyChestTileLocation].type;
       if (tileID != TileID.Containers && tileID != TileID.Containers2 && tileID != TileID.Dressers) {
-        player.SendErrorMessage("The selected tile is not a chest or dresser.");
+        player?.SendErrorMessage("The selected tile is not a chest or dresser.");
         return false;
       }
 
