@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using OTAPI.Tile;
 using Terraria.ID;
 using Terraria.Localization;
 using DPoint = System.Drawing.Point;
@@ -434,7 +435,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
             bool isInvalidEntry = false;
             DPoint chestLocation = new DPoint(tChest.x, tChest.y);
-            Tile chestTile = TerrariaUtils.Tiles[chestLocation];
+            ITile chestTile = TerrariaUtils.Tiles[chestLocation];
             if (chestTile.active() && (chestTile.type == TileID.Containers || chestTile.type == TileID.Containers2 || chestTile.type == TileID.Dressers)) {
               chestLocation = TerrariaUtils.Tiles.MeasureObject(chestLocation).OriginTileLocation;
               lock (this.WorldMetadata.Protections) {
@@ -1684,7 +1685,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             continue;
 
           DPoint chestLocation = new DPoint(chest.x, chest.y);
-          Tile chestTile = TerrariaUtils.Tiles[chestLocation];
+          ITile chestTile = TerrariaUtils.Tiles[chestLocation];
           if (!chestTile.active() || (chestTile.type != TileID.Containers && chestTile.type != TileID.Containers2))
             continue;
 
@@ -2090,15 +2091,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       
       switch (editType) {
         case TileEditType.PlaceTile: {
-          Tile tile = TerrariaUtils.Tiles[location];
-          if (tile == null)
-            Main.tile[location.X, location.Y] = tile = new Tile();
+          WorldGen.PlaceTile(location.X, location.Y, blockType, false, true, -1, objectStyle);
           
-          WorldGen.PlaceTile(location.X, location.Y, (int)blockType, false, true, -1, objectStyle);
+          NetMessage.SendData((int)PacketTypes.Tile, -1, player.Index, NetworkText.Empty, 1, location.X, location.Y, blockType, objectStyle);
           
-          NetMessage.SendData((int)PacketTypes.Tile, -1, player.Index, NetworkText.Empty, 1, location.X, location.Y, (int)blockType, objectStyle);
-          
-          if (this.Config.AutoProtectedTiles[(int)blockType])
+          if (this.Config.AutoProtectedTiles[blockType])
             this.TryCreateAutoProtection(player, location);
 
           return true;
@@ -2109,7 +2106,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           //if (blockType != 0)
           //  break;
 
-          Tile tile = TerrariaUtils.Tiles[location];
+          ITile tile = TerrariaUtils.Tiles[location];
           bool isChest = (tile.type == TileID.Containers || tile.type == TileID.Containers2 || tile.type == TileID.Dressers);
           foreach (ProtectionEntry protection in this.ProtectionManager.EnumerateProtectionEntries(location)) {
             // If the protection is invalid, just remove it.
@@ -2118,7 +2115,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
               continue;
             }
 
-            Tile protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
+            ITile protectedTile = TerrariaUtils.Tiles[protection.TileLocation];
             // If the protection is invalid, just remove it.
             if (!protectedTile.active() || protectedTile.type != protection.BlockType) {
               this.ProtectionManager.RemoveProtection(TSPlayer.Server, protection.TileLocation, false);
@@ -2328,7 +2325,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (chest == null)
         return false;
 
-      Tile chestTile = TerrariaUtils.Tiles[chest.Location];
+      ITile chestTile = TerrariaUtils.Tiles[chest.Location];
       bool isLocked;
       ChestStyle chestStyle = TerrariaUtils.Tiles.GetChestStyle(chestTile, out isLocked);
       if (isLocked)
@@ -2821,7 +2818,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
 
       DPoint bedTileLocation = new DPoint(spawnTileLocation.X, spawnTileLocation.Y - 1);
-      Tile spawnTile = TerrariaUtils.Tiles[bedTileLocation];
+      ITile spawnTile = TerrariaUtils.Tiles[bedTileLocation];
       bool isInvalidBedSpawn = (!spawnTile.active() || spawnTile.type != TileID.Beds);
       
       bool allowNewSpawnSet = true;
@@ -3177,7 +3174,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     private bool TryGetProtectionInfo(TSPlayer player, DPoint tileLocation, bool sendFailureMessages = true) {
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (!tile.active())
         return false;
 
@@ -3751,7 +3748,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     private void DestroyBlockOrObject(DPoint tileLocation) {
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (!tile.active())
         return;
 

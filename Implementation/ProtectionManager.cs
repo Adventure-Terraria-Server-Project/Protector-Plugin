@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Collections.ObjectModel;
 using System.Linq;
+using OTAPI.Tile;
 using Terraria.Enums;
 using Terraria.ID;
 using Terraria.ObjectData;
@@ -57,7 +58,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public IEnumerable<ProtectionEntry> EnumerateProtectionEntries(DPoint tileLocation) {
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (!tile.active())
         yield break;
 
@@ -72,10 +73,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
           DPoint leftTileLocation = new DPoint(tileLocation.X - 1, tileLocation.Y);
           DPoint rightTileLocation = new DPoint(tileLocation.X + 1, tileLocation.Y);
           DPoint bottomTileLocation = new DPoint(tileLocation.X, tileLocation.Y + 1);
-          Tile topTile = TerrariaUtils.Tiles[topTileLocation];
-          Tile leftTile = TerrariaUtils.Tiles[leftTileLocation];
-          Tile rightTile = TerrariaUtils.Tiles[rightTileLocation];
-          Tile bottomTile = TerrariaUtils.Tiles[bottomTileLocation];
+          ITile topTile = TerrariaUtils.Tiles[topTileLocation];
+          ITile leftTile = TerrariaUtils.Tiles[leftTileLocation];
+          ITile rightTile = TerrariaUtils.Tiles[rightTileLocation];
+          ITile bottomTile = TerrariaUtils.Tiles[bottomTileLocation];
           TileObjectData topTileData = TileObjectData.GetTileData(topTile);
           TileObjectData leftTileData = TileObjectData.GetTileData(leftTile);
           TileObjectData rightTileData = TileObjectData.GetTileData(rightTile);
@@ -170,7 +171,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
           if (tile.type >= TileID.ImmatureHerbs && tile.type <= TileID.BloomingHerbs) {
             // Clay Pots and their plants have a special handling - the plant should not be removable if the pot is protected.
-            Tile tileBeneath = TerrariaUtils.Tiles[tileLocation.X, tileLocation.Y + 1];
+            ITile tileBeneath = TerrariaUtils.Tiles[tileLocation.X, tileLocation.Y + 1];
             if (
               tileBeneath.type == TileID.ClayPot && 
               this.WorldMetadata.Protections.TryGetValue(new DPoint(tileLocation.X, tileLocation.Y + 1), out protection)
@@ -190,7 +191,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       for (int rx = 0; rx < measureData.Size.X; rx++) {
         DPoint absoluteLocation = measureData.OriginTileLocation.OffsetEx(rx, -1);
 
-        Tile topTile = TerrariaUtils.Tiles[absoluteLocation];
+        ITile topTile = TerrariaUtils.Tiles[absoluteLocation];
         TileObjectData topData = TileObjectData.GetTileData(topTile);
         if (topData != null && (topData.AnchorBottom.type & AnchorType.Table) != 0) {
           lock (this.WorldMetadata.Protections) {
@@ -244,7 +245,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
 
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       int blockType = tile.type;
       tileLocation = TerrariaUtils.Tiles.MeasureObject(tileLocation).OriginTileLocation;
 
@@ -284,7 +285,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool canDeprotectEverything = player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission);
       if (TerrariaUtils.Tiles.IsValidCoord(tileLocation)) {
-        Tile tile = TerrariaUtils.Tiles[tileLocation];
+        ITile tile = TerrariaUtils.Tiles[tileLocation];
         if (tile.active()) {
           if (!canDeprotectEverything && checkIfBlockTypeDeprotectableByConfig && this.Config.NotDeprotectableTiles[tile.type])
             throw new InvalidBlockTypeException(tile.type);
@@ -412,7 +413,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private void ProtectionSharePreValidation(
       TSPlayer player, DPoint tileLocation, bool shareOrUnshare, bool checkPermissions, out ProtectionEntry protection
     ) {
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       int blockType = tile.type;
       if (!ProtectionManager.IsShareableBlockType(blockType))
         throw new InvalidBlockTypeException(blockType);
@@ -485,7 +486,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         foreach (KeyValuePair<DPoint,ProtectionEntry> protectionPair in this.WorldMetadata.Protections) {
           DPoint location = protectionPair.Key;
           ProtectionEntry protection = protectionPair.Value;
-          Tile tile = TerrariaUtils.Tiles[location];
+          ITile tile = TerrariaUtils.Tiles[location];
 
           if (!tile.active() || tile.type != protection.BlockType) {
             invalidProtectionLocations.Add(location);

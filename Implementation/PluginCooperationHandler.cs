@@ -6,6 +6,7 @@ using DPoint = System.Drawing.Point;
 
 using Mono.Data.Sqlite;
 using MySql.Data.MySqlClient;
+using OTAPI.Tile;
 using Terraria.ID;
 using Terraria.Plugins.Common;
 
@@ -93,7 +94,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
               continue;
 
             DPoint chestLocation = new DPoint(rawX, rawY);
-            Tile chestTile = TerrariaUtils.Tiles[chestLocation];
+            ITile chestTile = TerrariaUtils.Tiles[chestLocation];
             if (!chestTile.active() || (chestTile.type != TileID.Containers && chestTile.type != TileID.Containers2 && chestTile.type != TileID.Dressers)) {
               this.PluginTrace.WriteLineWarning($"Chest data at {chestLocation} could not be imported because no corresponding chest tiles exist in the world.");
               continue;
@@ -231,7 +232,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             if (signIndex == -1) {
-              Tile signTile = TerrariaUtils.Tiles[signLocation];
+              ITile signTile = TerrariaUtils.Tiles[signLocation];
               if (!signTile.active() || (signTile.type != TileID.Signs && signTile.type != TileID.Tombstones)) {
                 this.PluginTrace.WriteLineWarning(
                   $"The sign data on the location {signLocation} could not be imported because no corresponding sign does exist in the world.");

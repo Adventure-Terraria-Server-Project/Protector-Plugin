@@ -5,6 +5,7 @@ using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OTAPI.Tile;
 using Terraria.ID;
 using Terraria.Plugins.Common;
 using TShockAPI;
@@ -66,7 +67,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
       Contract.Requires<ArgumentOutOfRangeException>(lootLimit == null || lootLimit >= -1);
 
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
         throw new InvalidBlockTypeException(tile.type);
 
@@ -161,7 +162,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
       Contract.Requires<ArgumentOutOfRangeException>(bankChestIndex >= 1, "bankChestIndex");
 
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
         throw new InvalidBlockTypeException(tile.type);
 
@@ -246,7 +247,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           throw new ArgumentOutOfRangeException(nameof(payAmount));
       }
 
-      Tile tile = TerrariaUtils.Tiles[tileLocation];
+      ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
         throw new InvalidBlockTypeException(tile.type);
 
@@ -377,7 +378,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public IChest ChestFromLocation(DPoint chestLocation, TSPlayer reportToPlayer = null) {
-      Tile tile = TerrariaUtils.Tiles[chestLocation];
+      ITile tile = TerrariaUtils.Tiles[chestLocation];
       if (!tile.active() || (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)) {
         reportToPlayer?.SendErrorMessage("There is no chest at this position.");
         return null;

@@ -249,7 +249,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
 
-      e.Handled = this.UserInteractionHandler.HandleObjectPlacement(e.Player, e.Location, (int)e.BlockType, e.ObjectStyle, e.Alternative, e.Random, e.Direction);
+      e.Handled = this.UserInteractionHandler.HandleObjectPlacement(e.Player, e.Location, e.BlockType, e.ObjectStyle, e.Alternative, e.Random, e.Direction);
     }
 
     private void Net_SignEdit(object sender, SignEditEventArgs e) {

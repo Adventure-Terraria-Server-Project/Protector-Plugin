@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using OTAPI.Tile;
 using DPoint = System.Drawing.Point;
 
 using Terraria.Plugins.Common;
@@ -34,7 +35,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           ProtectionEntry protection = protectionPair.Value;
 
           if (protection.BlockType == -1) {
-            Tile tile = TerrariaUtils.Tiles[location];
+            ITile tile = TerrariaUtils.Tiles[location];
             if (tile.active())
               protection.BlockType = tile.type;
           }
