@@ -2081,9 +2081,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region [Hook Handlers]
-    public override bool HandleTileEdit(
-      TSPlayer player, TileEditType editType, int blockType, DPoint location, int objectStyle
-    ) {
+    public override bool HandleTileEdit(TSPlayer player, TileEditType editType, int blockType, DPoint location, int objectStyle) {
+      return this.HandleTileEdit(player, editType, blockType, location, objectStyle, false);
+    }
+
+    /// <param name="isLate">
+    ///   if <c>true</c>, then this tile edit handler was invoked after all other plugins.
+    /// </param>
+    public bool HandleTileEdit(TSPlayer player, TileEditType editType, int blockType, DPoint location, int objectStyle, bool isLate) {
       if (this.IsDisposed)
         return false;
       if (base.HandleTileEdit(player, editType, blockType, location, objectStyle))
@@ -2091,8 +2096,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       
       switch (editType) {
         case TileEditType.PlaceTile: {
+          if (!isLate)
+            break;
+
           WorldGen.PlaceTile(location.X, location.Y, blockType, false, true, -1, objectStyle);
-          
           NetMessage.SendData((int)PacketTypes.Tile, -1, player.Index, NetworkText.Empty, 1, location.X, location.Y, blockType, objectStyle);
           
           if (this.Config.AutoProtectedTiles[blockType])

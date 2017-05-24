@@ -52,6 +52,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     protected PluginInfo PluginInfo { get; private set; }
     protected Configuration Config { get; private set; }
     protected GetDataHookHandler GetDataHookHandler { get; private set; }
+    protected GetDataHookHandler GetDataHookHandlerLate { get; private set; }
     public ChestManager ChestManager { get; private set; }
     public ProtectionManager ProtectionManager { get; private set; }
     protected UserInteractionHandler UserInteractionHandler { get; private set; }
@@ -208,10 +209,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.GetDataHookHandler != null)
         throw new InvalidOperationException("Hooks already registered.");
       
+      // this hook should ideally be registered BEFORE all other plugins
       this.GetDataHookHandler = new GetDataHookHandler(this, true);
-      this.GetDataHookHandler.InvokeTileOnObjectPlacement = false;
       this.GetDataHookHandler.TileEdit += this.Net_TileEdit;
-      this.GetDataHookHandler.ObjectPlacement += this.Net_ObjectPlacement;
       this.GetDataHookHandler.SignEdit += this.Net_SignEdit;
       this.GetDataHookHandler.SignRead += this.Net_SignRead;
       this.GetDataHookHandler.ChestPlace += this.Net_ChestPlace;
@@ -223,6 +223,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.GetDataHookHandler.HitSwitch += this.Net_HitSwitch;
       this.GetDataHookHandler.DoorUse += this.Net_DoorUse;
       this.GetDataHookHandler.QuickStackNearby += this.Net_QuickStackNearby;
+
+      // this hook should ideally be registered AFTER all other plugins
+      this.GetDataHookHandlerLate = new GetDataHookHandler(this, true, -100);
+      this.GetDataHookHandlerLate.TileEdit += this.Net_TileEditLate;
+      this.GetDataHookHandlerLate.ObjectPlacement += this.Net_ObjectPlacement;
 
       ServerApi.Hooks.GameUpdate.Register(this, this.Game_Update);
       ServerApi.Hooks.WorldSave.Register(this, this.World_SaveWorld);
@@ -243,6 +248,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
 
       e.Handled = this.UserInteractionHandler.HandleTileEdit(e.Player, e.EditType, e.BlockType, e.Location, e.ObjectStyle);
+    }
+
+    private void Net_TileEditLate(object sender, TileEditEventArgs e) {
+      if (this.isDisposed || !this.hooksEnabled || e.Handled)
+        return;
+
+      e.Handled = this.UserInteractionHandler.HandleTileEdit(e.Player, e.EditType, e.BlockType, e.Location, e.ObjectStyle, true);
     }
 
     private void Net_ObjectPlacement(object sender, ObjectPlacementEventArgs e) {
