@@ -101,12 +101,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (!this.InitWorldMetdataHandler())
         return;
 
+      this.PluginCooperationHandler = new PluginCooperationHandler(this.Trace, this.Config, this.ChestManager);
       this.ChestManager = new ChestManager(
         this.Trace, this.Config, this.ServerMetadataHandler, this.WorldMetadata, this.PluginCooperationHandler);
       this.ProtectionManager = new ProtectionManager(
         this.Trace, this.Config, this.ChestManager, this.ServerMetadataHandler, this.WorldMetadata);
 
-      this.PluginCooperationHandler = new PluginCooperationHandler(this.Trace, this.Config, this.ChestManager);
+      this.PluginCooperationHandler.ChestManager = this.ChestManager;
 
       this.InitUserInteractionHandler();
       this.UserInteractionHandler.EnsureProtectionData(TSPlayer.Server);
@@ -209,7 +210,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.GetDataHookHandler != null)
         throw new InvalidOperationException("Hooks already registered.");
       
-      // this hook should ideally be registered BEFORE all other plugins
+      // this handler should ideally be registered BEFORE all other plugins
       this.GetDataHookHandler = new GetDataHookHandler(this, true);
       this.GetDataHookHandler.TileEdit += this.Net_TileEdit;
       this.GetDataHookHandler.SignEdit += this.Net_SignEdit;
@@ -224,7 +225,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.GetDataHookHandler.DoorUse += this.Net_DoorUse;
       this.GetDataHookHandler.QuickStackNearby += this.Net_QuickStackNearby;
 
-      // this hook should ideally be registered AFTER all other plugins
+      // this handler should ideally be registered AFTER all other plugins
       this.GetDataHookHandlerLate = new GetDataHookHandler(this, true, -100);
       this.GetDataHookHandlerLate.TileEdit += this.Net_TileEditLate;
       this.GetDataHookHandlerLate.ObjectPlacement += this.Net_ObjectPlacement;

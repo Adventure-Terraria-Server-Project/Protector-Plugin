@@ -29,14 +29,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public PluginTrace PluginTrace { get; }
     public Configuration Config { get; private set; }
-    public ChestManager ChestManager { get; private set; }
+    public ChestManager ChestManager { get; set; }
     public bool IsSeconomyAvailable { get; private set; }
 
 
     public PluginCooperationHandler(PluginTrace pluginTrace, Configuration config, ChestManager chestManager) {
       Contract.Requires<ArgumentNullException>(pluginTrace != null);
       Contract.Requires<ArgumentNullException>(config != null);
-      Contract.Requires<ArgumentNullException>(chestManager != null);
 
       this.PluginTrace = pluginTrace;
       this.Config = config;
@@ -49,6 +48,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public void InfiniteChests_ChestDataImport(
       ChestManager chestManager, ProtectionManager protectionManager, out int importedChests, out int protectFailures
     ) {
+      Contract.Assert(this.ChestManager != null);
+
       importedChests = 0;
       protectFailures = 0;
 
