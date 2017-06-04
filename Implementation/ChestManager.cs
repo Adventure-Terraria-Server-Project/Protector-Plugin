@@ -170,7 +170,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw new MissingPermissionException(ProtectorPlugin.SetBankChests_Permission);
 
       if (
-        checkPermissions && !player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permision)
+        checkPermissions && !player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permission)
       ) {
         if (bankChestIndex > this.Config.MaxBankChestsPerPlayer)
           throw new ArgumentOutOfRangeException("bankChestIndex", this.Config.MaxBankChestsPerPlayer, "Global bank chest limit reached.");
@@ -268,7 +268,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw new NoChestDataException(chestLocation);
 
       bool isNewTradeChest = (protection.TradeChestData == null);
-      if (isNewTradeChest && checkPermissions && this.CooperationHandler.IsSeconomyAvailable && !player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permision)) {
+      if (isNewTradeChest && checkPermissions && this.CooperationHandler.IsSeconomyAvailable && !player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permission)) {
         if (this.CooperationHandler.Seconomy_GetBalance(player.Name) < this.Config.TradeChestPayment)
           throw new PaymentException(this.Config.TradeChestPayment);
 

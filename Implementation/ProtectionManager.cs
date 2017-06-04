@@ -206,7 +206,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public bool CheckProtectionAccess(ProtectionEntry protection, TSPlayer player, bool fullAccessRequired = false) {
       bool hasAccess = (player.IsLoggedIn && protection.Owner == player.User.ID);
       if (!hasAccess && !fullAccessRequired) {
-        hasAccess = player.Group.HasPermission(ProtectorPlugin.UseEverything_Permision);
+        hasAccess = player.Group.HasPermission(ProtectorPlugin.UseEverything_Permission);
         if (!hasAccess)
           hasAccess = protection.IsSharedWithPlayer(player);
       }

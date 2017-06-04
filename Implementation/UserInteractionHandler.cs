@@ -1772,7 +1772,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return;
       }
 
-      bool hasNoBankChestLimits = args.Player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permision);
+      bool hasNoBankChestLimits = args.Player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permission);
       if (
         chestIndex < 1 || (chestIndex > this.Config.MaxBankChestsPerPlayer && !hasNoBankChestLimits)
       ) {
@@ -2040,7 +2040,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       };
 
       string priceInfo = "";
-      if (this.PluginCooperationHandler.IsSeconomyAvailable && this.Config.TradeChestPayment > 0 && !args.Player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permision))
+      if (this.PluginCooperationHandler.IsSeconomyAvailable && this.Config.TradeChestPayment > 0 && !args.Player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permission))
         priceInfo = $" This will cost you {this.Config.TradeChestPayment} {this.PluginCooperationHandler.Seconomy_MoneyName()}";
 
       args.Player.SendInfoMessage("Open a chest to convert it into a trade chest." + priceInfo);
@@ -3608,7 +3608,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           ArgumentOutOfRangeException actualEx = (ArgumentOutOfRangeException)ex;
           if (sendMessages) {
             string messageFormat;
-            if (!player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permision))
+            if (!player.Group.HasPermission(ProtectorPlugin.NoBankChestLimits_Permission))
               messageFormat = "The bank chest number must be between 1 and {0}.";
             else
               messageFormat = "The bank chest number must be greater than 1.";
