@@ -110,7 +110,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.PluginCooperationHandler.ChestManager = this.ChestManager;
 
       this.InitUserInteractionHandler();
-      this.UserInteractionHandler.EnsureProtectionData(TSPlayer.Server);
+      this.UserInteractionHandler.EnsureProtectionData(TSPlayer.Server, true);
 
       this.hooksEnabled = true;
     }
@@ -195,7 +195,6 @@ namespace Terraria.Plugins.CoderCow.Protector {
           return null;
 
         this.Config = Configuration.Read(ProtectorPlugin.ConfigFilePath);
-
         this.ProtectionManager.Config = this.Config;
 
         return this.Config;

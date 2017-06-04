@@ -483,7 +483,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             return true;
           }
 
-          this.EnsureProtectionData(args.Player);
+          this.EnsureProtectionData(args.Player, false);
           return true;
         }
         case "summary":
@@ -3725,13 +3725,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       return false;
     }
 
-    public void EnsureProtectionData(TSPlayer player) {
+    public void EnsureProtectionData(TSPlayer player, bool resetBankChestContent) {
       int invalidProtectionsCount;
       int invalidRefillChestCount;
       int invalidBankChestCount;
 
       this.ProtectionManager.EnsureProtectionData(
-        false, out invalidProtectionsCount, out invalidRefillChestCount, out invalidBankChestCount);
+        resetBankChestContent, out invalidProtectionsCount, out invalidRefillChestCount, out invalidBankChestCount);
 
       if (player != TSPlayer.Server) {
         if (invalidProtectionsCount > 0)
