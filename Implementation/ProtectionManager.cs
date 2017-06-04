@@ -57,6 +57,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
       this.WorldMetadata = worldMetadata;
     }
 
+    public ProtectionEntry GetProtectionAt(DPoint tileLocation) {
+      foreach (ProtectionEntry protection in this.EnumerateProtectionEntries(tileLocation))
+        return protection;
+
+      return null;
+    }
+
     public IEnumerable<ProtectionEntry> EnumerateProtectionEntries(DPoint tileLocation) {
       ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (!tile.active())

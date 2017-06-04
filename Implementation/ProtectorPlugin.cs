@@ -38,6 +38,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public const string BankChestShare_Permission       = "prot.bankchestshare";
     public const string NoBankChestLimits_Permission    = "prot.nobankchestlimits";
     public const string FreeTradeChests_Permission      = "prot.freetradechests";
+    public const string ScanChests_Permission           = "prot.scanchests";
     public const string Utility_Permission              = "prot.utility";
     public const string Cfg_Permission                  = "prot.cfg";
 

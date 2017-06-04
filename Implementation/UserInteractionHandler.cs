@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Xna.Framework;
 using OTAPI.Tile;
@@ -15,6 +17,7 @@ using DPoint = System.Drawing.Point;
 using Terraria.Plugins.Common;
 using Terraria.Plugins.Common.Collections;
 using TShockAPI;
+using TShockAPI.DB;
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class UserInteractionHandler: UserInteractionHandlerBase, IDisposable {
@@ -132,6 +135,15 @@ namespace Terraria.Plugins.CoderCow.Protector {
       base.RegisterCommand(
         new[] { "tradechest", "tchest" },
         this.TradeChestCommand_Exec, this.TradeChestCommand_HelpCallback, ProtectorPlugin.SetTradeChests_Permission,
+        allowServer: false
+      );
+      base.RegisterCommand(
+        new[] { "scanchests" },
+        this.ScanChestsCommand_Exec, this.ScanChestsCommand_HelpCallback, ProtectorPlugin.ScanChests_Permission
+      );
+      base.RegisterCommand(
+        new[] { "tpchest" }, 
+        this.TpChestCommand_Exec, this.TpChestCommand_HelpCallback, ProtectorPlugin.ScanChests_Permission,
         allowServer: false
       );
       #endregion
@@ -2073,6 +2085,158 @@ namespace Terraria.Plugins.CoderCow.Protector {
           break;
         case 3:
           args.Player.SendMessage("Note that prefixes are not regarded for the payment or for the item to be sold.", Color.LightGray);
+          break;
+      }
+
+      return true;
+    }
+    #endregion
+
+    private readonly ConditionalWeakTable<TSPlayer, DPoint[]> scanChestsResults = new ConditionalWeakTable<TSPlayer, DPoint[]>();
+    #region [Command Handling /scanchests]
+    private void ScanChestsCommand_Exec(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return;
+
+      if (args.Parameters.Count == 0) {
+        args.Player.SendErrorMessage("Proper syntax: /scanchests <item name> [<page>]");
+        args.Player.SendInfoMessage("Type /scanchests help to get more information about this command.");
+        return;
+      }
+      
+      string itemNamePart;
+      int pageNumber = 1;
+      if (args.Parameters.Count == 1) {
+        itemNamePart = args.Parameters[0];
+      } else {
+        string lastParam = args.Parameters[args.Parameters.Count - 1];
+        if (lastParam.Length <= 2 && int.TryParse(lastParam, out pageNumber))
+          itemNamePart = args.ParamsToSingleString(0, 1);
+        else
+          itemNamePart = args.ParamsToSingleString();
+
+        if (pageNumber < 1) {
+          args.Player.SendErrorMessage($"\"{lastParam}\" is not a valid page number.");
+          return;
+        }
+      }
+
+      List<Item> itemsToLookup = TShock.Utils.GetItemByIdOrName(itemNamePart);
+      if (itemsToLookup.Count == 0) {
+        args.Player.SendErrorMessage($"Unable to guess a valid item type from \"{itemNamePart}\".");
+        return;
+      }
+
+      // DPoint is the chest location.
+      List<Tuple<ItemData[], DPoint>> results = new List<Tuple<ItemData[], DPoint>>();
+      foreach (IChest chest in this.ChestManager.EnumerateAllChests()) {
+        List<ItemData> matchingItems = new List<ItemData>(
+          from item in chest.Items
+          where itemsToLookup.Any(li => li.netID == item.Type)
+          select item);
+
+        if (matchingItems.Count > 0)
+          results.Add(new Tuple<ItemData[], DPoint>(matchingItems.ToArray(), chest.Location));
+      }
+
+      DPoint[] resultsChestLocations = results.Select(r => r.Item2).ToArray();
+      this.scanChestsResults.Remove(args.Player);
+      this.scanChestsResults.Add(args.Player, resultsChestLocations);
+
+      PaginationTools.SendPage(args.Player, pageNumber, results, new PaginationTools.Settings {
+        HeaderFormat = $"The Following Chests Contain \"{itemNamePart}\" (Page {{0}} of {{1}})",
+        NothingToDisplayString = $"No chest contains items matching \"{itemNamePart}\"",
+        LineTextColor = Color.LightGray,
+        MaxLinesPerPage = 10,
+        LineFormatter = (lineData, dataIndex, pageNumberLocal) => {
+          var result = (lineData as Tuple<ItemData[], DPoint>);
+          if (result == null)
+            return null;
+
+          ItemData[] foundItems = result.Item1;
+          DPoint chestLocation = result.Item2;
+
+          string foundItemsString = string.Join(" ", foundItems.Select(i => TShock.Utils.ItemTag(i.ToItem())));
+
+          string chestOwner = "{not protected}";
+          ProtectionEntry protection = this.ProtectionManager.GetProtectionAt(chestLocation);
+          if (protection != null) {
+            User tsUser = TShock.Users.GetUserByID(protection.Owner);
+            chestOwner = tsUser?.Name ?? $"{{user id: {protection.Owner}}}";
+          }
+
+          return new Tuple<string,Color>($"{dataIndex}. Chest owned by {TShock.Utils.ColorTag(chestOwner, Color.Red)} contains {foundItemsString}", Color.LightGray);
+        }
+      });
+
+      if (results.Count > 0)
+        args.Player.SendSuccessMessage("Type /tpchest <result index> to teleport to the respective chest.");
+    }
+
+    private bool ScanChestsCommand_HelpCallback(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return false;
+
+      int pageNumber;
+      if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
+        return false;
+
+      switch (pageNumber) {
+        default:
+          args.Player.SendMessage("Command reference for /scanchests (Page 1 of 1)", Color.Lime);
+          args.Player.SendMessage("/scanchests <item name> [page]", Color.White);
+          args.Player.SendMessage("Searches all chests in the current world for items matching the given name. The user will be able to teleport to the chests found by this command using /tpchest.", Color.LightGray);
+          args.Player.SendMessage(string.Empty, Color.LightGray);
+          args.Player.SendMessage("item name = Part of name of the item(s) to check for.", Color.LightGray);  
+          break;
+      }
+
+      return true;
+    }
+    #endregion
+
+    #region [Command Handling /tpchest]
+    private void TpChestCommand_Exec(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return;
+
+      if (args.Parameters.Count != 1) {
+        args.Player.SendErrorMessage("Proper syntax: /tpchest <result index>");
+        args.Player.SendInfoMessage("Type /tpchest help to get more information about this command.");
+        return;
+      }
+
+      DPoint[] chestLocations;
+      if (!this.scanChestsResults.TryGetValue(args.Player, out chestLocations)) {
+        args.Player.SendErrorMessage("You have to use /scanchests before using this command.");
+        return;
+      }
+
+      int chestIndex;
+      if (!int.TryParse(args.Parameters[0], out chestIndex) || chestIndex < 1 || chestIndex > chestLocations.Length) {
+        args.Player.SendErrorMessage($"\"{args.Parameters[0]}\" is not a valid result index.");
+        return;
+      }
+
+      DPoint chestLocation = chestLocations[chestIndex - 1];
+      args.Player.Teleport(chestLocation.X * 16, chestLocation.Y * 16);
+    }
+
+    private bool TpChestCommand_HelpCallback(CommandArgs args) {
+      if (args == null || this.IsDisposed)
+        return false;
+
+      int pageNumber;
+      if (!PaginationTools.TryParsePageNumber(args.Parameters, 1, args.Player, out pageNumber))
+        return false;
+
+      switch (pageNumber) {
+        default:
+          args.Player.SendMessage("Command reference for /tpchest (Page 1 of 1)", Color.Lime);
+          args.Player.SendMessage("/tpchest <result index>", Color.White);
+          args.Player.SendMessage("Teleports you to a chest that was found by the /scanchests command.", Color.LightGray);
+          args.Player.SendMessage(string.Empty, Color.LightGray);
+          args.Player.SendMessage("result index = The index of the search result.", Color.LightGray);  
           break;
       }
 

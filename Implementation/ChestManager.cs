@@ -414,7 +414,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
     public IEnumerable<IChest> EnumerateAllChests() {
       for (int i = 0; i < Main.chest.Length; i++) {
-        if (Main.chest[i] != null)
+        if (Main.chest[i] != null && i != ChestManager.DummyChestIndex)
           yield return new ChestAdapter(i, Main.chest[i]);
       }
       
