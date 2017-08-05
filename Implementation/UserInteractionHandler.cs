@@ -2332,7 +2332,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
           }
 
-          if (isChest) {
+          // note: if the chest was a bank chest, then it was already removed
+          if (isChest && TerrariaUtils.Tiles[location].active()) {
             ObjectMeasureData measureData = TerrariaUtils.Tiles.MeasureObject(location);
             DPoint chestLocation = measureData.OriginTileLocation;
             IChest chest = this.ChestManager.ChestFromLocation(chestLocation);
