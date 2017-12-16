@@ -117,7 +117,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (refillTime != null)
         actualRefillTime = refillTime.Value;
 
-      refillChestData = new RefillChestMetadata(player.User.ID);
+      refillChestData = new RefillChestMetadata(player.Account.ID);
       refillChestData.RefillTimer = new Timer(actualRefillTime, refillChestData, this.RefillTimerCallbackHandler);
       if (oneLootPerPlayer != null)
         refillChestData.OneLootPerPlayer = oneLootPerPlayer.Value;
@@ -200,7 +200,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (protection.BankChestKey != BankChestDataKey.Invalid)
         throw new ChestTypeAlreadyDefinedException();
 
-      BankChestDataKey bankChestKey = new BankChestDataKey(player.User.ID, bankChestIndex);
+      BankChestDataKey bankChestKey = new BankChestDataKey(player.Account.ID, bankChestIndex);
       lock (this.WorldMetadata.Protections) {
         if (this.WorldMetadata.Protections.Values.Any(p => p.BankChestKey == bankChestKey))
           throw new BankChestAlreadyInstancedException();
@@ -480,7 +480,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         return false;
       }
 
-      User owner = TShock.Users.GetUserByID(protection.Owner);
+      UserAccount owner = TShock.UserAccounts.GetUserAccountByID(protection.Owner);
       if (owner == null) {
         this.DestroyChest(chest);
 

@@ -187,7 +187,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       int playerProtectionCount = 0;
       lock (this.WorldMetadata.Protections) {
         foreach (KeyValuePair<DPoint,ProtectionEntry> protection in this.WorldMetadata.Protections) {
-          if (protection.Value.Owner == args.Player.User.ID)
+          if (protection.Value.Owner == args.Player.Account.ID)
             playerProtectionCount++;
         }
       }
@@ -306,7 +306,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
               DPoint location = protectionPair.Key;
               ProtectionEntry protection = protectionPair.Value;
 
-              TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(protection.Owner);
+              TShockAPI.DB.UserAccount tsUser = TShock.UserAccounts.GetUserAccountByID(protection.Owner);
               if (tsUser == null)
                 protectionsToRemove.Add(location);
             }
@@ -974,7 +974,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         playerName = args.ParamsToSingleString();
       }
       
-      TShockAPI.DB.User tsUser;
+      TShockAPI.DB.UserAccount tsUser;
       if (!TShockEx.MatchUserByPlayerName(playerName, out tsUser, args.Player))
         return;
 
@@ -1029,7 +1029,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         playerName = args.ParamsToSingleString();
       }
 
-      TShockAPI.DB.User tsUser;
+      TShockAPI.DB.UserAccount tsUser;
       if (!TShockEx.MatchUserByPlayerName(playerName, out tsUser, args.Player))
         return;
 
@@ -2161,7 +2161,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           string chestOwner = "{not protected}";
           ProtectionEntry protection = this.ProtectionManager.GetProtectionAt(chestLocation);
           if (protection != null) {
-            User tsUser = TShock.Users.GetUserByID(protection.Owner);
+            UserAccount tsUser = TShock.UserAccounts.GetUserAccountByID(protection.Owner);
             chestOwner = tsUser?.Name ?? $"{{user id: {protection.Owner}}}";
           }
 
@@ -2294,7 +2294,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             }
 
             if (
-              protection.Owner == player.User.ID || (
+              protection.Owner == player.Account.ID || (
                 this.Config.AutoDeprotectEverythingOnDestruction &&
                 player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)
               )
@@ -2816,7 +2816,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
 
       try {
-        protection.TradeChestData.AddOrUpdateLooter(player.User.ID);
+        protection.TradeChestData.AddOrUpdateLooter(player.Account.ID);
       } catch (InvalidOperationException) {
         player.SendErrorMessage($"The vendor doesn't allow more than {protection.TradeChestData.LootLimitPerPlayer} trades per player.");
         return;
@@ -2858,7 +2858,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         // The player who set up the refill chest or masters shall modify its contents.
         if (
           this.Config.AllowRefillChestContentChanges &&
-          (refillChest.Owner == player.User.ID || player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
+          (refillChest.Owner == player.Account.ID || player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
         ) {
           refillChest.RefillItems[slotIndex] = newItem;
 
@@ -2880,8 +2880,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
         if (refillChest.OneLootPerPlayer || refillChest.RemainingLoots > 0) {
           Contract.Assert(refillChest.Looters != null);
-          if (!refillChest.Looters.Contains(player.User.ID)) {
-            refillChest.Looters.Add(player.User.ID);
+          if (!refillChest.Looters.Contains(player.Account.ID)) {
+            refillChest.Looters.Add(player.Account.ID);
 
             if (refillChest.RemainingLoots > 0)
               refillChest.RemainingLoots--;
@@ -3366,7 +3366,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool canViewExtendedInfo = (
         player.Group.HasPermission(ProtectorPlugin.ViewAllProtections_Permission) ||
-        protection.Owner == player.User.ID ||
+        protection.Owner == player.Account.ID ||
         protection.IsSharedWithPlayer(player)
       );
       
@@ -3461,7 +3461,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
               if (i > 0)
                 sharedListBuilder.Append(", ");
 
-              TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(protection.SharedUsers[i]);
+              TShockAPI.DB.UserAccount tsUser = TShock.UserAccounts.GetUserAccountByID(protection.SharedUsers[i]);
               if (tsUser != null)
                 sharedListBuilder.Append(tsUser.Name);
             }
@@ -3498,7 +3498,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     private static string GetUserName(int userId) {
-      TShockAPI.DB.User tsUser = TShock.Users.GetUserByID(userId);
+      TShockAPI.DB.UserAccount tsUser = TShock.UserAccounts.GetUserAccountByID(userId);
       if (tsUser != null)
         return tsUser.Name;
       else 
@@ -3942,7 +3942,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       if (
         !this.Config.AllowRefillChestContentChanges || 
-        (player.User.ID != refillChest.Owner && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
+        (player.Account.ID != refillChest.Owner && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission))
       ) {
         if (refillChest.RemainingLoots == 0) {
           if (sendReasonMessages)
@@ -3956,7 +3956,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           if (refillChest.Looters == null)
             refillChest.Looters = new Collection<int>();
 
-          if (refillChest.Looters.Contains(player.User.ID)) {
+          if (refillChest.Looters.Contains(player.Account.ID)) {
             if (sendReasonMessages)
               player.SendErrorMessage("This chest can be looted only once per player.");
 

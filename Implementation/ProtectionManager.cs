@@ -211,7 +211,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public bool CheckProtectionAccess(ProtectionEntry protection, TSPlayer player, bool fullAccessRequired = false) {
-      bool hasAccess = (player.IsLoggedIn && protection.Owner == player.User.ID);
+      bool hasAccess = (player.IsLoggedIn && protection.Owner == player.Account.ID);
       if (!hasAccess && !fullAccessRequired) {
         hasAccess = player.Group.HasPermission(ProtectorPlugin.UseEverything_Permission);
         if (!hasAccess)
@@ -265,7 +265,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (
         checkLimits &&
         !player.Group.HasPermission(ProtectorPlugin.NoProtectionLimits_Permission) &&
-        this.WorldMetadata.CountUserProtections(player.User.ID) >= this.Config.MaxProtectionsPerPlayerPerWorld
+        this.WorldMetadata.CountUserProtections(player.Account.ID) >= this.Config.MaxProtectionsPerPlayerPerWorld
       ) {
         throw new LimitEnforcementException();
       }
@@ -274,13 +274,13 @@ namespace Terraria.Plugins.CoderCow.Protector {
         ProtectionEntry protection;
 
         if (this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection)) {
-          if (protection.Owner == player.User.ID)
+          if (protection.Owner == player.Account.ID)
             throw new AlreadyProtectedException();
 
           throw new TileProtectedException(tileLocation);
         }
 
-        protection = new ProtectionEntry(player.User.ID, tileLocation, tile.type);
+        protection = new ProtectionEntry(player.Account.ID, tileLocation, tile.type);
         this.WorldMetadata.Protections.Add(tileLocation, protection);
 
         return protection;
@@ -306,7 +306,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         if (!this.WorldMetadata.Protections.TryGetValue(tileLocation, out protection))
           throw new NoProtectionException(tileLocation);
 
-      if (!canDeprotectEverything && protection.Owner != player.User.ID)
+      if (!canDeprotectEverything && protection.Owner != player.Account.ID)
         throw new TileProtectedException(tileLocation);
 
       if (protection.BankChestKey != BankChestDataKey.Invalid) {
@@ -358,7 +358,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         throw ex;
       }
 
-      User user = TShock.Users.GetUserByID(targetUserId);
+      UserAccount user = TShock.UserAccounts.GetUserAccountByID(targetUserId);
       if (user == null)
         throw new ArgumentException(null, "targetUserId");
 
@@ -468,7 +468,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
       }
 
-      if (protection.Owner != player.User.ID && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
+      if (protection.Owner != player.Account.ID && !player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission)) {
         if (!protection.IsSharedWithPlayer(player))
           throw new TileProtectedException(tileLocation);
 
@@ -500,7 +500,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
             continue;
           }
 
-          User owner = TShock.Users.GetUserByID(protection.Owner);
+          UserAccount owner = TShock.UserAccounts.GetUserAccountByID(protection.Owner);
           if (owner == null) {
             invalidProtectionLocations.Add(location);
             continue;
