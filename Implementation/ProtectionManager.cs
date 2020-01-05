@@ -259,7 +259,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (checkIfBlockTypeProtectableByConfig && !this.Config.ManuallyProtectableTiles[tile.type])
         throw new InvalidBlockTypeException(blockType);
 
-      if (checkTShockBuildAndRegionAccess && TShock.CheckTilePermission(player, tileLocation.X, tileLocation.Y))
+      if (checkTShockBuildAndRegionAccess && !player.HasBuildPermission(tileLocation.X, tileLocation.Y))
         throw new TileProtectedException(tileLocation);
 
       if (

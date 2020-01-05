@@ -340,7 +340,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (this.isDisposed || !this.hooksEnabled || e.Handled)
         return;
       
-      TSPlayer player = TShock.Players[e.Player];
+      TSPlayer player = e.Player;
       if (player == null || !player.IsLoggedIn)
         return;
 

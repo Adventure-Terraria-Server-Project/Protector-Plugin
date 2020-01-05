@@ -349,11 +349,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       if (tileType == TileID.Containers2)
         storageType = 4;
 
-      TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, storageType, placeLocation.X, placeLocation.Y, style, chestIndex);
+      TSPlayer.All.SendData(PacketTypes.PlaceChest, string.Empty, storageType, placeLocation.X, placeLocation.Y, style, chestIndex);
       // The client will always show open / close animations for the latest chest index. But when there are multiple chests with id 999
       // this will look awkard, so instead tell the client about another 999 chest on a location where the animation will never be noticed by the player.
       if (chestIndex == ChestManager.DummyChestIndex)
-        TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, storageType, 0, 0, style, chestIndex);
+        TSPlayer.All.SendData(PacketTypes.PlaceChest, string.Empty, storageType, 0, 0, style, chestIndex);
 
       return chest;
     }
@@ -445,7 +445,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         WorldGen.KillTile(chest.Location.X, chest.Location.Y);
-        TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 1, chest.Location.X, chest.Location.Y, 0, chestIndex);
+        TSPlayer.All.SendData(PacketTypes.PlaceChest, string.Empty, 1, chest.Location.X, chest.Location.Y, 0, chestIndex);
       }
     }
 

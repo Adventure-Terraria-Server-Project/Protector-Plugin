@@ -1168,7 +1168,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         groupName = args.ParamsToSingleString();
       }
 
-      if (TShock.Utils.GetGroup(groupName) == null) {
+      if (TShock.Groups.GetGroupByName(groupName) == null) {
         args.Player.SendErrorMessage($"The group \"{groupName}\" does not exist.");
 
         return;
@@ -3568,7 +3568,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
           //TSPlayer.All.SendData(PacketTypes.ChestName, string.Empty, chest.Index, chestLocation.X, chestLocation.Y);
 
           // Tell the client to remove the chest with the given index from its own chest array.
-          TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 1, chestLocation.X, chestLocation.Y, 0, chest.Index);
+          TSPlayer.All.SendData(PacketTypes.PlaceChest, string.Empty, 1, chestLocation.X, chestLocation.Y, 0, chest.Index);
           TSPlayer.All.SendTileSquare(chestLocation.X, chestLocation.Y, 2);
           player?.SendWarningMessage("This chest is now a Protector chest.");
         }
@@ -3928,7 +3928,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         this.ChestManager.DestroyChest(tileLocation);
       } else {
         WorldGen.KillTile(tileLocation.X, tileLocation.Y, false, false, true);
-        TSPlayer.All.SendData(PacketTypes.TileKill, string.Empty, 0, tileLocation.X, tileLocation.Y, 0, -1);
+        TSPlayer.All.SendData(PacketTypes.PlaceChest, string.Empty, 0, tileLocation.X, tileLocation.Y, 0, -1);
       }
     }
 
