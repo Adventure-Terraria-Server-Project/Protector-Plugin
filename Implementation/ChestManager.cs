@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +29,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public Configuration Config {
       get { return this.config; }
       set {
-        Contract.Requires<ArgumentNullException>(value != null);
+        if (value == null) throw new ArgumentNullException();
         this.config = value;
       }
     }
@@ -62,10 +61,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       TSPlayer player, DPoint tileLocation, TimeSpan? refillTime, bool? oneLootPerPlayer = null, int? lootLimit = null, 
       bool? autoLock = null, bool? autoEmpty = null, bool fairLoot = false, bool checkPermissions = false
     ) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
-      Contract.Requires<ArgumentOutOfRangeException>(lootLimit == null || lootLimit >= -1);
+      if (player == null) throw new ArgumentNullException();
+      if (!(TerrariaUtils.Tiles[tileLocation] != null)) throw new ArgumentException("tileLocation");
+      if (!(TerrariaUtils.Tiles[tileLocation].active())) throw new ArgumentException("tileLocation");
+      if (!(lootLimit == null || lootLimit >= -1)) throw new ArgumentOutOfRangeException();
 
       ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
@@ -157,10 +156,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public void SetUpBankChest(TSPlayer player, DPoint tileLocation, int bankChestIndex, bool checkPermissions = false) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
-      Contract.Requires<ArgumentOutOfRangeException>(bankChestIndex >= 1, "bankChestIndex");
+      if (player == null) throw new ArgumentNullException();
+      if (!(TerrariaUtils.Tiles[tileLocation] != null)) throw new ArgumentException("tileLocation");
+      if (!(TerrariaUtils.Tiles[tileLocation].active())) throw new ArgumentException("tileLocation");
+      if (!(bankChestIndex >= 1)) throw new ArgumentOutOfRangeException("bankChestIndex");
 
       ITile tile = TerrariaUtils.Tiles[tileLocation];
       if (tile.type != TileID.Containers && tile.type != TileID.Containers2 && tile.type != TileID.Dressers)
@@ -229,11 +228,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public void SetUpTradeChest(TSPlayer player, DPoint tileLocation, int sellAmount, int sellItemId, int payAmount, object payItemIdOrGroup, int lootLimit = 0, bool checkPermissions = false) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
-      Contract.Requires<ArgumentOutOfRangeException>(sellAmount > 0, "sellAmount");
-      Contract.Requires<ArgumentOutOfRangeException>(payAmount > 0, "payAmount");
+      if (player == null) throw new ArgumentNullException();
+      if (!(TerrariaUtils.Tiles[tileLocation] != null)) throw new ArgumentException("tileLocation");
+      if (!(TerrariaUtils.Tiles[tileLocation].active())) throw new ArgumentException("tileLocation");
+      if (!(sellAmount > 0)) throw new ArgumentOutOfRangeException("sellAmount");
+      if (!(payAmount > 0)) throw new ArgumentOutOfRangeException("payAmount");
 
       Item itemInfo = new Item();
       itemInfo.netDefaults(sellItemId);
@@ -315,7 +314,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public IChest PlaceChest(ushort tileType, int style, DPoint placeLocation) {
-      Contract.Requires<ArgumentException>(tileType == TileID.Containers || tileType == TileID.Containers2 || tileType == TileID.Dressers);
+      if (!(tileType == TileID.Containers || tileType == TileID.Containers2 || tileType == TileID.Dressers))
+        throw new ArgumentException();
 
       IChest chest;
       bool isDresser = (tileType == TileID.Dressers);

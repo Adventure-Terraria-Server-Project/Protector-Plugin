@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Contracts;
 
 using Terraria.Plugins.Common;
 
@@ -19,7 +18,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public Timer RefillTimer {
       get { return this.refillTimer; }
       set {
-        Contract.Requires<ArgumentNullException>(value != null);
+        if (value == null) throw new ArgumentNullException();
         this.refillTimer = value;
       }
     }

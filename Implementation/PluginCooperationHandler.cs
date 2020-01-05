@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Data;
-using System.Diagnostics.Contracts;
 using System.IO;
 using DPoint = System.Drawing.Point;
 
@@ -34,8 +33,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
 
     public PluginCooperationHandler(PluginTrace pluginTrace, Configuration config, ChestManager chestManager) {
-      Contract.Requires<ArgumentNullException>(pluginTrace != null);
-      Contract.Requires<ArgumentNullException>(config != null);
+      if (pluginTrace == null) throw new ArgumentNullException();
+      if (config == null) throw new ArgumentNullException();
 
       this.PluginTrace = pluginTrace;
       this.Config = config;
@@ -48,7 +47,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public void InfiniteChests_ChestDataImport(
       ChestManager chestManager, ProtectionManager protectionManager, out int importedChests, out int protectFailures
     ) {
-      Contract.Assert(this.ChestManager != null);
+      //Contract.Assert(this.ChestManager != null);
 
       importedChests = 0;
       protectFailures = 0;

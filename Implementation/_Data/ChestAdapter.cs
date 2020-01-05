@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Runtime.Remoting.Messaging;
 using System.Text;
@@ -26,7 +25,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public IList<ItemData> Items { get; }
 
     public ChestAdapter(int chestIndex, Chest tChest) {
-      Contract.Requires<ArgumentNullException>(tChest != null);
+      if (tChest == null) throw new ArgumentNullException();
 
       this.Index = chestIndex;
       this.tChest = tChest;

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -38,14 +37,14 @@ namespace Terraria.Plugins.CoderCow.Protector {
       WorldMetadata worldMetadata, ProtectionManager protectionManager, ChestManager chestManager, 
       PluginCooperationHandler pluginCooperationHandler, Func<Configuration> reloadConfigurationCallback
     ): base(trace) {
-      Contract.Requires<ArgumentNullException>(trace != null);
-      Contract.Requires<ArgumentException>(!pluginInfo.Equals(PluginInfo.Empty));
-      Contract.Requires<ArgumentNullException>(config != null);
-      Contract.Requires<ArgumentNullException>(serverMetadataHandler != null);
-      Contract.Requires<ArgumentNullException>(worldMetadata != null);
-      Contract.Requires<ArgumentNullException>(protectionManager != null);
-      Contract.Requires<ArgumentNullException>(pluginCooperationHandler != null);
-      Contract.Requires<ArgumentNullException>(reloadConfigurationCallback != null);
+      if (trace == null) throw new ArgumentNullException();
+      if (!(!pluginInfo.Equals(PluginInfo.Empty))) throw new ArgumentException();
+      if (config == null) throw new ArgumentNullException();
+      if (serverMetadataHandler == null) throw new ArgumentNullException();
+      if (worldMetadata == null) throw new ArgumentNullException();
+      if (protectionManager == null) throw new ArgumentNullException();
+      if (pluginCooperationHandler == null) throw new ArgumentNullException();
+      if (reloadConfigurationCallback == null) throw new ArgumentNullException();
 
       this.PluginInfo = pluginInfo;
       this.Config = config;
@@ -2879,7 +2878,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         }
 
         if (refillChest.OneLootPerPlayer || refillChest.RemainingLoots > 0) {
-          Contract.Assert(refillChest.Looters != null);
+          //Contract.Assert(refillChest.Looters != null);
           if (!refillChest.Looters.Contains(player.Account.ID)) {
             refillChest.Looters.Add(player.Account.ID);
 

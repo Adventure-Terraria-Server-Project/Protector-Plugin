@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Collections.ObjectModel;
 using System.Linq;
 using OTAPI.Tile;
@@ -24,7 +23,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public Configuration Config {
       get { return this.config; }
       set {
-        Contract.Requires<ArgumentNullException>(value != null);
+        if (value == null) throw new ArgumentNullException();
         this.config = value;
       }
     }
@@ -248,9 +247,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
       TSPlayer player, DPoint tileLocation, bool checkIfBlockTypeProtectableByConfig = true, 
       bool checkTShockBuildAndRegionAccess = true, bool checkLimits = true
     ) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
+      if (player == null) throw new ArgumentNullException();
+      if (!(TerrariaUtils.Tiles[tileLocation] != null)) throw new ArgumentException("tileLocation");
+      if (!(TerrariaUtils.Tiles[tileLocation].active())) throw new ArgumentException("tileLocation");
 
       ITile tile = TerrariaUtils.Tiles[tileLocation];
       int blockType = tile.type;
@@ -288,7 +287,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public void RemoveProtection(TSPlayer player, DPoint tileLocation, bool checkIfBlockTypeDeprotectableByConfig = true) {
-      Contract.Requires<ArgumentNullException>(player != null);
+      if (player == null) throw new ArgumentNullException();
 
       bool canDeprotectEverything = player.Group.HasPermission(ProtectorPlugin.ProtectionMaster_Permission);
       if (TerrariaUtils.Tiles.IsValidCoord(tileLocation)) {
@@ -321,9 +320,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public void ProtectionShareAll(TSPlayer player, DPoint tileLocation, bool shareOrUnshare, bool checkPermissions = false) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
+      if (player == null) throw new ArgumentNullException();
+      if (!(TerrariaUtils.Tiles[tileLocation] != null)) throw new ArgumentException("tileLocation");
+      if (!(TerrariaUtils.Tiles[tileLocation].active())) throw new ArgumentException("tileLocation");
 
       ProtectionEntry protection;
       try {
@@ -346,9 +345,9 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public void ProtectionShareUser(
       TSPlayer player, DPoint tileLocation, int targetUserId, bool shareOrUnshare = true, bool checkPermissions = false
     ) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
+      if (player == null) throw new ArgumentNullException();
+      if (!(TerrariaUtils.Tiles[tileLocation] != null)) throw new ArgumentException("tileLocation");
+      if (!(TerrariaUtils.Tiles[tileLocation].active())) throw new ArgumentException("tileLocation");
 
       ProtectionEntry protection;
       try {
@@ -383,10 +382,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
     public void ProtectionShareGroup(
       TSPlayer player, DPoint tileLocation, string targetGroupName, bool shareOrUnshare = true, bool checkPermissions = false
     ) {
-      Contract.Requires<ArgumentNullException>(player != null);
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation] != null, "tileLocation");
-      Contract.Requires<ArgumentException>(TerrariaUtils.Tiles[tileLocation].active(), "tileLocation");
-      Contract.Requires<ArgumentNullException>(targetGroupName != null);
+      if (player == null) throw new ArgumentNullException();
+      if (!(TerrariaUtils.Tiles[tileLocation] != null)) throw new ArgumentException("tileLocation");
+      if (!(TerrariaUtils.Tiles[tileLocation].active())) throw new ArgumentException("tileLocation");
+      if (targetGroupName == null) throw new ArgumentNullException();
 
       ProtectionEntry protection;
       try {

@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using OTAPI.Tile;
 using DPoint = System.Drawing.Point;
 

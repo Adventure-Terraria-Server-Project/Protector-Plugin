@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,7 +31,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public Task<int> EnqueueGetBankChestCount() {
-      Contract.Requires<ObjectDisposedException>(!base.IsDisposed);
+      if (base.IsDisposed) throw new ObjectDisposedException(this.ToString());
 
       lock (this.workQueueLock) {
         return this.WorkQueue.EnqueueTask(() => {
@@ -53,8 +52,8 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public Task<BankChestMetadata> EnqueueGetBankChestMetadata(BankChestDataKey key) {
-      Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
-      Contract.Requires<ArgumentException>(key != BankChestDataKey.Invalid);
+      if (base.IsDisposed) throw new ObjectDisposedException(this.ToString());
+      if (!(key != BankChestDataKey.Invalid)) throw new ArgumentException();
 
       lock (this.workQueueLock) {
         return this.WorkQueue.EnqueueTask((keyLocal) => {
@@ -85,7 +84,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public Task EnqueueAddOrUpdateBankChest(BankChestDataKey key, BankChestMetadata bankChest) {
-      Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
+      if (base.IsDisposed) throw new ObjectDisposedException(this.ToString());
 
       lock (this.workQueueLock) {
         return this.WorkQueue.EnqueueTask(() => {
@@ -120,7 +119,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public Task EnqueueUpdateBankChestItem(BankChestDataKey key, int slotIndex, ItemData newItem) {
-      Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
+      if (base.IsDisposed) throw new ObjectDisposedException(this.ToString());
 
       lock (this.workQueueLock) {
         return this.WorkQueue.EnqueueTask(() => {
@@ -139,7 +138,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     }
 
     public Task EnqueueDeleteBankChestsOfUser(int userId) {
-      Contract.Requires<ObjectDisposedException>(!this.IsDisposed);
+      if (base.IsDisposed) throw new ObjectDisposedException(this.ToString());
 
       lock (this.workQueueLock) {
         return this.WorkQueue.EnqueueTask((userIdLocal) => {
