@@ -2051,8 +2051,10 @@ namespace Terraria.Plugins.CoderCow.Protector {
       };
 
       string priceInfo = "";
+      #if SEconomy
       if (this.PluginCooperationHandler.IsSeconomyAvailable && this.Config.TradeChestPayment > 0 && !args.Player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permission))
         priceInfo = $" This will cost you {this.Config.TradeChestPayment} {this.PluginCooperationHandler.Seconomy_MoneyName()}";
+      #endif
 
       args.Player.SendInfoMessage("Open a chest to convert it into a trade chest." + priceInfo);
     }
@@ -3866,9 +3868,11 @@ namespace Terraria.Plugins.CoderCow.Protector {
       } catch (MissingPermissionException) {
         if (sendMessages)
           player.SendErrorMessage("You are not allowed to define trade chests.");
+      #if SEconomy
       } catch (PaymentException ex) {
         if (sendMessages)
           player.SendErrorMessage("You don't have the necessary amount of {0} {1} to set up a trade chest!", ex.PaymentAmount, this.PluginCooperationHandler.Seconomy_MoneyName());
+      #endif
       } catch (InvalidBlockTypeException) {
         if (sendMessages)
           player.SendErrorMessage("Only chests can be converted to trade chests.");

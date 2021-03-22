@@ -11,8 +11,11 @@ using Terraria.Plugins.Common;
 
 using TShockAPI;
 using TShockAPI.DB;
+
+#if SEconomy
 using Wolfje.Plugins.SEconomy;
 using Wolfje.Plugins.SEconomy.Journal;
+#endif // SEconomy
 
 namespace Terraria.Plugins.CoderCow.Protector {
   public class PluginCooperationHandler {
@@ -276,6 +279,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     #endregion
 
     #region Seconomy
+    #if SEconomy
     public Money Seconomy_GetBalance(string playerName) => this.Seconomy_Instance().GetPlayerBankAccount(playerName).Balance;
 
     public void Seconomy_TransferToWorld(string playerName, Money amount, string journalMsg, string transactionMsg) {
@@ -297,6 +301,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       return seconomy;
     }
+    #endif // SEconomy
     #endregion
   }
 }

@@ -268,10 +268,12 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       bool isNewTradeChest = (protection.TradeChestData == null);
       if (isNewTradeChest && checkPermissions && this.CooperationHandler.IsSeconomyAvailable && !player.Group.HasPermission(ProtectorPlugin.FreeTradeChests_Permission)) {
+        #if SEconomy
         if (this.CooperationHandler.Seconomy_GetBalance(player.Name) < this.Config.TradeChestPayment)
           throw new PaymentException(this.Config.TradeChestPayment);
 
         this.CooperationHandler.Seconomy_TransferToWorld(player.Name, this.Config.TradeChestPayment, "Trade Chest", "Setup Price");
+        #endif
       }
 
       protection.TradeChestData = protection.TradeChestData ?? new TradeChestMetadata();
