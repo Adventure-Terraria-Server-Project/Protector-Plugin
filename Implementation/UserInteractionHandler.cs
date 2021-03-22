@@ -3021,7 +3021,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
         player.sY = spawnTileLocation.X;
       }
 
-      player.TPlayer.Spawn();
+      player.TPlayer.Spawn(PlayerSpawnContext.ReviveFromDeath);
       NetMessage.SendData(12, -1, player.Index, NetworkText.Empty, player.Index);
       player.Dead = false;
 
@@ -3084,7 +3084,7 @@ namespace Terraria.Plugins.CoderCow.Protector {
     private bool TryToStoreItemInNearbyChest(TSPlayer player, Vector2 playerPosition, Item itemToStore, IChest chest) {
       float quickStackRange = this.Config.QuickStackNearbyRange * 16;  
     
-      if (Chest.isLocked(chest.Location.X, chest.Location.Y))
+      if (Chest.IsLocked(chest.Location.X, chest.Location.Y))
         return false;
 
       Vector2 vector2 = new Vector2((chest.Location.X * 16 + 16), (chest.Location.Y * 16 + 16));
