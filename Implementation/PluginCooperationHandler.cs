@@ -57,16 +57,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       IDbConnection dbConnection = null;
       try {
-        switch (TShock.Config.StorageType.ToLower()) {
+        switch (TShock.Config.Settings.StorageType.ToLower()) {
           case "mysql":
-            string[] host = TShock.Config.MySqlHost.Split(':');
+            string[] host = TShock.Config.Settings.MySqlHost.Split(':');
             dbConnection = new MySqlConnection(string.Format(
               "Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
               host[0],
               host.Length == 1 ? "3306" : host[1],
-              TShock.Config.MySqlDbName,
-              TShock.Config.MySqlUsername,
-              TShock.Config.MySqlPassword
+              TShock.Config.Settings.MySqlDbName,
+              TShock.Config.Settings.MySqlUsername,
+              TShock.Config.Settings.MySqlPassword
             ));
 
             break;
@@ -171,16 +171,16 @@ namespace Terraria.Plugins.CoderCow.Protector {
 
       IDbConnection dbConnection = null;
       try {
-        switch (TShock.Config.StorageType.ToLower()) {
+        switch (TShock.Config.Settings.StorageType.ToLower()) {
           case "mysql":
-            string[] host = TShock.Config.MySqlHost.Split(':');
+            string[] host = TShock.Config.Settings.MySqlHost.Split(':');
             dbConnection = new MySqlConnection(string.Format(
               "Server={0}; Port={1}; Database={2}; Uid={3}; Pwd={4};",
               host[0],
               host.Length == 1 ? "3306" : host[1],
-              TShock.Config.MySqlDbName,
-              TShock.Config.MySqlUsername,
-              TShock.Config.MySqlPassword
+              TShock.Config.Settings.MySqlDbName,
+              TShock.Config.Settings.MySqlUsername,
+              TShock.Config.Settings.MySqlPassword
             ));
 
             break;
