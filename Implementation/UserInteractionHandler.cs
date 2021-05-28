@@ -2645,23 +2645,24 @@ namespace Terraria.Plugins.CoderCow.Protector {
       }
   
       lock (ChestManager.DummyChest) {
-        Main.chest[ChestManager.DummyChestIndex] = ChestManager.DummyChest;
-
         if (chest.IsWorldChest) {
           ChestManager.DummyChest.name = chest.Name;
           player.TPlayer.chest = chest.Index;
         } else {
+          Main.chest[ChestManager.DummyChestIndex] = ChestManager.DummyChest;
           player.TPlayer.chest = -1;
         }
 
         for (int i = 0; i < Chest.maxItems; i++) {
           ChestManager.DummyChest.item[i] = chest.Items[i].ToItem();
-          player.SendData(PacketTypes.ChestItem, string.Empty, ChestManager.DummyChestIndex, i);
+          player.SendData(PacketTypes.ChestItem, string.Empty, player.TPlayer.chest, i);
         }
 
         ChestManager.DummyChest.x = chestLocation.X;
         ChestManager.DummyChest.y = chestLocation.Y;
-        player.SendData(PacketTypes.ChestOpen, string.Empty, ChestManager.DummyChestIndex);
+        player.SendData(PacketTypes.ChestOpen, string.Empty, player.TPlayer.chest);
+        player.SendData(PacketTypes.SyncPlayerChestIndex, string.Empty, player.Index, player.TPlayer.chest);
+
         ChestManager.DummyChest.x = 0;
       }
 
