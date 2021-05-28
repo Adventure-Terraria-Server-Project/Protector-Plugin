@@ -204,7 +204,7 @@
           Use /protectioninfo to check whether a chest is stored by the world or Protector. Don't get confused here, chests must not be protected 
           at all to be stored by Protector, /pi is just the only way to display this info for the sake of developer laziness.
   -->
-  <MaxProtectorChests>500</MaxProtectorChests>
+  <MaxProtectorChests>0</MaxProtectorChests>
 
   <!--
     The amount of SEconomy money to pay for setting up a trade chest.
